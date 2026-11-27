@@ -274,6 +274,9 @@
   @keyframes mindflow-glint{from{background-position:-140% -110%}to{background-position:140% 110%}}
   @media(prefers-reduced-motion:reduce){.item-stack-icon.enchanted.loaded::after{animation:none;background-position:42% 60%}}
   @media(max-width:550px){.item-editor{padding:16px}.item-editor-overlay{padding:12px}.catalog-entry .catalog-edit{opacity:1}}
+  .craft-grid.chest-grid{grid-template-columns:repeat(9,55px);grid-template-rows:repeat(var(--chest-rows),55px)}
+  .chest-capacity{margin-left:auto;margin-right:14px;letter-spacing:0;color:#939ba9;font-weight:500}
+  #inventoryMenu{width:245px}
 </style>
 </head>
 <body>
@@ -292,7 +295,7 @@
     <button class="tool active" id="selectTool" aria-label="Auswählen und verschieben" title="Auswählen"><svg viewBox="0 0 24 24"><path d="m5 3 14 9-7 1-3 7L5 3Z"/></svg></button>
     <button class="tool" id="shapeTool" aria-label="Form hinzufügen" title="Neue Form"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="17" height="17" rx="2"/><path d="M12 8v8m-4-4h8"/></svg></button>
     <button class="tool" id="linkTool" aria-label="Verbindung erstellen" title="Verbinden"><svg viewBox="0 0 24 24"><circle cx="4" cy="18" r="2"/><circle cx="20" cy="6" r="2"/><path d="M6 17C12 17 11 7 18 7"/></svg></button>
-    <button class="tool" id="craftTool" aria-label="Crafting-Tisch hinzufügen" title="Crafting hinzufügen"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>
+    <button class="tool" id="craftTool" aria-label="Minecraft-Inventar hinzufügen" title="Minecraft-Inventare" aria-expanded="false" aria-controls="inventoryMenu"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>
     <button class="tool" id="catalogTool" aria-label="Minecraft-Items öffnen" title="Minecraft-Items"><svg viewBox="0 0 24 24"><path d="m12 2 8 5v10l-8 5-8-5V7Z M4 7l8 5 8-5M12 12v10"/></svg></button>
     <div class="sep"></div>
     <button class="tool" id="duplicateTool" aria-label="Form duplizieren" title="Duplizieren"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button>
@@ -310,9 +313,15 @@
     <button class="shape-item" data-add="triangle"><svg viewBox="0 0 24 24"><path d="M12 3 22 21H2Z"/></svg>Dreieck</button>
     <button class="shape-item" data-add="diamond"><svg viewBox="0 0 24 24"><path d="m12 2 10 10-10 10L2 12Z"/></svg>Raute</button>
   </div>
+  <div class="shape-menu" id="inventoryMenu" aria-label="Minecraft-Inventar wählen">
+    <div class="menu-label">Inventar hinzufügen</div>
+    <button class="shape-item" data-inventory="crafting"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>Crafting Table</button>
+    <button class="shape-item" data-inventory="small_chest"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M10 10v4h4v-4"/></svg>Small Chest · 27</button>
+    <button class="shape-item" data-inventory="large_chest"><svg viewBox="0 0 24 24"><rect x="1" y="5" width="22" height="15" rx="2"/><path d="M1 10h22M12 5v5M10 10v4h4v-4M12 14v6"/></svg>Large Chest · 54</button>
+  </div>
   <section class="item-panel" id="itemPanel" aria-label="Minecraft-Itemkatalog">
     <div class="item-head"><h2>Minecraft-Items</h2><button class="iconbtn" id="closeItems" title="Schließen" aria-label="Item-Auswahl schließen">✕</button></div>
-    <div class="item-hint" id="itemHint">Wähle zuerst einen Crafting-Slot oder ziehe ein Item direkt hinein.</div>
+    <div class="item-hint" id="itemHint">Wähle zuerst einen Inventar-Slot oder ziehe ein Item direkt hinein.</div>
     <div class="item-tabs" role="tablist" aria-label="Item-Kategorien">
       <button type="button" class="item-tab active" data-catalog-tab="all" role="tab" aria-selected="true" aria-controls="itemGrid">Alle Items</button>
       <button type="button" class="item-tab" data-catalog-tab="favorites" role="tab" aria-selected="false" aria-controls="itemGrid">Favoriten</button>
@@ -369,7 +378,9 @@ function normCustomItem(item){
 }
 function customItem(id){return board.customItems.find(item=>item.id===id)}
 function normItemSlot(slot){if(!slot||typeof slot!=='object'||typeof slot.id!=='string'||!/^[a-z0-9_]+$/.test(slot.id))return null;return {id:slot.id.slice(0,90),count:clamp(Math.round(Number(slot.count)||1),1,64)}}
-function normNode(n){const craft=n.kind==='craft';return {id:String(n.id||uid()).slice(0,60),kind:craft?'craft':'shape',x:clamp(Number(n.x)||0,-1e7,1e7),y:clamp(Number(n.y)||0,-1e7,1e7),w:craft?410:clamp(Number(n.w)||260,100,1000),h:craft?257:clamp(Number(n.h)||130,95,800),text:String(n.text||(craft?'Crafting':'')).slice(0,5000),recipe:craft?Array.from({length:9},(_,i)=>normItemSlot(n.recipe?.[i])):undefined,result:craft?normItemSlot(n.result):undefined,shape:types.includes(n.shape)?n.shape:'round',borderColor:validColor(n.borderColor,'#e4e8ef'),borderWidth:clamp(Number(n.borderWidth)||2,1,10),textColor:validColor(n.textColor,'#f1f2f5'),font:n.font in fonts?n.font:'sans',fontSize:clamp(Number(n.fontSize)||18,10,52),fontWeight:['400','600','700'].includes(String(n.fontWeight))?String(n.fontWeight):'400',align:['left','center','right'].includes(n.align)?n.align:'center',filled:Boolean(n.filled),fillColor:validColor(n.fillColor,'#30333b'),submapId:!craft&&/^[a-f0-9]{36}$/.test(n.submapId||'')?n.submapId:null,submapEnabled:!craft&&Boolean(n.submapEnabled)&&/^[a-f0-9]{36}$/.test(n.submapId||'')}}
+function inventoryLabel(type){return type==='small_chest'?'Small Chest':type==='large_chest'?'Large Chest':'Crafting'}
+function inventoryCount(type){return type==='small_chest'?27:type==='large_chest'?54:9}
+function normNode(n){const craft=n.kind==='craft';const inventoryType=craft&&['small_chest','large_chest'].includes(n.inventoryType)?n.inventoryType:'crafting';const chest=craft&&inventoryType!=='crafting';return {id:String(n.id||uid()).slice(0,60),kind:craft?'craft':'shape',inventoryType:craft?inventoryType:undefined,x:clamp(Number(n.x)||0,-1e7,1e7),y:clamp(Number(n.y)||0,-1e7,1e7),w:craft?(chest?584:410):clamp(Number(n.w)||260,100,1000),h:craft?(inventoryType==='large_chest'?440:257):clamp(Number(n.h)||130,95,800),text:String(n.text||(craft?inventoryLabel(inventoryType):'')).slice(0,5000),recipe:craft?Array.from({length:inventoryCount(inventoryType)},(_,i)=>normItemSlot(n.recipe?.[i])):undefined,result:craft&&!chest?normItemSlot(n.result):undefined,shape:types.includes(n.shape)?n.shape:'round',borderColor:validColor(n.borderColor,'#e4e8ef'),borderWidth:clamp(Number(n.borderWidth)||2,1,10),textColor:validColor(n.textColor,'#f1f2f5'),font:n.font in fonts?n.font:'sans',fontSize:clamp(Number(n.fontSize)||18,10,52),fontWeight:['400','600','700'].includes(String(n.fontWeight))?String(n.fontWeight):'400',align:['left','center','right'].includes(n.align)?n.align:'center',filled:Boolean(n.filled),fillColor:validColor(n.fillColor,'#30333b'),submapId:!craft&&/^[a-f0-9]{36}$/.test(n.submapId||'')?n.submapId:null,submapEnabled:!craft&&Boolean(n.submapEnabled)&&/^[a-f0-9]{36}$/.test(n.submapId||'')}}
 function normEdge(e){return {id:String(e.id||uid()).slice(0,60),from:e.from,to:e.to,color:validColor(e.color,'#afb5bf'),width:clamp(Number(e.width)||2,1,10),fromPort:sides.includes(e.fromPort)?e.fromPort:null,toPort:sides.includes(e.toPort)?e.toPort:null,style:['curve','straight','elbow'].includes(e.style)?e.style:'curve',dash:['solid','dash','dot'].includes(e.dash)?e.dash:'solid',arrow:['none','end','both'].includes(e.arrow)?e.arrow:'end'}}
 function validBoard(data){if(!data||typeof data!=='object')return null;const nodes=(Array.isArray(data.nodes)?data.nodes:[]).filter(n=>n&&typeof n.id==='string'&&Number.isFinite(n.x)&&Number.isFinite(n.y)).slice(0,1500).map(normNode);const ids=new Set(nodes.map(n=>n.id));const edges=(Array.isArray(data.edges)?data.edges:[]).filter(e=>e&&ids.has(e.from)&&ids.has(e.to)&&e.from!==e.to).slice(0,5000).map(normEdge);const favorites=(Array.isArray(data.favorites)?data.favorites:[]).filter(id=>typeof id==='string'&&id.length<=90&&(/^[a-z0-9_]+$/).test(id)).slice(0,2400);return {title:String(data.title||'Meine Mindmap').slice(0,70),nodes,edges,customItems:[...new Map((Array.isArray(data.customItems)?data.customItems:[]).slice(0,800).map(normCustomItem).filter(Boolean).map(item=>[item.id,item])).values()],favorites:[...new Set(favorites)],parent:data.parent&&/^[a-f0-9]{36}$/.test(data.parent.boardId||'')&&typeof data.parent.nodeId==='string'?{boardId:data.parent.boardId,nodeId:data.parent.nodeId,title:String(data.parent.title||'Mindmap').slice(0,70)}:null}}
 function boardFromUrl(){const s=new URLSearchParams(location.hash.replace(/^#/,''));const k=s.get('b');return /^[a-f0-9]{36}$/.test(k||'')?k:null}
@@ -567,12 +578,13 @@ document.addEventListener('error',event=>{
  if(next){img.dataset.iconStage=String(stage);img.src=next;return}
  img.style.display='none';
 },true);
-function getCraftSlot(n,key){if(!n||n.kind!=='craft')return null;return key==='out'?n.result:/^[0-8]$/.test(String(key))?n.recipe[Number(key)]:null}
+function isInventorySlot(n,key){return !!n&&n.kind==='craft'&&/^(0|[1-9][0-9]*)$/.test(String(key))&&Number(key)<n.recipe.length}
+function getCraftSlot(n,key){if(!n||n.kind!=='craft')return null;return key==='out'?(n.inventoryType==='crafting'?n.result:null):isInventorySlot(n,key)?n.recipe[Number(key)]:null}
 function assignCraftSlot(n,key,slot){if(!n||n.kind!=='craft')return false;const value=normItemSlot(slot);
- if(key==='out')n.result=value;else if(/^[0-8]$/.test(String(key)))n.recipe[Number(key)]=value;else return false;return true}
+ if(key==='out'&&n.inventoryType==='crafting')n.result=value;else if(isInventorySlot(n,key))n.recipe[Number(key)]=value;else return false;return true}
 function refreshCraftCards(){for(const el of nodeLayer.querySelectorAll('.craft-node')){const n=byId(el.dataset.id);if(n)el.querySelector('.craft-card').outerHTML=craftInnerHTML(n)}}
-function craftSlotHTML(slot,i){const key=i===9?'out':String(i);return `<button type="button" class="craft-slot ${slot?'has-item':''} ${i===9?'output':''} ${chosenSlot?.key===key?'chosen':''}" data-slot="${key}" title="${i===9?'Endprodukt':'Zutat '+(i+1)}${slot?' · '+escapeHTML(displayItemName(slot.id))+(customItem(slot.id)?.lore?' · '+escapeHTML(customItem(slot.id).lore):''):''}">${i===9?'<span class="slot-label">Ergebnis</span>':''}${slot?itemImg(slot.id):'<span class="slot-empty">+</span>'}${slot?.count>1?`<span class="slot-count">${slot.count}</span>`:''}</button>`}
-function craftInnerHTML(n){return `<div class="craft-card"><div class="craft-head"><span>${escapeHTML(n.text||'CRAFTING')}</span><span class="craft-move" aria-hidden="true">⠿</span></div><div class="craft-body"><div class="craft-grid">${n.recipe.map((slot,i)=>craftSlotHTML(slot,i)).join('')}</div><div class="craft-arrow"><svg viewBox="0 0 34 24"><path d="M2 12h28m-9-8 9 8-9 8"/></svg></div>${craftSlotHTML(n.result,9)}</div></div>`}
+function craftSlotHTML(slot,i,n){const output=i==='out';const key=output?'out':String(i);return `<button type="button" class="craft-slot ${slot?'has-item':''} ${output?'output':''} ${chosenSlot?.id===n.id&&chosenSlot?.key===key?'chosen':''}" data-slot="${key}" title="${output?'Endprodukt':(n.inventoryType==='crafting'?'Zutat ':'Slot ')+(Number(i)+1)}${slot?' · '+escapeHTML(displayItemName(slot.id))+(customItem(slot.id)?.lore?' · '+escapeHTML(customItem(slot.id).lore):''):''}">${output?'<span class="slot-label">Ergebnis</span>':''}${slot?itemImg(slot.id):'<span class="slot-empty">+</span>'}${slot?.count>1?`<span class="slot-count">${slot.count}</span>`:''}</button>`}
+function craftInnerHTML(n){const chest=n.inventoryType!=='crafting';return `<div class="craft-card"><div class="craft-head"><span>${escapeHTML(n.text||inventoryLabel(n.inventoryType))}</span>${chest?`<span class="chest-capacity">${n.recipe.length} Slots</span>`:''}<span class="craft-move" aria-hidden="true">⠿</span></div><div class="craft-body"><div class="craft-grid ${chest?'chest-grid':''}" ${chest?'style="--chest-rows:'+n.recipe.length/9+'"':''}>${n.recipe.map((slot,i)=>craftSlotHTML(slot,i,n)).join('')}</div>${chest?'':`<div class="craft-arrow"><svg viewBox="0 0 34 24"><path d="M2 12h28m-9-8 9 8-9 8"/></svg></div>${craftSlotHTML(n.result,'out',n)}`}</div></div>`}
 function refreshCraftSlots(){const id=selectedNode;if(!id)return;const n=byId(id);if(!n||n.kind!=='craft')return;const el=[...nodeLayer.children].find(x=>x.dataset.id===id);if(!el)return;el.querySelector('.craft-card').outerHTML=craftInnerHTML(n);}
 function setCraftSlot(n,key,itemId,count){if(!assignCraftSlot(n,key,itemId?{id:itemId,count:count||1}:null))return;save();refreshCraftCards();renderInspector()}
 function chooseCraftSlot(nodeId,key){const n=byId(nodeId);if(!n||n.kind!=='craft')return;selectedNode=nodeId;selectedEdge=null;chosenSlot={id:nodeId,key};if(getCraftSlot(n,key))closeCatalog();refreshSelection();if(!getCraftSlot(n,key))openCatalog();}
@@ -582,19 +594,19 @@ function focusCraftBesideCatalog(){
  if(innerWidth>=500){
   const panelWidth=Math.min(322,innerWidth-32),leftLimit=panelWidth+38,rightLimit=innerWidth-18;
   const avail=rightLimit-leftLimit;
-  if(n.w*view.scale>avail-4)view.scale=clamp((avail-4)/n.w,.64,view.scale);
+  view.scale=clamp(Math.min(view.scale,(avail-4)/n.w,(innerHeight-150)/n.h),.25,3);
   const center=leftLimit+avail/2;
   view.x=center-(n.x+n.w/2)*view.scale;
   view.y=innerHeight/2-(n.y+n.h/2)*view.scale;
  }else{
   const sheetHeight=Math.min(400,innerHeight*.55),sheetTop=innerHeight-sheetHeight-70;
-  view.scale=Math.min(view.scale,.74);
+  view.scale=clamp(Math.min(view.scale,.74,(innerWidth-24)/n.w,Math.max(100,sheetTop-80)/n.h),.25,3);
   view.x=innerWidth/2-(n.x+n.w/2)*view.scale;
   view.y=Math.max(70,(sheetTop-n.h*view.scale)/2)-(n.y*view.scale);
  }
  renderView();
 }
-function openCatalog(){const panel=$('itemPanel');panel.classList.add('show');document.querySelector('.app').classList.add('catalog-open');focusCraftBesideCatalog();$('itemHint').textContent=chosenSlot?(chosenSlot.key==='out'?'Wähle das Endprodukt – frei einstellbar für eigene Rezepte.':'Wähle eine Zutat oder ziehe sie in einen Slot.'):'Wähle einen Slot im Crafting-Feld oder ziehe ein Item hinein.'; $('itemHint').textContent+='  ★ als Favorit markieren · ✎ eigene Variante erstellen.';renderCatalog();if(!catalogLoaded)loadCatalog();}
+function openCatalog(){const panel=$('itemPanel');panel.classList.add('show');document.querySelector('.app').classList.add('catalog-open');focusCraftBesideCatalog();$('itemHint').textContent=chosenSlot?(chosenSlot.key==='out'?'Wähle das Endprodukt – frei einstellbar für eigene Rezepte.':'Wähle ein Item oder ziehe es in einen Slot.'):'Wähle einen Slot im Inventar oder ziehe ein Item hinein.'; $('itemHint').textContent+='  ★ als Favorit markieren · ✎ eigene Variante erstellen.';renderCatalog();if(!catalogLoaded)loadCatalog();}
 function closeCatalog(){$('itemPanel').classList.remove('show');document.querySelector('.app').classList.remove('catalog-open');}
 function normalizeCatalogPayload(raw){
  // 26.3-Item-Registry bevorzugen; ältere Listen nur als Reserve verwenden.
@@ -890,14 +902,14 @@ function addShape(shape='rect',pos=null){
   board.nodes.push(n);selectedNode=n.id;selectedEdge=null;$('shapeMenu').classList.remove('show');setLinkMode(false);renderNodes();save();
   // Die Form ist ausgewaehlt; Texteingabe startet erst bei einem Klick in die Form.
 }
-function addCraft(){const w=410,h=257,p=placeNext(w,h),n=normNode({id:uid(),kind:'craft',text:'CRAFTING',x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),recipe:Array(9).fill(null),result:null});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();if(innerWidth<500&&board.nodes.length===1)zoom(.74);notify('Crafting erstellt. Klicke einen Slot, um ein Item auszuwählen.')}
+function addCraft(inventoryType='crafting'){const n=normNode({id:uid(),kind:'craft',inventoryType,text:inventoryType==='crafting'?'CRAFTING':inventoryLabel(inventoryType),x:0,y:0});const p=placeNext(n.w,n.h);n.x=Math.round(p.x-n.w/2);n.y=Math.round(p.y-n.h/2);board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();if(inventoryType!=='crafting'){view.scale=clamp(Math.min(view.scale,(innerWidth-32)/n.w,(innerHeight-150)/n.h),.25,3);view.x=innerWidth/2-(n.x+n.w/2)*view.scale;view.y=innerHeight/2-(n.y+n.h/2)*view.scale;renderView()}else if(innerWidth<500&&board.nodes.length===1)zoom(.74);notify(inventoryLabel(inventoryType)+' erstellt. Klicke einen Slot, um ein Item auszuwählen.')}
 function removeSelected(){if(selectedNode){if(chosenSlot?.id===selectedNode)chosenSlot=null;board.nodes=board.nodes.filter(n=>n.id!==selectedNode);board.edges=board.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);selectedNode=null;renderNodes();save()}else if(selectedEdge){board.edges=board.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;refreshSelection();save()}else notify('Wähle zuerst eine Form oder Verbindung aus.')}
 function duplicateSelected(){const src=byId(selectedNode);if(!src){notify('Wähle eine Form zum Duplizieren aus.');return}const n={...structuredClone(src),id:uid(),x:src.x+40,y:src.y+40,submapId:null,submapEnabled:false};board.nodes.push(n);selectedNode=n.id;selectedEdge=null;renderNodes();save()}
 function menuChips(prop,items,value){return `<div class="chiprow">${items.map(([v,label])=>`<button class="chip ${v===value?'selected':''}" data-set="${prop}" data-value="${v}">${label}</button>`).join('')}</div>`}
 function colorField(label,prop,value){return `<div class="field"><label class="field-label" for="c-${prop}">${label}</label><div class="colorline"><input class="color-input" id="c-${prop}" type="color" data-set="${prop}" value="${value}"><span>${value.toUpperCase()}</span></div><div class="swatches">${colors.map(c=>`<button type="button" class="swatch" style="--c:${c}" title="${c}" data-set="${prop}" data-value="${c}"></button>`).join('')}</div></div>`}
-function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=edgeById(selectedEdge);if(!n&&!e){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');if(n&&n.kind==='craft'){const slot=chosenSlot?.id===n.id?(chosenSlot.key==='out'?n.result:n.recipe[Number(chosenSlot.key)]):null;el.innerHTML=`<div class="inspector-head"><h2>Crafting</h2><button class="iconbtn" data-close aria-label="Schließen">✕</button></div>
- <div class="field"><label class="field-label">Titel</label><input class="select" maxlength="46" data-craft-title value="${escapeHTML(n.text)}" placeholder="CRAFTING"></div>
- <p class="tiny-note">Klicke ein belegtes Feld zum Bearbeiten. Per Ziehen kannst du Items zwischen Feldern tauschen oder außerhalb des Tisches entfernen.</p>
+function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=edgeById(selectedEdge);if(!n&&!e){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');if(n&&n.kind==='craft'){const slot=chosenSlot?.id===n.id?(chosenSlot.key==='out'?n.result:n.recipe[Number(chosenSlot.key)]):null;el.innerHTML=`<div class="inspector-head"><h2>${inventoryLabel(n.inventoryType)}</h2><button class="iconbtn" data-close aria-label="Schließen">✕</button></div>
+ <div class="field"><label class="field-label">Titel</label><input class="select" maxlength="46" data-craft-title value="${escapeHTML(n.text)}" placeholder="${inventoryLabel(n.inventoryType)}"></div>
+ <p class="tiny-note">Klicke ein belegtes Feld zum Bearbeiten. Per Ziehen kannst du Items zwischen Feldern tauschen oder außerhalb des Inventars entfernen.</p>
  ${chosenSlot?.id===n.id?`<hr>${slot?`<div class="field"><label class="field-label">${escapeHTML(displayItemName(slot.id))}${customItem(slot.id)?.enchanted?' ✦':''}</label><div style="display:flex;align-items:center;gap:13px">${itemImg(slot.id)}<span class="tiny-note">${escapeHTML(customItem(slot.id)?.lore||'Minecraft-Item')}</span></div></div>`:''}<div class="field"><label class="field-label">Ausgewählter Slot</label><div class="field-inline" style="flex-wrap:wrap;justify-content:flex-start"><button class="btn" data-craft-pick>Wechseln</button>${slot?`<button class="btn" data-craft-edit>✎ Bearbeiten</button><button class="btn" data-craft-clear>Entfernen</button>`:''}</div></div>${slot?`<div class="field field-inline"><label class="field-label">Anzahl (1–64)</label><input class="number" data-craft-count type="number" min="1" max="64" value="${slot.count}"></div>`:''}`:'<div class="actions"><button class="btn" data-craft-pick>Itemkatalog öffnen</button></div>'}
  <hr><div class="actions"><button class="btn" data-duplicate>Duplizieren</button><button class="btn" data-delete>Löschen</button></div>`}
  else if(n){el.innerHTML=`<div class="inspector-head"><h2>Form gestalten</h2><button class="iconbtn" data-close aria-label="Schließen"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div>
@@ -1032,20 +1044,24 @@ window.addEventListener('pointermove',moveSlotItemDrag);
 window.addEventListener('pointerup',endSlotItemDrag);
 window.addEventListener('pointercancel',event=>{if(slotItemDrag&&event.pointerId===slotItemDrag.pointer){slotItemDrag.moved=false;endSlotItemDrag(event)}});
 
-$('craftTool').onclick=addCraft;
+function closeInventoryMenu(){ $('inventoryMenu').classList.remove('show');$('craftTool').setAttribute('aria-expanded','false') }
+$('craftTool').onclick=()=>{const menu=$('inventoryMenu');const open=menu.classList.toggle('show');$('craftTool').setAttribute('aria-expanded',String(open));$('shapeMenu').classList.remove('show');$('moreMenu').classList.remove('show')};
+$('inventoryMenu').addEventListener('click',event=>{const b=event.target.closest('[data-inventory]');if(!b)return;closeInventoryMenu();addCraft(b.dataset.inventory)});
+window.addEventListener('pointerdown',event=>{if(!event.target.closest('#inventoryMenu')&&!event.target.closest('#craftTool'))closeInventoryMenu()});
+window.addEventListener('keydown',event=>{if(event.key==='Escape')closeInventoryMenu()});
 $('catalogTool').onclick=()=>{if($('itemPanel').classList.contains('show'))closeCatalog();else openCatalog()};
 $('closeItems').onclick=$('closeItemsBottom').onclick=closeCatalog;
 $('itemSearch').addEventListener('input',()=>{catalogShown=120;renderCatalog()});
 document.querySelector('.item-tabs').addEventListener('click',event=>{const button=event.target.closest('[data-catalog-tab]');if(!button)return;catalogTab=button.dataset.catalogTab;catalogShown=120;$('itemSearch').value='';renderCatalog();$('catalogScroll').scrollTop=0});
 $('itemMore').onclick=()=>{catalogShown+=120;renderCatalog()};
 $('itemRefresh').onclick=()=>loadCatalog(true);
-$('clearCraftSlot').onclick=()=>{const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);else notify('Bitte zuerst einen Crafting-Slot auswählen.')};
-$('itemGrid').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleItemFavorite(favorite.dataset.favorite);return}const edit=event.target.closest('[data-edit-base]');if(edit){openItemEditor(edit.dataset.editBase,Boolean(chosenSlot));return}const b=event.target.closest('.catalog-item');if(!b||catalogItemDrag?.moved||performance.now()<ignoreCatalogClickUntil)return;const n=byId(chosenSlot?.id);if(!n){notify('Wähle einen Slot im Crafting-Feld oder ziehe das Item hinein.');return}setCraftSlot(n,chosenSlot.key,b.dataset.item)});
+$('clearCraftSlot').onclick=()=>{const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);else notify('Bitte zuerst einen Inventar-Slot auswählen.')};
+$('itemGrid').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleItemFavorite(favorite.dataset.favorite);return}const edit=event.target.closest('[data-edit-base]');if(edit){openItemEditor(edit.dataset.editBase,Boolean(chosenSlot));return}const b=event.target.closest('.catalog-item');if(!b||catalogItemDrag?.moved||performance.now()<ignoreCatalogClickUntil)return;const n=byId(chosenSlot?.id);if(!n){notify('Wähle einen Slot im Inventar oder ziehe das Item hinein.');return}setCraftSlot(n,chosenSlot.key,b.dataset.item)});
 let dragGhost=null,hoverSlot=null,ignoreCatalogClickUntil=0;
 function setDropHighlight(el){if(hoverSlot&&hoverSlot!==el)hoverSlot.classList.remove('drag-target');hoverSlot=el;if(el)el.classList.add('drag-target')}
 function beginCatalogDrag(event){const target=event.target.closest('[data-item]');if(!target||event.button>0)return;catalogItemDrag={pointer:event.pointerId,item:target.dataset.item,startX:event.clientX,startY:event.clientY,moved:false};try{target.setPointerCapture(event.pointerId)}catch{}}
 function moveCatalogDrag(event){if(!catalogItemDrag||catalogItemDrag.pointer!==event.pointerId)return;const drag=catalogItemDrag;if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>7)drag.moved=true;if(!drag.moved)return;event.preventDefault();if(!dragGhost){dragGhost=document.createElement('div');dragGhost.className='item-drag-ghost';dragGhost.innerHTML=itemImg(drag.item);document.body.appendChild(dragGhost)}dragGhost.style.left=event.clientX+'px';dragGhost.style.top=event.clientY+'px';const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');setDropHighlight(target||null)}
-function endCatalogDrag(event){if(!catalogItemDrag||catalogItemDrag.pointer!==event.pointerId)return;const drag=catalogItemDrag;if(drag.moved){ignoreCatalogClickUntil=performance.now()+500;const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');if(target){const n=byId(target.closest('.node')?.dataset.id);if(n){chosenSlot={id:n.id,key:target.dataset.slot};selectedNode=n.id;selectedEdge=null;setCraftSlot(n,target.dataset.slot,drag.item);refreshSelection();}}else notify('Ziehe das Item direkt auf einen Crafting-Slot.')}if(dragGhost){dragGhost.remove();dragGhost=null}setDropHighlight(null);catalogItemDrag=null;}
+function endCatalogDrag(event){if(!catalogItemDrag||catalogItemDrag.pointer!==event.pointerId)return;const drag=catalogItemDrag;if(drag.moved){ignoreCatalogClickUntil=performance.now()+500;const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');if(target){const n=byId(target.closest('.node')?.dataset.id);if(n){chosenSlot={id:n.id,key:target.dataset.slot};selectedNode=n.id;selectedEdge=null;setCraftSlot(n,target.dataset.slot,drag.item);refreshSelection();}}else notify('Ziehe das Item direkt auf einen Inventar-Slot.')}if(dragGhost){dragGhost.remove();dragGhost=null}setDropHighlight(null);catalogItemDrag=null;}
 $('itemGrid').addEventListener('pointerdown',beginCatalogDrag);
 window.addEventListener('pointermove',moveCatalogDrag);
 window.addEventListener('pointerup',endCatalogDrag);

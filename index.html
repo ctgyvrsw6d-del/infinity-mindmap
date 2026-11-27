@@ -289,6 +289,11 @@
   .craft-grid.chest-grid{grid-template-columns:repeat(9,55px);grid-template-rows:repeat(var(--chest-rows),55px)}
   .chest-capacity{margin-left:auto;margin-right:14px;letter-spacing:0;color:#939ba9;font-weight:500}
   #inventoryMenu{width:245px}
+  #shapeTextOverlay{align-items:start;justify-items:center;padding:clamp(12px,4vh,36px) 12px;touch-action:auto;overflow:auto;overscroll-behavior:contain;user-select:auto;-webkit-user-select:auto}
+  #shapeTextOverlay .item-editor{width:min(520px,100%);max-height:100%;overflow:auto;touch-action:auto}
+  #shapeTextInput{display:block;width:100%;min-height:100px;height:min(180px,28vh);font-size:16px;line-height:1.5;user-select:text;-webkit-user-select:text;touch-action:auto;resize:vertical}
+  #shapeTextOverlay .editor-actions{margin-top:12px}
+  @media(pointer:coarse){.node-text:not([readonly]){min-height:32px;cursor:text}}
 </style>
 </head>
 <body>
@@ -365,6 +370,15 @@
         <p class="tiny-note">Name, Beschreibung, Verzauberungs-Effekt und gegebenenfalls die Lederfarbe bleiben in deiner Mindmap gespeichert.</p>
         <div class="editor-actions"><button type="button" class="btn" id="editorCancel">Abbrechen</button><button type="submit" class="btn primary" id="editorSave">Eigenes Item speichern</button></div>
       </form>
+    </section>
+  </div>
+  <div class="item-editor-overlay hidden" id="shapeTextOverlay" role="presentation">
+    <section class="item-editor" role="dialog" aria-modal="true" aria-labelledby="shapeTextHeading">
+      <div class="item-editor-head"><h2 id="shapeTextHeading">Formtext bearbeiten</h2><button type="button" id="shapeTextClose" class="iconbtn" aria-label="Texteditor schließen">✕</button></div>
+      <label class="field-label" for="shapeTextInput">Text in der Form</label>
+      <textarea class="editor-input" id="shapeTextInput" maxlength="5000" rows="4" placeholder="Text eingeben …"></textarea>
+      <p class="tiny-note">Deine Änderungen werden automatisch gespeichert und direkt in der Form angezeigt.</p>
+      <div class="editor-actions"><button class="btn primary" type="button" id="shapeTextDone">Fertig</button></div>
     </section>
   </div>
   <div class="banner hidden" id="linkBanner">Verbinden: von einem Punkt zu einem anderen ziehen oder zwei Punkte antippen · Esc zum Abbrechen</div>
@@ -557,6 +571,41 @@ function layoutTextarea(ta,n){
   ta.style.height=Math.min(maxHeight,Math.max(26,ta.scrollHeight))+'px';
 }
 function exitTextEditing(){const active=document.activeElement;if(active&&active.classList?.contains('node-text'))active.blur()}
+let shapeTextId=null,shapeTextTouch=null;
+function resizeShapeTextOverlay(){
+ const overlay=$('shapeTextOverlay');if(!shapeTextId)return;
+ const vv=window.visualViewport;
+ overlay.style.top=(vv?.offsetTop||0)+'px';overlay.style.left=(vv?.offsetLeft||0)+'px';
+ overlay.style.width=(vv?.width||window.innerWidth)+'px';overlay.style.height=(vv?.height||window.innerHeight)+'px';
+ overlay.style.bottom='auto';overlay.style.right='auto';
+}
+function openShapeTextEditor(id){
+ const n=byId(id);if(!n||n.kind!=='shape'||n.submapEnabled||shapeTextId)return;
+ exitTextEditing();selectNode(id);shapeTextId=id;
+ const input=$('shapeTextInput');input.value=n.text;
+ $('shapeTextOverlay').classList.remove('hidden');resizeShapeTextOverlay();
+ try{input.focus({preventScroll:true})}catch{input.focus()}
+ try{input.setSelectionRange(input.value.length,input.value.length)}catch{}
+}
+function updateShapeText(){
+ const n=byId(shapeTextId);if(!n||n.kind!=='shape'||n.submapEnabled)return;
+ const value=$('shapeTextInput').value.slice(0,5000);if(n.text===value)return;
+ n.text=value;
+ const ta=[...nodeLayer.children].find(el=>el.dataset.id===n.id)?.querySelector('.node-text');
+ if(ta){ta.value=value;layoutTextarea(ta,n)}
+ save({group:'text:'+n.id});
+}
+function closeShapeTextEditor(){
+ if(!shapeTextId)return;updateShapeText();$('shapeTextInput').blur();shapeTextId=null;
+ $('shapeTextOverlay').classList.add('hidden');
+}
+$('shapeTextInput').addEventListener('input',updateShapeText);
+$('shapeTextDone').onclick=$('shapeTextClose').onclick=closeShapeTextEditor;
+$('shapeTextOverlay').addEventListener('click',event=>{if(event.target===$('shapeTextOverlay'))closeShapeTextEditor()});
+window.visualViewport?.addEventListener('resize',resizeShapeTextOverlay);
+window.visualViewport?.addEventListener('scroll',resizeShapeTextOverlay);
+window.addEventListener('resize',resizeShapeTextOverlay);
+
 
 const MC_FALLBACK_IDS = `stone cobblestone dirt grass_block oak_planks spruce_planks birch_planks jungle_planks acacia_planks dark_oak_planks cherry_planks mangrove_planks bamboo_planks pale_oak_planks oak_log spruce_log birch_log jungle_log acacia_log dark_oak_log cherry_log mangrove_log bamboo_block oak_stairs oak_slab oak_door oak_fence oak_sign stick crafting_table furnace smoker blast_furnace chest barrel hopper dropper dispenser observer piston sticky_piston redstone redstone_torch repeater comparator lever button stone_button cobblestone_wall stone_bricks bricks glass glass_pane tinted_glass iron_bars lantern soul_lantern torch soul_torch campfire soul_campfire bedrock obsidian crying_obsidian netherrack soul_sand soul_soil end_stone purpur_block ender_chest shulker_box beacon conduit enchanting_table anvil chipped_anvil damaged_anvil grindstone stonecutter loom cartography_table smithing_table fletching_table composter cauldron lectern bookshelf chiseled_bookshelf note_block jukebox bell clock compass recovery_compass map filled_map paper book writable_book written_book enchanted_book experience_bottle item_frame glow_item_frame painting flower_pot armor_stand lead name_tag saddle iron_horse_armor golden_horse_armor diamond_horse_armor netherite_upgrade_smithing_template nether_star dragon_egg end_crystal elytra firework_rocket firework_star tnt flint_and_steel fire_charge flint feather string wool white_wool black_wool red_wool blue_wool green_wool yellow_wool leather rabbit_hide rabbit_foot slime_ball magma_cream blaze_rod blaze_powder ghast_tear spider_eye fermented_spider_eye phantom_membrane ender_pearl ender_eye bone bone_meal gunpowder sugar egg snowball clay_ball brick nether_brick quartz amethyst_shard echo_shard prismarine_shard prismarine_crystals glowstone_dust glow_ink_sac ink_sac lapis_lazuli coal charcoal iron_ingot raw_iron raw_gold raw_copper copper_ingot gold_ingot gold_nugget iron_nugget diamond emerald netherite_ingot netherite_scrap ancient_debris redstone_block coal_block iron_block gold_block diamond_block emerald_block copper_block lapis_block quartz_block honeycomb honey_bottle honey_block slime_block wheat wheat_seeds beetroot_seeds pumpkin_seeds melon_seeds cocoa_beans carrot potato baked_potato poisonous_potato beetroot apple golden_apple enchanted_golden_apple bread cookie cake pumpkin_pie mushroom_stew rabbit_stew suspicious_stew bowl melon_slice sweet_berries glow_berries chorus_fruit dried_kelp kelp seagrass bamboo sugar_cane cactus cactus_flower pumpkin carved_pumpkin jack_o_lantern melon hay_block moss_block moss_carpet pale_moss_block vine glow_lichen oak_leaves spruce_leaves azalea flowering_azalea dandelion poppy cornflower blue_orchid allium azure_bluet oxeye_daisy lily_of_the_valley sunflower lilac rose_bush peony wither_rose pink_tulip red_tulip white_tulip orange_tulip pink_petals pitcher_plant torchflower torchflower_seeds pink_dye purple_dye red_dye blue_dye cyan_dye lime_dye black_dye white_dye orange_dye magenta_dye yellow_dye brown_dye gray_dye light_gray_dye leather_helmet leather_chestplate leather_leggings leather_boots iron_helmet iron_chestplate iron_leggings iron_boots diamond_helmet diamond_chestplate diamond_leggings diamond_boots netherite_helmet netherite_chestplate netherite_leggings netherite_boots chainmail_helmet chainmail_chestplate chainmail_leggings chainmail_boots turtle_helmet shield wooden_sword stone_sword iron_sword golden_sword diamond_sword netherite_sword wooden_pickaxe stone_pickaxe iron_pickaxe golden_pickaxe diamond_pickaxe netherite_pickaxe wooden_axe stone_axe iron_axe golden_axe diamond_axe netherite_axe wooden_shovel stone_shovel iron_shovel golden_shovel diamond_shovel netherite_shovel wooden_hoe stone_hoe iron_hoe golden_hoe diamond_hoe netherite_hoe bow crossbow trident mace fishing_rod carrot_on_a_stick warped_fungus_on_a_stick shears brush bucket water_bucket lava_bucket milk_bucket powder_snow_bucket axolotl_bucket tropical_fish_bucket cod_bucket salmon_bucket pufferfish_bucket tadpole_bucket oak_boat oak_chest_boat spruce_boat birch_boat cherry_boat mangrove_boat bamboo_raft minecart chest_minecart hopper_minecart furnace_minecart tnt_minecart rail powered_rail detector_rail activator_rail cooked_beef beef cooked_porkchop porkchop chicken cooked_chicken mutton cooked_mutton rabbit cooked_rabbit cod cooked_cod salmon cooked_salmon tropical_fish pufferfish rotten_flesh spider_eye potato kelp dried_kelp ink_sac copper_door crafter trial_key ominous_trial_key wind_charge breeze_rod armadillo_scute wolf_armor creaking_heart resin_clump resin_brick heavy_core music_disc_13 music_disc_cat music_disc_blocks music_disc_chirp music_disc_far music_disc_mall music_disc_mellohi music_disc_stal music_disc_strad music_disc_ward music_disc_11 music_disc_wait music_disc_otherside music_disc_pigstep music_disc_relic music_disc_creator music_disc_creator_music_box music_disc_precipice`.split(' ');
 // Originalgetreue, bereits als Inventarsymbole gerenderte Minecraft-Icons.
@@ -974,7 +1023,8 @@ function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=
  <hr><div class="actions"><button class="btn" data-duplicate>Duplizieren</button><button class="btn" data-delete>Löschen</button></div>`}
  else if(n){el.innerHTML=`<div class="inspector-head"><h2>Form gestalten</h2><button class="iconbtn" data-close aria-label="Schließen"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div>
  <div class="field"><label class="checkline"><input type="checkbox" data-submap-toggle ${n.submapEnabled?'checked':''}> <strong>Unter-Mindmap öffnen</strong></label><p class="tiny-note" style="margin:6px 0 9px">Beim Antippen dieser Form eine eigene Mindmap für das Thema öffnen.</p></div>
- ${n.submapEnabled?`<div class="field"><label class="field-label" for="submapText">Text / Themenname</label><input class="select" id="submapText" data-submap-text maxlength="90" value="${escapeHTML(n.text)}" placeholder="z. B. Zombie Slayer"></div><div class="field"><button class="btn" type="button" data-open-submap>↗ Unter-Mindmap öffnen</button></div><hr>`:''}
+ ${!n.submapEnabled?`<div class="field"><button type="button" class="btn" style="width:100%" data-shape-text>✎ Text bearbeiten</button></div>`:'' }
+  ${n.submapEnabled?`<div class="field"><label class="field-label" for="submapText">Text / Themenname</label><input class="select" id="submapText" data-submap-text maxlength="90" value="${escapeHTML(n.text)}" placeholder="z. B. Zombie Slayer"></div><div class="field"><button class="btn" type="button" data-open-submap>↗ Unter-Mindmap öffnen</button></div><hr>`:''}
  <div class="field"><label class="field-label">Form</label><select class="select" data-set="shape">${[['rect','Rechteck'],['round','Abgerundetes Rechteck'],['circle','Kreis'],['ellipse','Ellipse'],['triangle','Dreieck'],['diamond','Raute']].map(([v,l])=>`<option value="${v}" ${n.shape===v?'selected':''}>${l}</option>`).join('')}</select></div>
  ${colorField('Umrandung','borderColor',n.borderColor)}
  <div class="field field-inline"><label class="field-label" for="bwidth">Linienstärke</label><input class="number" id="bwidth" type="number" min="1" max="10" step="1" data-set="borderWidth" value="${n.borderWidth}"></div>
@@ -997,7 +1047,7 @@ function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=
 function applyProp(prop,val){const item=byId(selectedNode)||edgeById(selectedEdge);if(!item)return;const num=['borderWidth','fontSize','width'];if(num.includes(prop)){const parsed=Number(val);if(!Number.isFinite(parsed))return;val=clamp(parsed,prop==='fontSize'?10:1,prop==='fontSize'?52:10)}if(prop==='shape'&&!types.includes(val))return;if(['color','borderColor','textColor','fillColor'].includes(prop))val=validColor(val,item[prop]);if(prop==='filled')val=Boolean(val);item[prop]=val;if(item.shape){paintNode(item);if(prop==='shape'||prop==='filled')renderInspector()}else drawEdges();save()}
 $('inspector').addEventListener('input',event=>{if(event.target.matches('[data-submap-text]')){const n=byId(selectedNode);if(n?.kind==='shape'){n.text=event.target.value.slice(0,90);const ta=nodeLayer.querySelector('.node.selected .node-text');if(ta){ta.value=n.text;layoutTextarea(ta,n)}save({group:'submap-label:'+n.id})}return}if(event.target.matches('[data-craft-title]')){const n=byId(selectedNode);if(n?.kind==='craft'){n.text=event.target.value.slice(0,46);const title=nodeLayer.querySelector('.craft-node.selected .craft-head span');if(title)title.textContent=n.text;save({group:'craft-title:'+n.id})}return}if(event.target.matches('[data-craft-count]')){const n=byId(selectedNode),k=chosenSlot?.key;if(n?.kind==='craft'&&chosenSlot?.id===n.id){const slot=k==='out'?n.result:n.recipe[Number(k)];if(slot){slot.count=clamp(Number(event.target.value)||1,1,64);save({group:'count:'+n.id+':'+k});refreshCraftSlots()}}return}const el=event.target,prop=el.dataset.set;if(!prop)return;if(el.type==='color'||el.type==='number')applyProp(prop,el.value)});
 $('inspector').addEventListener('change',event=>{const el=event.target;if(el.matches('[data-submap-toggle]')){const n=byId(selectedNode);if(n)ensureSubmap(n,el.checked);return}const prop=el.dataset.set;if(!prop)return;applyProp(prop,el.type==='checkbox'?el.checked:el.value);if(el.type==='checkbox'||el.tagName==='SELECT')renderInspector()});
-$('inspector').addEventListener('click',event=>{if(event.target.closest('[data-open-submap]')){openSubmap(selectedNode);return}if(event.target.closest('[data-craft-pick]')){openCatalog();return}if(event.target.closest('[data-craft-edit]')){const n=byId(chosenSlot?.id);const slot=getCraftSlot(n,chosenSlot?.key);if(slot)openItemEditor(slot.id,true);return}if(event.target.closest('[data-craft-clear]')){const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);return}if(event.target.closest('[data-close]')){selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();return}if(event.target.closest('[data-delete]')){removeSelected();return}if(event.target.closest('[data-duplicate]')){duplicateSelected();return}const b=event.target.closest('button[data-set]');if(!b)return;applyProp(b.dataset.set,b.dataset.value);renderInspector()});
+$('inspector').addEventListener('click',event=>{if(event.target.closest('[data-shape-text]')){openShapeTextEditor(selectedNode);return}if(event.target.closest('[data-open-submap]')){openSubmap(selectedNode);return}if(event.target.closest('[data-craft-pick]')){openCatalog();return}if(event.target.closest('[data-craft-edit]')){const n=byId(chosenSlot?.id);const slot=getCraftSlot(n,chosenSlot?.key);if(slot)openItemEditor(slot.id,true);return}if(event.target.closest('[data-craft-clear]')){const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);return}if(event.target.closest('[data-close]')){selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();return}if(event.target.closest('[data-delete]')){removeSelected();return}if(event.target.closest('[data-duplicate]')){duplicateSelected();return}const b=event.target.closest('button[data-set]');if(!b)return;applyProp(b.dataset.set,b.dataset.value);renderInspector()});
 let suppressSubmapClickUntil=0;
 nodeLayer.addEventListener('click',event=>{
  const slot=event.target.closest('.craft-slot');
@@ -1005,7 +1055,9 @@ nodeLayer.addEventListener('click',event=>{
  const el=event.target.closest('.node');
  if(!el||event.target.closest('.port,.node-handle')||performance.now()<suppressSubmapClickUntil)return;
  const n=byId(el.dataset.id);
- if(n?.submapEnabled){event.preventDefault();event.stopPropagation();openSubmap(n.id)}
+ if(n?.submapEnabled){event.preventDefault();event.stopPropagation();openSubmap(n.id);return}
+ if(n?.kind==='shape'&&!linkMode&&!shapeTextId&&event.target.closest('.node-text')&&(event.pointerType==='touch'||event.pointerType==='pen'||event.sourceCapabilities?.firesTouchEvents)){event.preventDefault();openShapeTextEditor(n.id)}
+
 });
 nodeLayer.addEventListener('input',event=>{if(!event.target.matches('textarea'))return;const n=byId(event.target.closest('.node')?.dataset.id);if(n){n.text=event.target.value;layoutTextarea(event.target,n);save({group:'text:'+n.id})}});
 nodeLayer.addEventListener('focusin',event=>{const n=event.target.closest('.node');if(n&&!linkMode)selectNode(n.dataset.id)});
@@ -1021,7 +1073,14 @@ nodeLayer.addEventListener('pointerdown',event=>{
  if(event.target.closest('.craft-slot')){selectNode(id);beginSlotItemDrag(event,event.target.closest('.craft-slot'));return}
  if(chosenSlot?.id===id){chosenSlot=null}
  selectNode(id);
- if(event.target.matches('textarea'))return;
+ if(event.target.matches('textarea')){
+   const n=byId(id);
+   if((event.pointerType==='touch'||event.pointerType==='pen')&&n?.kind==='shape'&&!n.submapEnabled&&!linkMode){
+    event.preventDefault();shapeTextTouch={pointer:event.pointerId,id,x:event.clientX,y:event.clientY};
+    try{event.target.setPointerCapture(event.pointerId)}catch{}
+   }
+   return;
+  }
  exitTextEditing();const n=byId(id);if(!n)return;event.preventDefault();const mode=event.target.closest('.resize-handle')?'resize':'drag';
  move={pointer:event.pointerId,id,mode,handle:!!event.target.closest('.node-handle'),clientX:event.clientX,clientY:event.clientY,x:n.x,y:n.y,w:n.w,h:n.h};try{nodeLayer.setPointerCapture(event.pointerId)}catch{}
 });
@@ -1031,6 +1090,13 @@ nodeLayer.addEventListener('pointermove',event=>{if(!move||move.pointer!==event.
 }else if(n.shape==='circle'){clearSnapGuides();const size=clamp(Math.max(move.w+dx,move.h+dy),100,800);n.w=Math.round(size);n.h=Math.round(size)}else{clearSnapGuides();n.w=Math.round(clamp(move.w+dx,110,1000));n.h=Math.round(clamp(move.h+dy,95,800))}paintNode(n);drawEdges()});
 const finishMove=event=>{if(move&&event.pointerId===move.pointer){const last=move,dist=Math.hypot(event.clientX-last.clientX,event.clientY-last.clientY);if(dist>7)suppressSubmapClickUntil=performance.now()+600;move=null;clearSnapGuides();if(dist<=7&&!last.handle&&last.mode==='drag'&&byId(last.id)?.submapEnabled){openSubmap(last.id);return}save()}};
 nodeLayer.addEventListener('pointerup',finishMove);nodeLayer.addEventListener('pointercancel',finishMove);
+nodeLayer.addEventListener('pointerup',event=>{
+ const tap=shapeTextTouch;if(!tap||tap.pointer!==event.pointerId)return;
+ shapeTextTouch=null;
+ if(Math.hypot(event.clientX-tap.x,event.clientY-tap.y)<=12&&!linkMode){event.stopPropagation();openShapeTextEditor(tap.id)}
+});
+nodeLayer.addEventListener('pointercancel',event=>{if(shapeTextTouch?.pointer===event.pointerId)shapeTextTouch=null});
+
 // Der Pointer bleibt bei Touch-Geraeten am Quellpunkt gefangen; Zielpunkte werden geometrisch erkannt.
 window.addEventListener('pointermove',event=>{if(!linkDrag||event.pointerId!==linkDrag.pointer)return;
  if(Math.hypot(event.clientX-linkDrag.startX,event.clientY-linkDrag.startY)>8)linkDrag.moved=true;
@@ -1144,6 +1210,7 @@ $('exportBoard').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,...
 $('importBoard').onclick=()=>$('fileInput').click();$('fileInput').addEventListener('change',async event=>{const f=event.target.files?.[0];if(!f)return;try{if(f.size>16_000_000)throw Error('Datei zu groß');const payload=JSON.parse(await f.text());const imported=validBoard(payload);if(!imported)throw Error('Unbekanntes Format');imported.parent=board.parent;installSubmapBoards(imported,payload);board=imported;selectedNode=null;selectedEdge=null;$('boardTitle').value=board.title;updateMapTrail();renderNodes();centerAll();save();notify('Mindmap und Unter-Mindmaps importiert.')}catch(error){notify('Import fehlgeschlagen: '+error.message)}event.target.value='';$('moreMenu').classList.remove('show')});
 $('shareBtn').onclick=async()=>{const url=new URL(location.href);url.hash='b='+boardId;try{await navigator.clipboard.writeText(url.toString());notify(cloudReady?'Link kopiert! Über diesen Link kann deine Mindmap gemeinsam bearbeitet werden.':'Link kopiert. Cloud noch nicht verbunden – Inhalte sind derzeit nur auf diesem Gerät.')}catch{window.prompt('Mindmap-Link kopieren:',url.toString())}};
 window.addEventListener('keydown',event=>{
+ if(shapeTextId){if(event.key==='Escape'){event.preventDefault();closeShapeTextEditor()}return}
  const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
  // Der Item-Editor ist ein ungespeichertes Formular: dort bleibt Undo des Textfelds nativ.
  if(mod&&!event.altKey&&!event.target.closest?.('#itemEditorOverlay')){
@@ -1178,7 +1245,7 @@ async function pushCloud(){
  finally{cloudBusy=false;if(cloudDirty){clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,1700)}}
 }
 async function cloudRefresh(){
- if(!cloudReady||cloudBusy||cloudDirty||document.activeElement?.matches('textarea,input,[contenteditable=true]'))return;
+ if(!cloudReady||cloudBusy||cloudDirty||shapeTextId||document.activeElement?.matches('textarea,input,[contenteditable=true]'))return;
  try{
   const data=await cloudCall('mindflow_get',{p_id:boardId});
   if(!data)return;

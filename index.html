@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#202123">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Eine unendliche, minimalistische Mindmap mit Unter-Mindmaps, Formen, Minecraft-Crafting und Verbindungen.">
+<title>Mindflow — Mindmap & Minecraft Crafting</title>
+<style>
+  :root {color-scheme:dark;--bg:#202123;--panel:#292b2e;--panel2:#303236;--text:#ecedf0;--sub:#a1a6b0;--line:#414448;--blue:#a3b8ff;--shadow:0 14px 38px #0005}
+  *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+  button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #a3b8ff;outline-offset:2px}
+  .app{width:100%;height:100dvh;position:relative;overflow:hidden}
+  #viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+  #viewport.panning{cursor:grabbing}
+  #grid{position:absolute;inset:0;pointer-events:none;background-color:var(--bg);background-image:linear-gradient(to right,#ffffff05 1px,transparent 1px),linear-gradient(to bottom,#ffffff05 1px,transparent 1px),linear-gradient(to right,#ffffff0d 1px,transparent 1px),linear-gradient(to bottom,#ffffff0d 1px,transparent 1px);background-size:20px 20px,20px 20px,100px 100px,100px 100px;background-position:0 0}
+  #world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
+  #edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:1}
+  .edge-hit{stroke:transparent;stroke-width:20;fill:none;pointer-events:stroke;cursor:pointer}
+  .edge-visible{fill:none;pointer-events:none;stroke-linecap:round;stroke-linejoin:round}
+  .arrow-head{pointer-events:none}
+  #nodes{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:2}
+  .node{position:absolute;pointer-events:auto;touch-action:none;user-select:none;cursor:grab}
+  .node:active{cursor:grabbing}
+  .node.has-submap{cursor:pointer}
+  .node.has-submap .node-text{cursor:pointer;caret-color:transparent}
+  /* Der kleine Griff bleibt bei Unter-Mindmaps erreichbar, damit man die Form bearbeiten und den Link wieder deaktivieren kann. */
+  .node.has-submap .move-handle{opacity:.70;pointer-events:auto}
+  .submap-mark{position:absolute;z-index:3;right:14px;bottom:10px;font-size:16px;font-weight:600;color:#b9c9f4;line-height:1;pointer-events:none;opacity:.75;filter:drop-shadow(0 1px 2px #0005)}
+  .node[data-shape="circle"] .submap-mark,.node[data-shape="ellipse"] .submap-mark{right:20%;bottom:12%}
+  .node[data-shape="triangle"] .submap-mark,.node[data-shape="diamond"] .submap-mark{right:27%;bottom:16%}
+  .shape-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+  .node.selected .shape-svg{filter:drop-shadow(0 0 3px #a3b8ff55)}
+  .node.link-origin .shape-svg{filter:drop-shadow(0 0 5px #97adffb0)}
+  .node-text{position:absolute;z-index:1;top:50%;transform:translateY(-50%);height:26px;display:block;resize:none;border:0;outline:none!important;background:transparent;line-height:1.35;padding:0;overflow:auto;overflow-wrap:anywhere;text-align:center;touch-action:auto;user-select:text;-webkit-user-select:text;border-radius:0;caret-color:#c1d1ff;scrollbar-width:thin}
+  .node-text::placeholder{color:transparent}.node.selected .node-text::placeholder,.node-text:focus::placeholder{color:#8c929b}
+  .node[data-shape="rect"] .node-text,.node[data-shape="round"] .node-text{left:8%;width:84%}
+  .node[data-shape="circle"] .node-text,.node[data-shape="ellipse"] .node-text{left:15%;width:70%}
+  .node[data-shape="triangle"] .node-text{left:24%;width:52%}
+  .node[data-shape="diamond"] .node-text{left:23%;width:54%}
+  /* Versteckte Anschlusspunkte stören weder die Ansicht noch die Touch-Bedienung.
+     Nur die gewählte Form zeigt ihre Punkte. Beim Verbinden erscheinen alle Ziele. */
+  .port{position:absolute;z-index:6;width:30px;height:30px;border:0;background:transparent;padding:0;display:grid;place-items:center;opacity:0;pointer-events:none;touch-action:none;cursor:crosshair;transition:opacity .12s}
+  .port::after{content:"";width:10px;height:10px;background:#272a31;border:2px solid #d6def3;border-radius:50%;box-shadow:0 1px 7px #0009;transition:background .12s,transform .12s}
+  .port:hover::after,.port.target::after{background:#b2c6ff;border-color:#ecf2ff;transform:scale(1.22)}
+  .port.source::after{background:#a5bbff;border-color:#fff}
+  .port-top{left:50%;top:0;transform:translate(-50%,-50%)}
+  .port-right{right:0;top:50%;transform:translate(50%,-50%)}
+  .port-bottom{bottom:0;left:50%;transform:translate(-50%,50%)}
+  .port-left{left:0;top:50%;transform:translate(-50%,-50%)}
+  .node.selected .port,.app.connecting .port{opacity:1;pointer-events:auto}
+  /* Intelligentes Einrasten: nur beim Ziehen sichtbare, feine Hilfslinien. */
+  #snapGuides{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:4;pointer-events:none}
+  #snapGuides line{stroke:#94b6ff;stroke-width:1;stroke-dasharray:4 4;opacity:.75;vector-effect:non-scaling-stroke}
+  #linkPreview{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:5;pointer-events:none}
+  #linkPreview path{fill:none;stroke:#a5baff;stroke-width:2;stroke-linecap:round;stroke-dasharray:5 5}
+  .node-handle{position:absolute;z-index:4;background:#34373d;border:1px solid #626874;color:#eff2fb;display:grid;place-items:center;box-shadow:0 4px 14px #0005;opacity:0;pointer-events:none;transition:opacity .1s}
+  .node.selected .node-handle,.node:hover .node-handle{opacity:1;pointer-events:auto}
+  .move-handle{width:33px;height:30px;right:-12px;top:-22px;border-radius:8px;cursor:grab;font-size:16px;touch-action:none}
+  .resize-handle{width:23px;height:23px;right:-9px;bottom:-9px;border-radius:7px;cursor:nwse-resize;touch-action:none}
+  .node-handle svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-width:1.7}
+  .topbar{position:absolute;left:19px;right:19px;top:16px;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:16px;pointer-events:none}
+  .topbar>*{pointer-events:auto}.brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .logo{display:grid;place-items:center;width:35px;height:35px;background:#ffffff0a;border:1px solid #ffffff1a;border-radius:11px;color:#d8dfff;font-size:22px;font-weight:300}
+  .board-title{border:0;background:transparent;width:min(270px,32vw);min-width:85px;font-weight:640;letter-spacing:-.04em;font-size:15px;color:var(--text);outline:0!important;padding:8px 4px}
+  .top-actions{display:flex;align-items:center;gap:9px}
+  .back-map{width:32px;height:32px;display:grid;place-items:center;flex:none;background:#ffffff0a;border:1px solid #ffffff17;border-radius:9px;color:#e4e8f3;font-size:20px;line-height:1}
+  .back-map[hidden],.breadcrumbs[hidden]{display:none!important}
+  .board-heading{display:flex;flex-direction:column;min-width:0}
+  .breadcrumbs{display:flex;gap:5px;align-items:center;white-space:nowrap;overflow:hidden;max-width:min(42vw,440px);color:#979fad;font-size:10px;line-height:1.25;min-height:15px}
+  .breadcrumbs button{border:0;background:none;padding:0;color:#b5bfd2;font-size:10px;max-width:95px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+  .breadcrumbs button:hover{text-decoration:underline;color:#fff}
+  .breadcrumbs span{color:#6b727e}
+  .board-heading .board-title{padding:3px 4px 5px}
+  @media(max-width:750px){.back-map{width:29px;height:29px}.breadcrumbs{max-width:36vw;gap:3px}.breadcrumbs button{max-width:74px}.board-heading .board-title{width:min(220px,29vw)}.brand{gap:6px}}
+  .status{font-size:11px;color:#9ba1a9;white-space:nowrap;margin-right:7px}.status:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#77bc9c;margin-right:8px;vertical-align:middle}.status.warning:before{background:#e3a865}
+  .btn{border:1px solid #ffffff18;border-radius:10px;background:#2b2d30ed;color:#e3e5eb;min-height:38px;padding:0 13px;display:inline-flex;justify-content:center;align-items:center;gap:8px;font-size:12px;font-weight:570;box-shadow:0 5px 18px #0002;white-space:nowrap}
+  .btn:hover,.tool:hover,.iconbtn:hover{background:#393b40}.btn.primary{background:#dfe5ff;color:#252c43;border-color:#dfe5ff}.btn.primary:hover{background:white}
+  .btn svg,.tool svg,.iconbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7}
+  .tools{position:absolute;bottom:19px;left:50%;transform:translateX(-50%);display:flex;flex-direction:row;gap:3px;padding:6px;background:#292b2ef2;border:1px solid #ffffff1a;border-radius:14px;z-index:11;box-shadow:var(--shadow)}
+  .tool:disabled{opacity:.28;cursor:default;pointer-events:none}
+  .tool:disabled:hover{background:transparent}
+  @media(max-width:560px){.tools{gap:0;padding:4px}.tools .tool{width:35px;height:37px}.tools .tool svg{width:17px;height:17px}.tools .sep{margin:4px 2px}.tools .undoEntries-separator{display:none}}
+  @media(max-width:390px){.tools .tool{width:32px;height:35px}.tools{gap:0}}
+  .tool{width:42px;height:42px;border:0;background:transparent;color:#b2b7c2;border-radius:9px;display:grid;place-items:center}
+  .tool.active{color:#d5deff;background:#46516f80}
+  .sep{width:1px;height:31px;background:#ffffff15;margin:5px 4px}
+  .shape-menu{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);padding:9px;background:#2c2e32;border:1px solid #ffffff24;border-radius:14px;z-index:14;width:214px;max-height:min(390px,65dvh);overflow:auto;box-shadow:var(--shadow);display:none}
+  .shape-menu.show{display:block}
+  .shape-menu .menu-label{color:#9fa6b1;font-size:11px;padding:6px 8px 11px}
+  .shape-item{border:0;background:transparent;color:#edf0f3;width:100%;height:36px;display:flex;align-items:center;gap:11px;border-radius:8px;padding:0 9px;text-align:left;font-size:13px}
+  .shape-item:hover{background:#41444b}.shape-item svg{width:19px;height:19px;stroke:#dfe1e6;stroke-width:1.6;fill:none}
+  .inspector{position:absolute;right:19px;top:76px;width:254px;max-height:calc(100dvh - 160px);overflow:auto;z-index:13;background:#292b2ef5;border:1px solid #ffffff1c;border-radius:15px;box-shadow:var(--shadow);padding:14px;display:none;scrollbar-width:thin;scrollbar-color:#545862 transparent}
+  .inspector.show{display:block}
+  .inspector-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.inspector-head h2{font-size:13px;margin:0;font-weight:700;letter-spacing:.01em}
+  .iconbtn{width:27px;height:27px;border-radius:7px;border:0;background:transparent;color:#adb2bc;display:grid;place-items:center}.iconbtn svg{width:16px;height:16px}
+  .field{margin:0 0 12px}.field-label{display:block;color:#aeb3bf;font-size:11px;font-weight:560;margin:0 0 7px}
+  .select,.number{height:34px;background:#34363a;border:1px solid #ffffff18;border-radius:8px;color:#ebebf1;padding:0 9px;width:100%;font-size:12px;outline:0}
+  .number{width:75px}.field-inline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .colorline{display:flex;align-items:center;gap:9px}.color-input{width:37px;height:31px;padding:2px 3px;background:#393c41;border:1px solid #ffffff25;border-radius:8px;cursor:pointer}.colorline span{color:#aeb3bf;font-size:11px}
+  .chiprow{display:flex;gap:5px;flex-wrap:wrap}.chip{height:32px;padding:0 9px;color:#c7cbd3;background:#373a3f;border:1px solid #ffffff12;border-radius:8px;font-size:11px;white-space:nowrap}
+  .chip.selected{border-color:#90a7ff;background:#45506c;color:#f3f5ff}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:12px;color:#c8cbd3}.checkline input{accent-color:#a2b6ff;width:15px;height:15px}
+  .swatches{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}.swatch{width:20px;height:20px;border-radius:50%;border:2px solid #ffffff4a;background:var(--c);padding:0}
+  .swatch:hover{transform:scale(1.13)}
+  .inspector hr{border:0;height:1px;background:#ffffff16;margin:15px 0}.inspector .actions{display:flex;gap:6px;margin-top:13px}.inspector .actions .btn{flex:1;padding:0 9px;min-height:34px}
+  .tiny-note{font-size:10px;line-height:1.5;color:#9197a3;margin:6px 0 0}
+  .banner{position:absolute;left:50%;top:77px;transform:translateX(-50%);z-index:12;pointer-events:none;background:#3b455d;border:1px solid #7d92c661;color:#e5ebff;padding:10px 13px;font-size:12px;border-radius:10px;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+  .hidden{display:none!important}
+  .empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:4;pointer-events:none;width:min(340px,72vw)}
+  .empty .empty-icon{display:grid;place-items:center;color:#a7abb3;font-size:39px;font-weight:200;margin-bottom:9px}.empty h1{font-size:19px;letter-spacing:-.035em;font-weight:600;margin:0 0 8px}.empty p{font-size:12px;color:#a4a8ae;line-height:1.7;margin:0 0 17px}.empty button{pointer-events:auto}
+  .zoom{position:absolute;bottom:19px;right:19px;z-index:12;display:flex;align-items:center;gap:2px;padding:5px;background:#292b2ef2;border:1px solid #ffffff1a;box-shadow:var(--shadow);border-radius:11px}
+  .zoom button{width:32px;height:32px;border:0;border-radius:7px;color:#d2d6dd;background:transparent;font-size:20px;display:grid;place-items:center}.zoom button:hover{background:#393b40}.zoom button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #zoomText{color:#a6adb7;min-width:43px;text-align:center;font-size:11px;font-weight:650}
+  .footer-help{position:absolute;left:22px;bottom:22px;font-size:11px;color:#777d84;z-index:3;pointer-events:none}
+  .more{display:none;position:absolute;z-index:14;top:65px;right:19px;background:#2c2e32;border:1px solid #ffffff24;border-radius:14px;box-shadow:var(--shadow);width:min(300px,calc(100vw - 24px));padding:15px}
+  .more.show{display:block}.more h3{font-size:13px;margin:0 0 12px}.more button{display:block;text-align:left;width:100%;background:transparent;color:#e7e9ec;border:0;border-radius:8px;padding:10px;font-size:12px}.more button:hover{background:#41444b}.more p{font-size:11px;color:#a3aab5;line-height:1.6;margin:10px 4px 0}
+  .toast{position:absolute;bottom:83px;left:50%;transform:translate(-50%,8px);opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;background:#3b3f46;color:#f1f3f6;border:1px solid #ffffff23;border-radius:10px;box-shadow:var(--shadow);padding:10px 14px;font-size:12px;text-align:center;max-width:min(95vw,480px)}.toast.visible{opacity:1;transform:translate(-50%,0)}
+
+  /* Minecraft Crafting: bewusst schlicht, keine Vanilla-Menütextur */
+  .craft-node{cursor:grab}
+  .craft-card{position:absolute;inset:0;border:1px solid #ffffff35;border-radius:13px;background:#27292dc9;box-shadow:0 9px 30px #0003;padding:15px 19px 18px}
+  .craft-node.selected .craft-card{border-color:#a3b8ff9c}
+  .craft-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.115em;font-weight:700;color:#bec3cf;min-height:27px;margin-bottom:15px}
+  .craft-head .craft-move{color:#727985;font-size:19px;letter-spacing:0;touch-action:none}
+  .craft-body{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .craft-grid{display:grid;grid-template-columns:repeat(3,55px);grid-template-rows:repeat(3,55px);gap:6px;flex:none}
+  .craft-slot{position:relative;display:grid;place-items:center;width:55px;height:55px;background:#1c1e21;border:1px solid #62666c6e;border-radius:7px;color:#acb1bb;padding:0;touch-action:none;cursor:pointer;user-select:none}
+  .craft-slot:hover,.craft-slot:focus-visible,.craft-slot.chosen,.craft-slot.drag-target{border-color:#b3c5ff;background:#343a48}
+  .craft-slot .item-icon{width:40px;height:40px;image-rendering:pixelated;object-fit:contain;pointer-events:none;background:transparent;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+  .craft-slot.output{width:69px;height:69px;background:#22262b;border-color:#7d87a14a}
+  .craft-slot.output .item-icon{width:50px;height:50px}
+  .craft-arrow{color:#8a9099;display:grid;place-items:center;flex:1;min-width:25px}
+  .craft-arrow svg{width:30px;height:24px;stroke:currentColor;stroke-width:1.6;fill:none}
+  .slot-label{position:absolute;top:-18px;color:#868c96;font-size:9px;letter-spacing:.025em;white-space:nowrap}
+  .slot-count{position:absolute;bottom:2px;right:5px;color:white;font-size:12px;text-shadow:0 1px 4px #000,1px 1px 1px #000;font-weight:700;pointer-events:none}
+  .slot-glyph{font-size:10px;color:#bbc4d4;line-height:1.1;max-width:46px;text-align:center;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  .item-emoji{width:37px;height:37px;background:transparent;border:0;border-radius:0;display:grid;place-items:center;font-size:11px;color:#e1e6f6;text-transform:uppercase;letter-spacing:-.02em;font-weight:650;pointer-events:none}
+  .craft-slot.output .item-emoji{width:45px;height:45px}
+  .craft-node .resize-handle{display:none!important}
+  .craft-node .node-handle{z-index:5}
+  /* Ausklappbarer, durchsuchbarer Itemkatalog */
+  .item-panel{position:absolute;left:16px;top:75px;bottom:90px;width:322px;max-width:calc(100vw - 32px);z-index:25;display:none;flex-direction:column;background:#282a2ef8;border:1px solid #ffffff24;border-radius:15px;box-shadow:0 16px 48px #0008;overflow:hidden}
+  .item-panel.show{display:flex}
+  .app.catalog-open .inspector{display:none}
+  .item-head{padding:15px 15px 11px;border-bottom:1px solid #ffffff12;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .item-head h2{font-size:14px;margin:0;font-weight:700}
+  .item-hint{font-size:11px;color:#a8adb7;line-height:1.55;margin:8px 15px 0}
+  /* V11: drei schlichte Item-Reiter plus Favoritenstern je Eintrag. */
+  .item-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin:9px 13px 0;padding:3px;border:1px solid #ffffff13;border-radius:10px;background:#202226}
+  .item-tab{border:0;background:transparent;color:#aeb4bf;min-width:0;border-radius:7px;height:34px;padding:0 3px;font-size:11px;font-weight:600;white-space:nowrap;transition:background .12s,color .12s}
+  .item-tab.active{background:#3b414f;color:#f0f3ff;box-shadow:0 1px 5px #0002}
+  .item-tab:hover:not(.active){background:#ffffff0a;color:#e6ebf2}
+  .catalog-entry .catalog-favorite{position:absolute;left:3px;top:3px;width:26px;height:26px;border:0;border-radius:7px;background:#1c1f25dc;color:#949ba9;display:grid;place-items:center;font-size:17px;line-height:1;z-index:3;touch-action:manipulation}
+  .catalog-entry .catalog-favorite[aria-pressed="true"]{color:#f4cd79;background:#373329ed}
+  .catalog-entry .catalog-favorite:hover,.catalog-entry .catalog-favorite:focus-visible{background:#464a51;color:#f7d98f}
+  .item-grid-empty{grid-column:1/-1;text-align:center;padding:38px 10px;color:#aab0bb;font-size:12px;line-height:1.6}
+  .item-search{margin:11px 13px 9px;height:40px;width:calc(100% - 26px);background:#1e2023;color:#edf0fa;border:1px solid #ffffff30;border-radius:9px;padding:0 12px;font-size:13px;outline:0}
+  .item-filter-row{display:flex;justify-content:space-between;align-items:center;margin:1px 14px 8px;gap:8px;color:#adb2bb;font-size:11px}
+  .item-filter-row button{border:0;background:transparent;color:#d9e2ff;font-size:11px;text-decoration:underline;padding:6px}
+  .item-catalog-scroll{flex:1;overflow:auto;min-height:0;padding:0 11px 8px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#575b64 transparent}
+  .item-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .catalog-item{touch-action:none;user-select:none;border:1px solid #ffffff12;border-radius:9px;display:flex;align-items:center;flex-direction:column;gap:5px;justify-content:center;height:77px;min-width:0;color:#c3c9d3;background:#34363a;cursor:grab;padding:6px 3px;overflow:hidden}
+  .catalog-item:hover,.catalog-item:focus-visible{background:#414651;border-color:#a2b8ff75}
+  .catalog-item .item-icon{width:40px;height:40px;image-rendering:pixelated;object-fit:contain;pointer-events:none;background:transparent;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+  .catalog-item .item-emoji{width:38px;height:38px}
+  .catalog-item span.item-name{font-size:10px;line-height:1.1;text-align:center;overflow:hidden;text-overflow:ellipsis;width:100%;white-space:nowrap;pointer-events:none}
+  .item-load-more{width:100%;background:#393d45;color:#e4e7eb;border:1px solid #ffffff22;padding:10px;border-radius:9px;font-size:11px;margin:8px 0;display:none}
+  .item-panel-footer{display:flex;gap:7px;padding:10px 12px 13px;border-top:1px solid #ffffff16;align-items:center}
+  .item-panel-footer .btn{flex:1}
+  .item-stack-icon{position:relative;display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;pointer-events:none}
+  .item-stack-icon .item-emoji{position:absolute;inset:0;display:grid!important}
+  .item-stack-icon .item-icon{position:absolute;inset:0;z-index:1}
+  .item-stack-icon.loaded .item-emoji{display:none!important}
+  .craft-slot.output .item-stack-icon{width:46px;height:46px}
+  .item-drag-ghost .item-stack-icon{width:43px;height:43px}
+  .item-drag-ghost{position:fixed;z-index:70;pointer-events:none;display:grid;place-items:center;background:#343a46dc;border:1px solid #d4e1ff99;border-radius:9px;width:61px;height:61px;transform:translate(-50%,-50%);box-shadow:0 10px 30px #0009}
+  .item-drag-ghost .item-icon{width:46px;height:46px;image-rendering:pixelated;background:transparent;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+  .item-drag-ghost .item-emoji{width:43px;height:43px}
+  .craft-slot .slot-empty{font-size:19px;color:#555a64;pointer-events:none}
+  @media(max-width:750px){.item-panel{left:9px;right:auto;top:calc(65px + env(safe-area-inset-top,0px));bottom:calc(73px + env(safe-area-inset-bottom,0px));height:auto;width:min(320px,calc(100vw - 20px));max-width:none}.catalog-item{height:69px}.craft-card{padding:13px 17px}.craft-grid{grid-template-columns:repeat(3,55px);grid-template-rows:repeat(3,55px)} }
+  @media (max-width:750px){.topbar{left:12px;right:12px;top:calc(8px + env(safe-area-inset-top,0px))}.top-actions{gap:5px}.status{display:none}.logo{width:32px;height:32px}.board-title{width:min(240px,34vw)}.tools{top:auto;bottom:calc(15px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);flex-direction:row;padding:5px;gap:1px}.tools .tool{width:39px;height:39px}.sep{height:27px;width:1px;margin:6px 2px}.shape-menu{left:50%;top:auto;bottom:calc(72px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)}.zoom{right:11px;bottom:calc(75px + env(safe-area-inset-bottom,0px))}.inspector{top:auto;right:11px;bottom:calc(72px + env(safe-area-inset-bottom,0px));max-height:46dvh;width:min(310px,calc(100vw - 22px))}.footer-help{display:none}.more{top:calc(55px + env(safe-area-inset-top,0px));right:11px}.banner{top:calc(58px + env(safe-area-inset-top,0px));font-size:11px}}
+  @media (max-width:479px){.item-panel{left:9px;right:9px;top:auto;bottom:calc(69px + env(safe-area-inset-bottom,0px));height:min(400px,55dvh);width:auto}}
+  @media (max-width:390px){.topbar .btn{width:35px;padding:0}.topbar .btn span{display:none}.board-title{width:36vw}.tools .tool{width:35px;height:38px}.zoom button{width:28px}.zoom{padding:3px}#zoomText{min-width:37px}.logo{display:none}}
+
+  /* V9: alle Item-Render-CANVASE sind exakt auf die Slot-Mitte ausgerichtet.
+     PNG-Dateien sind 64x64-Icons; nicht einzelne Formen zuschneiden/strecken,
+     sonst stimmen Vanilla-Inventar-Proportionen von Sticks/Stairs nicht mehr. */
+  .item-stack-icon,
+  .craft-slot .item-stack-icon,
+  .catalog-item .item-stack-icon,
+  .item-drag-ghost .item-stack-icon{
+    --item-size:40px;
+    position:relative;
+    flex:0 0 auto;
+    display:grid;
+    place-items:center;
+    width:var(--item-size);
+    height:var(--item-size);
+    margin:0;
+    padding:0;
+    line-height:0;
+    transform:none;
+    overflow:visible;
+    pointer-events:none;
+  }
+  .craft-slot.output .item-stack-icon{--item-size:50px;width:var(--item-size);height:var(--item-size)}
+  .catalog-item .item-stack-icon{--item-size:40px}
+  .item-drag-ghost .item-stack-icon{--item-size:46px}
+  .item-stack-icon .item-icon,
+  .craft-slot .item-stack-icon .item-icon,
+  .craft-slot.output .item-stack-icon .item-icon,
+  .catalog-item .item-stack-icon .item-icon,
+  .item-drag-ghost .item-stack-icon .item-icon{
+    position:absolute;
+    inset:auto;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    object-position:center center;
+    background:transparent;
+    image-rendering:pixelated;
+    pointer-events:none;
+  }
+  .item-stack-icon .item-emoji,
+  .craft-slot .item-stack-icon .item-emoji,
+  .catalog-item .item-stack-icon .item-emoji{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    line-height:normal;
+    display:grid;
+    place-items:center;
+  }
+  /* V10: editierbare Minecraft-Itemvarianten und verschiebbare Slot-Inhalte. */
+  .craft-slot.has-item{cursor:grab}
+  .craft-slot.has-item:active{cursor:grabbing}
+  .craft-slot.placing-target{border-color:#a0d5bd;box-shadow:inset 0 0 0 1px #a0d5bd75;background:#33483d}
+  .craft-slot.removing-source{opacity:.45}
+  .catalog-entry{position:relative;min-width:0}
+  .catalog-entry .catalog-item{width:100%}
+  .catalog-entry .catalog-edit{position:absolute;right:3px;top:3px;width:23px;height:23px;border:1px solid #ffffff22;border-radius:6px;background:#1b1e24e8;color:#e0e6f8;display:grid;place-items:center;font-size:12px;line-height:1;opacity:.8;z-index:2}
+  .catalog-entry .catalog-edit:hover,.catalog-entry .catalog-edit:focus-visible{background:#4a5265;opacity:1}
+  .catalog-entry.custom .catalog-item{border-color:#a3b8ff4f}
+  .catalog-entry.custom .item-name{color:#d5dfff}
+  .item-editor-overlay{position:fixed;inset:0;z-index:100;background:#0c0e13a8;display:grid;place-items:center;padding:20px;backdrop-filter:blur(4px)}
+  .item-editor-overlay.hidden{display:none!important}
+  .item-editor{width:min(420px,100%);max-height:min(720px,90dvh);overflow:auto;background:#292b2f;border:1px solid #ffffff25;border-radius:17px;box-shadow:0 25px 90px #000a;padding:20px}
+  .item-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+  .item-editor-head h2{font-size:16px;font-weight:680;margin:0}
+  .item-editor-preview{display:flex;align-items:center;gap:15px;margin-bottom:17px;padding:12px;border:1px solid #ffffff12;border-radius:12px;background:#222428}
+  .item-editor-preview .item-stack-icon{--item-size:58px!important;width:58px;height:58px}
+  .item-editor-preview .item-preview-names{min-width:0;flex:1}
+  .item-editor-preview .item-preview-names strong{display:block;font-size:14px;font-weight:650;overflow-wrap:anywhere}
+  .item-editor-preview .item-preview-names small{display:block;color:#969daa;font-size:11px;margin-top:4px;overflow-wrap:anywhere}
+  .item-editor .editor-input{width:100%;background:#36393e;border:1px solid #ffffff22;border-radius:8px;color:#f0f1f5;font-size:13px;padding:9px 11px;outline:0}
+  .item-editor textarea.editor-input{min-height:94px;resize:vertical;line-height:1.4}
+  .item-editor .editor-check{display:flex;align-items:center;gap:11px;color:#e2e5ed;font-size:13px;cursor:pointer;padding:9px 0}
+  .item-editor .editor-check input{width:18px;height:18px;accent-color:#a5a7f8}
+  .item-editor .editor-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+  .item-editor .editor-actions .btn{flex:1}
+  .item-editor .tiny-note{font-size:11px;line-height:1.5}
+  .item-stack-icon.enchanted.loaded::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:repeating-linear-gradient(116deg,transparent 0 14%,#ae78fb99 18%,#93b4ff80 21%,transparent 27%,transparent 43%,#e2b1ff9a 48%,transparent 55%);
+    background-size:240% 230%;-webkit-mask-image:var(--glint-mask);mask-image:var(--glint-mask);-webkit-mask-size:contain;mask-size:contain;
+    -webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    animation:mindflow-glint 3.7s linear infinite;mix-blend-mode:screen;opacity:.88}
+  @keyframes mindflow-glint{from{background-position:-140% -110%}to{background-position:140% 110%}}
+  @media(prefers-reduced-motion:reduce){.item-stack-icon.enchanted.loaded::after{animation:none;background-position:42% 60%}}
+  @media(max-width:550px){.item-editor{padding:16px}.item-editor-overlay{padding:12px}.catalog-entry .catalog-edit{opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="viewport" aria-label="Unendliche Mindmap-Arbeitsfläche">
+    <div id="grid"></div>
+    <div id="world"><svg id="edges" aria-label="Verbindungen" xmlns="http://www.w3.org/2000/svg"></svg><div id="nodes"></div></div>
+    <svg id="snapGuides" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="linkPreview" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path id="linkPreviewPath" d=""/></svg>
+  </div>
+  <header class="topbar">
+    <div class="brand"><div class="logo" aria-hidden="true">∞</div><button id="backMap" class="back-map" title="Zur übergeordneten Mindmap" aria-label="Zurück zur übergeordneten Mindmap" hidden>←</button><div class="board-heading"><div id="breadcrumbs" class="breadcrumbs" aria-label="Mindmap-Pfad" hidden></div><input id="boardTitle" class="board-title" maxlength="70" aria-label="Mindmap-Name" value="Meine Mindmap"></div></div>
+    <div class="top-actions"><span id="saveStatus" class="status">Lokal gespeichert</span><button id="shareBtn" class="btn" title="Link kopieren"><svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7 8m5-5 5 5M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg><span>Teilen</span></button><button id="moreBtn" class="btn" title="Weitere Optionen" aria-label="Mehr"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  </header>
+  <nav class="tools" aria-label="Werkzeuge">
+    <button class="tool active" id="selectTool" aria-label="Auswählen und verschieben" title="Auswählen"><svg viewBox="0 0 24 24"><path d="m5 3 14 9-7 1-3 7L5 3Z"/></svg></button>
+    <button class="tool" id="shapeTool" aria-label="Form hinzufügen" title="Neue Form"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="17" height="17" rx="2"/><path d="M12 8v8m-4-4h8"/></svg></button>
+    <button class="tool" id="linkTool" aria-label="Verbindung erstellen" title="Verbinden"><svg viewBox="0 0 24 24"><circle cx="4" cy="18" r="2"/><circle cx="20" cy="6" r="2"/><path d="M6 17C12 17 11 7 18 7"/></svg></button>
+    <button class="tool" id="craftTool" aria-label="Crafting-Tisch hinzufügen" title="Crafting hinzufügen"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>
+    <button class="tool" id="catalogTool" aria-label="Minecraft-Items öffnen" title="Minecraft-Items"><svg viewBox="0 0 24 24"><path d="m12 2 8 5v10l-8 5-8-5V7Z M4 7l8 5 8-5M12 12v10"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="duplicateTool" aria-label="Form duplizieren" title="Duplizieren"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button>
+    <button class="tool" id="deleteTool" aria-label="Auswahl löschen" title="Löschen"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg></button>
+    <div class="sep undoEntries-separator"></div>
+    <button class="tool undoEntries-tool" id="undoTool" aria-label="Rückgängig" title="Rückgängig (Strg/⌘ + Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v3"/></svg></button>
+    <button class="tool undoEntries-tool" id="redoTool" aria-label="Wiederholen" title="Wiederholen (Strg + Y / Strg/⌘ + Umschalt + Z)" disabled><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0-7 7v3"/></svg></button>
+  </nav>
+  <div class="shape-menu" id="shapeMenu" aria-label="Form wählen">
+    <div class="menu-label">Form hinzufügen</div>
+    <button class="shape-item" data-add="rect"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14"/></svg>Rechteck</button>
+    <button class="shape-item" data-add="round"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="5"/></svg>Abgerundetes Rechteck</button>
+    <button class="shape-item" data-add="circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Kreis</button>
+    <button class="shape-item" data-add="ellipse"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="7"/></svg>Ellipse</button>
+    <button class="shape-item" data-add="triangle"><svg viewBox="0 0 24 24"><path d="M12 3 22 21H2Z"/></svg>Dreieck</button>
+    <button class="shape-item" data-add="diamond"><svg viewBox="0 0 24 24"><path d="m12 2 10 10-10 10L2 12Z"/></svg>Raute</button>
+  </div>
+  <section class="item-panel" id="itemPanel" aria-label="Minecraft-Itemkatalog">
+    <div class="item-head"><h2>Minecraft-Items</h2><button class="iconbtn" id="closeItems" title="Schließen" aria-label="Item-Auswahl schließen">✕</button></div>
+    <div class="item-hint" id="itemHint">Wähle zuerst einen Crafting-Slot oder ziehe ein Item direkt hinein.</div>
+    <div class="item-tabs" role="tablist" aria-label="Item-Kategorien">
+      <button type="button" class="item-tab active" data-catalog-tab="all" role="tab" aria-selected="true" aria-controls="itemGrid">Alle Items</button>
+      <button type="button" class="item-tab" data-catalog-tab="favorites" role="tab" aria-selected="false" aria-controls="itemGrid">Favoriten</button>
+      <button type="button" class="item-tab" data-catalog-tab="custom" role="tab" aria-selected="false" aria-controls="itemGrid">Eigene</button>
+    </div>
+    <input class="item-search" id="itemSearch" type="search" placeholder="Item oder ID suchen …" autocomplete="off" aria-label="Minecraft-Item suchen">
+    <div class="item-filter-row"><span id="itemCount">Katalog wird geladen …</span><button id="itemRefresh" type="button">Aktualisieren</button></div>
+    <div class="item-catalog-scroll" id="catalogScroll"><div id="itemGrid" class="item-grid"></div><button class="item-load-more" id="itemMore">Mehr anzeigen</button></div>
+    <div class="item-panel-footer"><button class="btn" id="clearCraftSlot">Slot leeren</button><button class="btn" id="closeItemsBottom">Fertig</button></div>
+  </section>
+  <section class="inspector" id="inspector" aria-label="Element gestalten"></section>
+  <div class="item-editor-overlay hidden" id="itemEditorOverlay" role="presentation">
+    <section class="item-editor" role="dialog" aria-modal="true" aria-labelledby="editorHeading">
+      <div class="item-editor-head"><h2 id="editorHeading">Eigenes Minecraft-Item</h2><button type="button" id="editorClose" class="iconbtn" aria-label="Item-Editor schließen">✕</button></div>
+      <div class="item-editor-preview" id="editorPreview" aria-live="polite"></div>
+      <form id="customItemForm">
+        <div class="field"><label class="field-label" for="editorName">Itemname</label><input class="editor-input" id="editorName" maxlength="64" required placeholder="z. B. Dragon Sword"></div>
+        <div class="field"><label class="field-label" for="editorLore">Beschreibung / Lore</label><textarea class="editor-input" id="editorLore" maxlength="600" placeholder="Beschreibe dein Item …"></textarea></div>
+        <label class="editor-check"><input type="checkbox" id="editorEnchanted"><span>Verzaubert <span style="color:#bba5ff">✦</span> – lila Glanz anzeigen</span></label>
+        <p class="tiny-note">Die Variante benutzt das Originalbild des Minecraft-Items. Name, Beschreibung und Verzauberungs-Effekt bleiben in deiner Mindmap gespeichert.</p>
+        <div class="editor-actions"><button type="button" class="btn" id="editorCancel">Abbrechen</button><button type="submit" class="btn primary" id="editorSave">Eigenes Item speichern</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="banner hidden" id="linkBanner">Verbinden: von einem Punkt zu einem anderen ziehen oder zwei Punkte antippen · Esc zum Abbrechen</div>
+  <div class="empty" id="empty"><div class="empty-icon" aria-hidden="true">◇</div><h1>Deine Ideen. Ohne Grenzen.</h1><p>Erstelle Formen, schreibe hinein und verbinde sie ganz nach deinen Vorstellungen.</p><button class="btn primary" id="emptyAdd">+ Erste Form erstellen</button></div>
+  <div class="zoom"><button id="zoomOut" aria-label="Zoom verkleinern">−</button><span id="zoomText">100 %</span><button id="zoomIn" aria-label="Zoom vergrößern">+</button><button id="centerBtn" aria-label="Alles zentrieren" title="Alles anzeigen"><svg viewBox="0 0 24 24"><path d="M3 9V4h5M21 15v5h-5M4 4l5 5M20 20l-5-5"/></svg></button></div>
+  <div class="footer-help">Elemente verschieben · automatisch ausrichten · verbinden</div>
+  <div class="more" id="moreMenu"><h3>Mindmap</h3><button id="newBoard">＋ Neue Mindmap</button><button id="exportBoard">↓ Als JSON speichern</button><button id="importBoard">↑ JSON importieren</button><button id="centerBoard">◎ Alles anzeigen</button><p id="cloudInfo">Automatisch lokal gespeichert. Für gemeinsame Bearbeitung auf mehreren Geräten ist die optionale Cloud-Einrichtung erforderlich.</p></div>
+  <input id="fileInput" class="hidden" type="file" accept=".json,application/json">
+  <div class="toast" role="status" aria-live="polite" id="toast"></div>
+</div>
+<script src="./cloud-config.js"></script>
+<script>
+'use strict';
+// Die öffentlichen Supabase-Projektdaten stehen in cloud-config.js.
+const CLOUD_CONFIG = window.MINDFLOW_CLOUD || null;
+const CLOUD_ENABLED = Boolean(CLOUD_CONFIG?.url && CLOUD_CONFIG?.anonKey && !CLOUD_CONFIG.url.includes('DEIN-PROJEKT'));
+
+const $ = id => document.getElementById(id);
+const viewport=$('viewport'), world=$('world'), grid=$('grid'), nodeLayer=$('nodes'), edgeLayer=$('edges');
+const clamp=(x,min,max)=>Math.min(max,Math.max(min,x));
+const types=['rect','round','circle','ellipse','triangle','diamond'];
+const sides=['top','right','bottom','left'];
+const fonts={sans:'Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',serif:'Georgia,"Times New Roman",serif',mono:'ui-monospace,SFMono-Regular,Consolas,monospace'};
+const colors=['#e4e8ef','#a9bfff','#a6dec1','#f2c58e','#e3abd3','#aeb0b8'];
+function uid(){const v=new Uint8Array(18);crypto.getRandomValues(v);return [...v].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function escapeHTML(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function validColor(x,fallback){return typeof x==='string'&&/^#[0-9a-f]{6}$/i.test(x)?x:fallback}
+function isCustomItemId(id){return typeof id==='string'&&/^custom_[a-f0-9]{12,36}$/.test(id)}
+function normCustomItem(item){
+ if(!item||!isCustomItemId(item.id)||typeof item.baseId!=='string'||!(/^[a-z0-9_]{1,90}$/).test(item.baseId)||isCustomItemId(item.baseId))return null;
+ return {id:item.id,baseId:item.baseId,name:String(item.name||'Eigenes Item').trim().slice(0,64),lore:String(item.lore||'').slice(0,600),enchanted:Boolean(item.enchanted)};
+}
+function customItem(id){return board.customItems.find(item=>item.id===id)}
+function normItemSlot(slot){if(!slot||typeof slot!=='object'||typeof slot.id!=='string'||!/^[a-z0-9_]+$/.test(slot.id))return null;return {id:slot.id.slice(0,90),count:clamp(Math.round(Number(slot.count)||1),1,64)}}
+function normNode(n){const craft=n.kind==='craft';return {id:String(n.id||uid()).slice(0,60),kind:craft?'craft':'shape',x:clamp(Number(n.x)||0,-1e7,1e7),y:clamp(Number(n.y)||0,-1e7,1e7),w:craft?410:clamp(Number(n.w)||260,100,1000),h:craft?257:clamp(Number(n.h)||130,95,800),text:String(n.text||(craft?'Crafting':'')).slice(0,5000),recipe:craft?Array.from({length:9},(_,i)=>normItemSlot(n.recipe?.[i])):undefined,result:craft?normItemSlot(n.result):undefined,shape:types.includes(n.shape)?n.shape:'round',borderColor:validColor(n.borderColor,'#e4e8ef'),borderWidth:clamp(Number(n.borderWidth)||2,1,10),textColor:validColor(n.textColor,'#f1f2f5'),font:n.font in fonts?n.font:'sans',fontSize:clamp(Number(n.fontSize)||18,10,52),fontWeight:['400','600','700'].includes(String(n.fontWeight))?String(n.fontWeight):'400',align:['left','center','right'].includes(n.align)?n.align:'center',filled:Boolean(n.filled),fillColor:validColor(n.fillColor,'#30333b'),submapId:!craft&&/^[a-f0-9]{36}$/.test(n.submapId||'')?n.submapId:null,submapEnabled:!craft&&Boolean(n.submapEnabled)&&/^[a-f0-9]{36}$/.test(n.submapId||'')}}
+function normEdge(e){return {id:String(e.id||uid()).slice(0,60),from:e.from,to:e.to,color:validColor(e.color,'#afb5bf'),width:clamp(Number(e.width)||2,1,10),fromPort:sides.includes(e.fromPort)?e.fromPort:null,toPort:sides.includes(e.toPort)?e.toPort:null,style:['curve','straight','elbow'].includes(e.style)?e.style:'curve',dash:['solid','dash','dot'].includes(e.dash)?e.dash:'solid',arrow:['none','end','both'].includes(e.arrow)?e.arrow:'end'}}
+function validBoard(data){if(!data||typeof data!=='object')return null;const nodes=(Array.isArray(data.nodes)?data.nodes:[]).filter(n=>n&&typeof n.id==='string'&&Number.isFinite(n.x)&&Number.isFinite(n.y)).slice(0,1500).map(normNode);const ids=new Set(nodes.map(n=>n.id));const edges=(Array.isArray(data.edges)?data.edges:[]).filter(e=>e&&ids.has(e.from)&&ids.has(e.to)&&e.from!==e.to).slice(0,5000).map(normEdge);const favorites=(Array.isArray(data.favorites)?data.favorites:[]).filter(id=>typeof id==='string'&&id.length<=90&&(/^[a-z0-9_]+$/).test(id)).slice(0,2400);return {title:String(data.title||'Meine Mindmap').slice(0,70),nodes,edges,customItems:[...new Map((Array.isArray(data.customItems)?data.customItems:[]).slice(0,800).map(normCustomItem).filter(Boolean).map(item=>[item.id,item])).values()],favorites:[...new Set(favorites)],parent:data.parent&&/^[a-f0-9]{36}$/.test(data.parent.boardId||'')&&typeof data.parent.nodeId==='string'?{boardId:data.parent.boardId,nodeId:data.parent.nodeId,title:String(data.parent.title||'Mindmap').slice(0,70)}:null}}
+function boardFromUrl(){const s=new URLSearchParams(location.hash.replace(/^#/,''));const k=s.get('b');return /^[a-f0-9]{36}$/.test(k||'')?k:null}
+let boardId=boardFromUrl()||uid();
+if(!boardFromUrl())history.replaceState(null,'',location.pathname+location.search+'#b='+boardId);
+const storageKey=id=>'mindflow-board-'+id;
+const viewKey=id=>'mindflow-view-'+id;
+function isMapId(value){return typeof value==='string'&&/^[a-f0-9]{36}$/.test(value)}
+function loadBoardById(id){try{return validBoard(JSON.parse(localStorage.getItem(storageKey(id))))}catch{return null}}
+function createLinkedBoard(node){return {title:(node.text||'Unter-Mindmap').trim().slice(0,70)||'Unter-Mindmap',nodes:[],edges:[],customItems:structuredClone(board.customItems),favorites:[...board.favorites],parent:{boardId,nodeId:node.id,title:board.title}}}
+function goToMap(id){if(!isMapId(id)||id===boardId)return;exitTextEditing();closeCatalog();try{localStorage.setItem(viewKey(boardId),JSON.stringify(view))}catch{}location.hash='b='+id;location.reload()}
+function openSubmap(nodeId){
+ const node=byId(nodeId);if(!node||node.kind!=='shape'||!node.submapEnabled||!isMapId(node.submapId))return;
+ if(!loadBoardById(node.submapId)){
+  try{localStorage.setItem(storageKey(node.submapId),JSON.stringify(createLinkedBoard(node)))}catch{notify('Speichern fehlgeschlagen. Bitte Speicherplatz freimachen.');return}
+ }
+ goToMap(node.submapId);
+}
+function updateMapTrail(){
+ const crumbs=$('breadcrumbs'),back=$('backMap');
+ if(!board.parent||!isMapId(board.parent.boardId)){crumbs.hidden=true;back.hidden=true;crumbs.innerHTML='';return}
+ back.hidden=false;crumbs.hidden=false;
+ const chain=[],seen=new Set([boardId]);let ref=board.parent;
+ while(ref&&isMapId(ref.boardId)&&!seen.has(ref.boardId)&&chain.length<12){
+  seen.add(ref.boardId);const saved=loadBoardById(ref.boardId);
+  chain.unshift({id:ref.boardId,title:saved?.title||ref.title||'Mindmap'});
+  ref=saved?.parent;
+ }
+ crumbs.innerHTML=chain.map((part,i)=>`${i?'<span aria-hidden="true">›</span>':''}<button type="button" data-map-id="${part.id}" title="${escapeHTML(part.title)}">${escapeHTML(part.title)}</button>`).join('');
+}
+function ensureSubmap(node,enabled){
+ if(node.kind!=='shape')return;
+ if(enabled){
+  if(!isMapId(node.submapId))node.submapId=uid();
+  if(!loadBoardById(node.submapId)){
+   try{localStorage.setItem(storageKey(node.submapId),JSON.stringify(createLinkedBoard(node)))}catch{notify('Unter-Mindmap konnte nicht gespeichert werden.');return}
+  }
+ }
+ node.submapEnabled=enabled;
+ save();renderNodes();
+ notify(enabled?'Unter-Mindmap aktiviert. Tippe auf die Form, um sie zu öffnen.':'Unter-Mindmap deaktiviert. Die Inhalte bleiben erhalten.');
+}
+function collectSubmapBoards(rootMap){
+ const maps={},seen=new Set([boardId]);
+ function walk(map,depth){if(depth>18)return;for(const node of map.nodes){const childId=node.submapId;if(!isMapId(childId)||seen.has(childId))continue;seen.add(childId);const child=loadBoardById(childId);if(child){maps[childId]=child;walk(child,depth+1)}}}
+ walk(rootMap,0);return maps;
+}
+function installSubmapBoards(rootMap,raw){
+ const attached=raw&&typeof raw.submapBoards==='object'&&raw.submapBoards&&!Array.isArray(raw.submapBoards)?raw.submapBoards:{};
+ const known=new Map(),visited=new Set();
+ function walk(map,parentId,depth){if(depth>18)return;for(const node of map.nodes){
+  if(!isMapId(node.submapId))continue;
+  const oldId=node.submapId;
+  if(!known.has(oldId))known.set(oldId,uid());
+  node.submapId=known.get(oldId);
+  if(visited.has(oldId))continue;
+  const rawChild=attached[oldId];if(!rawChild)continue;
+  visited.add(oldId);const child=validBoard(rawChild);if(!child)continue;
+  child.parent={boardId:parentId,nodeId:node.id,title:map.title};
+  walk(child,node.submapId,depth+1);
+  try{localStorage.setItem(storageKey(node.submapId),JSON.stringify(child))}catch{notify('Speicherplatz für importierte Unter-Mindmaps reicht nicht aus.')}
+ }}
+ walk(rootMap,boardId,0);
+}
+function readBoard(){try{return validBoard(JSON.parse(localStorage.getItem(storageKey(boardId))))}catch{return null}}
+let board=readBoard()||{title:'Meine Mindmap',nodes:[],edges:[],customItems:[],favorites:[]};
+let view={x:innerWidth/2,y:innerHeight/2,scale:1};
+try{const v=JSON.parse(localStorage.getItem(viewKey(boardId)));if(v&&Number.isFinite(v.x)&&Number.isFinite(v.y)&&Number.isFinite(v.scale))view={x:v.x,y:v.y,scale:clamp(v.scale,.25,3)}}catch{}
+let selectedNode=null,selectedEdge=null,linkMode=false,pendingLink=null,linkDrag=null,move=null,pointers=new Map(),pinch=null,chosenSlot=null,catalogItemDrag=null,slotItemDrag=null,ignoreSlotClickUntil=0,editorState=null;
+let saveTimer=0,viewTimer=0,toastTimer=0,remoteRef=null,remoteMod=null,remoteUnsubscribe=null,dirty=false;
+let cloudReady=false,cloudDirty=false,cloudBusy=false,cloudTimer=0,cloudRevision=0,cloudLastData='';
+const byId=id=>board.nodes.find(n=>n.id===id);
+const edgeById=id=>board.edges.find(e=>e.id===id);
+function notify(text){const t=$('toast');clearTimeout(toastTimer);t.textContent=text;t.classList.add('visible');toastTimer=setTimeout(()=>t.classList.remove('visible'),3500)}
+function status(text,warn=false){$('saveStatus').textContent=text;$('saveStatus').classList.toggle('warning',warn)}
+// Verlauf: Ein Snapshot pro Aktion. Während einer fortlaufenden Texteingabe
+// fassen wir Anschläge zusammen, damit Strg+Z einen sinnvollen Schritt zurückgeht.
+// Die gespeicherte Mindmap selbst bleibt im bekannten V11-Dateiformat.
+const HISTORY_LIMIT=120;
+let undoEntries=[{snapshot:JSON.stringify(board),group:null,time:0}],historyIndex=0;
+function updateHistoryButtons(){
+ $('undoTool').disabled=historyIndex<=0;
+ $('redoTool').disabled=historyIndex>=undoEntries.length-1;
+}
+function recordHistory(group=null){
+ const snapshot=JSON.stringify(board),current=undoEntries[historyIndex];
+ if(snapshot===current.snapshot){updateHistoryButtons();return}
+ // Nach einem Undo wird beim nächsten Bearbeiten ein neuer Verlauf begonnen.
+ if(historyIndex<undoEntries.length-1)undoEntries.splice(historyIndex+1);
+ const now=performance.now();
+ if(group&&historyIndex>0&&current.group===group&&now-current.time<1200){
+  undoEntries[historyIndex]={snapshot,group,time:now};
+ }else{
+  undoEntries.push({snapshot,group,time:now});historyIndex++;
+  if(undoEntries.length>HISTORY_LIMIT+1){undoEntries.shift();historyIndex--}
+ }
+ updateHistoryButtons();
+}
+function resetHistory(){undoEntries=[{snapshot:JSON.stringify(board),group:null,time:0}];historyIndex=0;updateHistoryButtons()}
+function restoreHistory(delta){
+ const next=historyIndex+delta;
+ if(next<0||next>=undoEntries.length)return;
+ exitTextEditing();
+ if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
+ if(editorState)closeItemEditor();
+ selectedNode=null;selectedEdge=null;chosenSlot=null;pendingLink=null;linkDrag=null;linkMode=false;move=null;
+ if(slotItemDrag){clearTimeout(slotItemDrag.holdTimer);slotItemDrag=null}
+ if(dragGhost){dragGhost.remove();dragGhost=null}if(hoverSlot){hoverSlot.classList.remove('drag-target');hoverSlot=null}
+ $('linkPreviewPath').setAttribute('d','');highlightTarget(null);clearSnapGuides();
+ historyIndex=next;
+ board=JSON.parse(undoEntries[historyIndex].snapshot);
+ $('boardTitle').value=board.title;
+ updateMapTrail();renderNodes();renderCatalog();
+ updateHistoryButtons();
+ persistBoard();
+ notify(delta<0?'Rückgängig gemacht.':'Wiederhergestellt.');
+}
+function persistBoard(){
+ dirty=true;
+ try{localStorage.setItem(storageKey(boardId),JSON.stringify(board));status(CLOUD_ENABLED?'Cloud-Speicherung …':'Lokal gespeichert',!CLOUD_ENABLED)}
+ catch{status('Speicherfehler',true);notify('Lokaler Speicher ist voll. Sichere deine Mindmap als JSON.')}
+ if(CLOUD_ENABLED){cloudDirty=true;cloudRevision++;clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,750)}
+}
+function save(options){recordHistory(options?.group||null);persistBoard()}
+
+function worldAt(clientX,clientY){const r=viewport.getBoundingClientRect();return {x:(clientX-r.left-view.x)/view.scale,y:(clientY-r.top-view.y)/view.scale}}
+function renderView(){clearSnapGuides();world.style.transform=`translate(${view.x}px,${view.y}px) scale(${view.scale})`;const sz=20*view.scale,lg=100*view.scale;grid.style.backgroundSize=`${sz}px ${sz}px,${sz}px ${sz}px,${lg}px ${lg}px,${lg}px ${lg}px`;grid.style.backgroundPosition=`${view.x}px ${view.y}px`; $('zoomText').textContent=Math.round(view.scale*100)+' %';clearTimeout(viewTimer);viewTimer=setTimeout(()=>{try{localStorage.setItem(viewKey(boardId),JSON.stringify(view))}catch{}},280)}
+function zoom(factor,px=innerWidth/2,py=innerHeight/2){const before=worldAt(px,py);view.scale=clamp(view.scale*factor,.25,3);const r=viewport.getBoundingClientRect();view.x=px-r.left-before.x*view.scale;view.y=py-r.top-before.y*view.scale;renderView()}
+function centerAll(){if(!board.nodes.length){view={x:innerWidth/2,y:innerHeight/2,scale:1}}else{const minx=Math.min(...board.nodes.map(n=>n.x)),miny=Math.min(...board.nodes.map(n=>n.y)),maxx=Math.max(...board.nodes.map(n=>n.x+n.w)),maxy=Math.max(...board.nodes.map(n=>n.y+n.h));const ww=maxx-minx,hh=maxy-miny;view.scale=clamp(Math.min((innerWidth-170)/Math.max(150,ww),(innerHeight-175)/Math.max(150,hh),1),.25,1.6);view.x=innerWidth/2-(minx+ww/2)*view.scale;view.y=innerHeight/2-(miny+hh/2)*view.scale}renderView()}
+function shapeSvg(n){const w=n.w,h=n.h,s=n.borderWidth/2+1,fw=w-2*s,fh=h-2*s,fill=n.filled?n.fillColor:'none';const common=`fill="${fill}" stroke="${n.borderColor}" stroke-width="${n.borderWidth}" stroke-linejoin="round"`;
+ let geom='';if(n.shape==='rect'||n.shape==='round')geom=`<rect x="${s}" y="${s}" width="${fw}" height="${fh}" rx="${n.shape==='round'?Math.min(17,w/8):0}" ${common}/>`;
+ else if(n.shape==='circle'||n.shape==='ellipse')geom=`<ellipse cx="${w/2}" cy="${h/2}" rx="${fw/2}" ry="${fh/2}" ${common}/>`;
+ else if(n.shape==='triangle')geom=`<polygon points="${w/2},${s+2} ${w-s-2},${h-s-2} ${s+2},${h-s-2}" ${common}/>`;
+ else geom=`<polygon points="${w/2},${s+1} ${w-s-1},${h/2} ${w/2},${h-s-1} ${s+1},${h/2}" ${common}/>`;
+ return `<svg class="shape-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${geom}</svg>`}
+function layoutTextarea(ta,n){
+  // Textarea anhand seines Inhalts in der Hoehe messen, damit auch mehrere Zeilen zentriert bleiben.
+  const maxHeight=Math.max(30,Math.round(n.h*(n.shape==='circle'||n.shape==='ellipse'?.68:n.shape==='triangle'?.49:n.shape==='diamond'?.54:.80)));
+  ta.style.height='1px';
+  ta.style.height=Math.min(maxHeight,Math.max(26,ta.scrollHeight))+'px';
+}
+function exitTextEditing(){const active=document.activeElement;if(active&&active.classList?.contains('node-text'))active.blur()}
+
+const MC_FALLBACK_IDS = `stone cobblestone dirt grass_block oak_planks spruce_planks birch_planks jungle_planks acacia_planks dark_oak_planks cherry_planks mangrove_planks bamboo_planks pale_oak_planks oak_log spruce_log birch_log jungle_log acacia_log dark_oak_log cherry_log mangrove_log bamboo_block oak_stairs oak_slab oak_door oak_fence oak_sign stick crafting_table furnace smoker blast_furnace chest barrel hopper dropper dispenser observer piston sticky_piston redstone redstone_torch repeater comparator lever button stone_button cobblestone_wall stone_bricks bricks glass glass_pane tinted_glass iron_bars lantern soul_lantern torch soul_torch campfire soul_campfire bedrock obsidian crying_obsidian netherrack soul_sand soul_soil end_stone purpur_block ender_chest shulker_box beacon conduit enchanting_table anvil chipped_anvil damaged_anvil grindstone stonecutter loom cartography_table smithing_table fletching_table composter cauldron lectern bookshelf chiseled_bookshelf note_block jukebox bell clock compass recovery_compass map filled_map paper book writable_book written_book enchanted_book experience_bottle item_frame glow_item_frame painting flower_pot armor_stand lead name_tag saddle iron_horse_armor golden_horse_armor diamond_horse_armor netherite_upgrade_smithing_template nether_star dragon_egg end_crystal elytra firework_rocket firework_star tnt flint_and_steel fire_charge flint feather string wool white_wool black_wool red_wool blue_wool green_wool yellow_wool leather rabbit_hide rabbit_foot slime_ball magma_cream blaze_rod blaze_powder ghast_tear spider_eye fermented_spider_eye phantom_membrane ender_pearl ender_eye bone bone_meal gunpowder sugar egg snowball clay_ball brick nether_brick quartz amethyst_shard echo_shard prismarine_shard prismarine_crystals glowstone_dust glow_ink_sac ink_sac lapis_lazuli coal charcoal iron_ingot raw_iron raw_gold raw_copper copper_ingot gold_ingot gold_nugget iron_nugget diamond emerald netherite_ingot netherite_scrap ancient_debris redstone_block coal_block iron_block gold_block diamond_block emerald_block copper_block lapis_block quartz_block honeycomb honey_bottle honey_block slime_block wheat wheat_seeds beetroot_seeds pumpkin_seeds melon_seeds cocoa_beans carrot potato baked_potato poisonous_potato beetroot apple golden_apple enchanted_golden_apple bread cookie cake pumpkin_pie mushroom_stew rabbit_stew suspicious_stew bowl melon_slice sweet_berries glow_berries chorus_fruit dried_kelp kelp seagrass bamboo sugar_cane cactus cactus_flower pumpkin carved_pumpkin jack_o_lantern melon hay_block moss_block moss_carpet pale_moss_block vine glow_lichen oak_leaves spruce_leaves azalea flowering_azalea dandelion poppy cornflower blue_orchid allium azure_bluet oxeye_daisy lily_of_the_valley sunflower lilac rose_bush peony wither_rose pink_tulip red_tulip white_tulip orange_tulip pink_petals pitcher_plant torchflower torchflower_seeds pink_dye purple_dye red_dye blue_dye cyan_dye lime_dye black_dye white_dye orange_dye magenta_dye yellow_dye brown_dye gray_dye light_gray_dye leather_helmet leather_chestplate leather_leggings leather_boots iron_helmet iron_chestplate iron_leggings iron_boots diamond_helmet diamond_chestplate diamond_leggings diamond_boots netherite_helmet netherite_chestplate netherite_leggings netherite_boots chainmail_helmet chainmail_chestplate chainmail_leggings chainmail_boots turtle_helmet shield wooden_sword stone_sword iron_sword golden_sword diamond_sword netherite_sword wooden_pickaxe stone_pickaxe iron_pickaxe golden_pickaxe diamond_pickaxe netherite_pickaxe wooden_axe stone_axe iron_axe golden_axe diamond_axe netherite_axe wooden_shovel stone_shovel iron_shovel golden_shovel diamond_shovel netherite_shovel wooden_hoe stone_hoe iron_hoe golden_hoe diamond_hoe netherite_hoe bow crossbow trident mace fishing_rod carrot_on_a_stick warped_fungus_on_a_stick shears brush bucket water_bucket lava_bucket milk_bucket powder_snow_bucket axolotl_bucket tropical_fish_bucket cod_bucket salmon_bucket pufferfish_bucket tadpole_bucket oak_boat oak_chest_boat spruce_boat birch_boat cherry_boat mangrove_boat bamboo_raft minecart chest_minecart hopper_minecart furnace_minecart tnt_minecart rail powered_rail detector_rail activator_rail cooked_beef beef cooked_porkchop porkchop chicken cooked_chicken mutton cooked_mutton rabbit cooked_rabbit cod cooked_cod salmon cooked_salmon tropical_fish pufferfish rotten_flesh spider_eye potato kelp dried_kelp ink_sac copper_door crafter trial_key ominous_trial_key wind_charge breeze_rod armadillo_scute wolf_armor creaking_heart resin_clump resin_brick heavy_core music_disc_13 music_disc_cat music_disc_blocks music_disc_chirp music_disc_far music_disc_mall music_disc_mellohi music_disc_stal music_disc_strad music_disc_ward music_disc_11 music_disc_wait music_disc_otherside music_disc_pigstep music_disc_relic music_disc_creator music_disc_creator_music_box music_disc_precipice`.split(' ');
+// Originalgetreue, bereits als Inventarsymbole gerenderte Minecraft-Icons.
+// Auch Blöcke (z.B. Dirt) werden als isometrische Minecraft-Blöcke dargestellt.
+const MC_ICON_RENDER='https://assets.rendermite.dev/icons/26.3/items/minecraft/';
+const MC_ICON_BASE='https://project-crafting.github.io/minecraft-auto-updated-textures-api/items/';
+const MC_ICON_BLOCK='https://project-crafting.github.io/minecraft-auto-updated-textures-api/blocks/';
+const MC_ICON_ALT='https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/';
+const MC_ICON_ALT_BLOCK='https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/block/';
+const MC_ICON_FALLBACK='https://assets.rendermite.dev/icons/26.3/items/minecraft/';
+const MC_CATALOG_URLS=[
+ 'https://assets.rendermite.dev/icons/26.3/items-26.3.json',
+ 'https://project-crafting.github.io/minecraft-auto-updated-textures-api/api/items.json',
+ 'https://api.github.com/repos/Project-crafting/minecraft-auto-updated-textures-api/git/trees/main?recursive=1',
+ 'https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/26.1/items.json',
+ 'https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.21.11/items.json'
+];
+let catalog=[...new Set(MC_FALLBACK_IDS)].map(id=>({id,name:id.replaceAll('_',' ')}));
+let catalogLoaded=false,catalogLoading=false,catalogVersion='Startauswahl',catalogShown=120,catalogTab='all';
+const catalogById=()=>new Map(catalog.map(x=>[x.id,x]));
+function displayItemName(id){return customItem(id)?.name||catalog.find(x=>x.id===id)?.name||id.replaceAll('_',' ')}
+function itemImg(id,enchantedPreview=null){
+ const custom=customItem(id),baseId=custom?.baseId||id;
+ const enchanted=enchantedPreview===null?Boolean(custom?.enchanted):Boolean(enchantedPreview);
+ const short=baseId.split('_').map(part=>part[0]||'').join('').slice(0,3).toUpperCase();
+ const safe=encodeURIComponent(baseId);
+ const srcs=[
+  MC_ICON_RENDER+safe+'.png',
+  MC_ICON_RENDER+safe+'.webp',
+  MC_ICON_BASE+safe+'.png',
+  MC_ICON_BLOCK+safe+'.png',
+  MC_ICON_ALT+safe+'.png',
+  MC_ICON_ALT_BLOCK+safe+'.png',
+  MC_ICON_FALLBACK+safe+'.webp'
+ ];
+ return `<span class="item-stack-icon ${enchanted?'enchanted':''}"><span class="item-emoji">${escapeHTML(short)}</span><img class="item-icon" src="${srcs[0]}" data-src0="${srcs[0]}" data-src1="${srcs[1]}" data-src2="${srcs[2]}" data-src3="${srcs[3]}" data-src4="${srcs[4]}" data-src5="${srcs[5]}" data-src6="${srcs[6]}" data-icon-stage="0" alt="${escapeHTML(displayItemName(id))}" draggable="false" loading="lazy" decoding="async"></span>`
+}
+// Zuerst echte Inventar-Render laden, damit Blöcke, Slabs und Stairs wie im Minecraft-Inventar aussehen. Erst danach auf flache Texturen ausweichen.
+document.addEventListener('load',event=>{
+ const img=event.target;
+ if(!(img instanceof HTMLImageElement)||!img.matches('.item-icon'))return;
+ const stack=img.closest('.item-stack-icon');
+ stack?.style.setProperty('--glint-mask',`url("${img.currentSrc.replace(/[\\"']/g,'')}")`);
+ stack?.classList.add('loaded');
+ img.style.display='block';
+},true);
+document.addEventListener('error',event=>{
+ const img=event.target;
+ if(!(img instanceof HTMLImageElement)||!img.matches('.item-icon'))return;
+ img.closest('.item-stack-icon')?.classList.remove('loaded');
+ const stage=Number(img.dataset.iconStage||'0')+1;
+ const next=img.dataset['src'+stage];
+ if(next){img.dataset.iconStage=String(stage);img.src=next;return}
+ img.style.display='none';
+},true);
+function getCraftSlot(n,key){if(!n||n.kind!=='craft')return null;return key==='out'?n.result:/^[0-8]$/.test(String(key))?n.recipe[Number(key)]:null}
+function assignCraftSlot(n,key,slot){if(!n||n.kind!=='craft')return false;const value=normItemSlot(slot);
+ if(key==='out')n.result=value;else if(/^[0-8]$/.test(String(key)))n.recipe[Number(key)]=value;else return false;return true}
+function refreshCraftCards(){for(const el of nodeLayer.querySelectorAll('.craft-node')){const n=byId(el.dataset.id);if(n)el.querySelector('.craft-card').outerHTML=craftInnerHTML(n)}}
+function craftSlotHTML(slot,i){const key=i===9?'out':String(i);return `<button type="button" class="craft-slot ${slot?'has-item':''} ${i===9?'output':''} ${chosenSlot?.key===key?'chosen':''}" data-slot="${key}" title="${i===9?'Endprodukt':'Zutat '+(i+1)}${slot?' · '+escapeHTML(displayItemName(slot.id))+(customItem(slot.id)?.lore?' · '+escapeHTML(customItem(slot.id).lore):''):''}">${i===9?'<span class="slot-label">Ergebnis</span>':''}${slot?itemImg(slot.id):'<span class="slot-empty">+</span>'}${slot?.count>1?`<span class="slot-count">${slot.count}</span>`:''}</button>`}
+function craftInnerHTML(n){return `<div class="craft-card"><div class="craft-head"><span>${escapeHTML(n.text||'CRAFTING')}</span><span class="craft-move" aria-hidden="true">⠿</span></div><div class="craft-body"><div class="craft-grid">${n.recipe.map((slot,i)=>craftSlotHTML(slot,i)).join('')}</div><div class="craft-arrow"><svg viewBox="0 0 34 24"><path d="M2 12h28m-9-8 9 8-9 8"/></svg></div>${craftSlotHTML(n.result,9)}</div></div>`}
+function refreshCraftSlots(){const id=selectedNode;if(!id)return;const n=byId(id);if(!n||n.kind!=='craft')return;const el=[...nodeLayer.children].find(x=>x.dataset.id===id);if(!el)return;el.querySelector('.craft-card').outerHTML=craftInnerHTML(n);}
+function setCraftSlot(n,key,itemId,count){if(!assignCraftSlot(n,key,itemId?{id:itemId,count:count||1}:null))return;save();refreshCraftCards();renderInspector()}
+function chooseCraftSlot(nodeId,key){const n=byId(nodeId);if(!n||n.kind!=='craft')return;selectedNode=nodeId;selectedEdge=null;chosenSlot={id:nodeId,key};if(getCraftSlot(n,key))closeCatalog();refreshSelection();if(!getCraftSlot(n,key))openCatalog();}
+function focusCraftBesideCatalog(){
+ const n=byId(chosenSlot?.id)||byId(selectedNode)||board.nodes.findLast(x=>x.kind==='craft');
+ if(!n||n.kind!=='craft')return;
+ if(innerWidth>=500){
+  const panelWidth=Math.min(322,innerWidth-32),leftLimit=panelWidth+38,rightLimit=innerWidth-18;
+  const avail=rightLimit-leftLimit;
+  if(n.w*view.scale>avail-4)view.scale=clamp((avail-4)/n.w,.64,view.scale);
+  const center=leftLimit+avail/2;
+  view.x=center-(n.x+n.w/2)*view.scale;
+  view.y=innerHeight/2-(n.y+n.h/2)*view.scale;
+ }else{
+  const sheetHeight=Math.min(400,innerHeight*.55),sheetTop=innerHeight-sheetHeight-70;
+  view.scale=Math.min(view.scale,.74);
+  view.x=innerWidth/2-(n.x+n.w/2)*view.scale;
+  view.y=Math.max(70,(sheetTop-n.h*view.scale)/2)-(n.y*view.scale);
+ }
+ renderView();
+}
+function openCatalog(){const panel=$('itemPanel');panel.classList.add('show');document.querySelector('.app').classList.add('catalog-open');focusCraftBesideCatalog();$('itemHint').textContent=chosenSlot?(chosenSlot.key==='out'?'Wähle das Endprodukt – frei einstellbar für eigene Rezepte.':'Wähle eine Zutat oder ziehe sie in einen Slot.'):'Wähle einen Slot im Crafting-Feld oder ziehe ein Item hinein.'; $('itemHint').textContent+='  ★ als Favorit markieren · ✎ eigene Variante erstellen.';renderCatalog();if(!catalogLoaded)loadCatalog();}
+function closeCatalog(){$('itemPanel').classList.remove('show');document.querySelector('.app').classList.remove('catalog-open');}
+function normalizeCatalogPayload(raw){
+ // 26.3-Item-Registry bevorzugen; ältere Listen nur als Reserve verwenden.
+ // Unterstützt Arrays, Maps, Registry-Objekte und GitHub-Dateibäume.
+ if(Array.isArray(raw?.tree)){
+  const paths=raw.tree.map(x=>x.path).filter(p=>/^items\/[a-z0-9_]+\.png$/.test(p));
+  return paths.map(path=>({id:path.slice(6,-4),name:path.slice(6,-4).replaceAll('_',' ')}));
+ }
+ let list=Array.isArray(raw)?raw:(raw?.items||raw?.registry||raw?.data?.items||raw?.results||raw?.entries||raw);
+ if(!Array.isArray(list)&&list&&typeof list==='object'){
+  list=Object.entries(list).map(([id,value])=>typeof value==='string'?{id,name:value}:
+   value&&typeof value==='object'?{id,...value}:null).filter(Boolean);
+ }
+ if(!Array.isArray(list))return [];
+ return list.map(item=>{
+  const idRaw=typeof item==='string'?item:(item?.id??item?.identifier??item?.key??item?.name??'');
+  if(typeof idRaw!=='string')return null;
+  const id=idRaw.replace(/^minecraft:/,'').toLowerCase();
+  // Auf der Vanilla-Webseite nur Minecraft-Items erlauben, keine Fremd-Namespaces.
+  if(!/^[a-z0-9_]+$/.test(id)||id==='air')return null;
+  const name=typeof item==='string'?id:(item.displayName||item.display_name||item.label||item.title||item.name||id);
+  return {id,name:String(name).replaceAll('_',' ')};
+ }).filter(Boolean);
+}
+async function loadCatalog(force=false){
+ if(catalogLoading||catalogLoaded&&!force)return;
+ catalogLoading=true;
+ $('itemCount').textContent='Aktuelle Minecraft-Items werden geladen …';
+ let success=false;
+ for(const src of MC_CATALOG_URLS){
+  try{
+   const response=await fetch(src,{mode:'cors',cache:force?'no-store':'default',signal:AbortSignal.timeout(8500)});
+   if(!response.ok)continue;
+   const names=normalizeCatalogPayload(await response.json());
+   if(names.length<500)continue;
+   // Bereits verwendete Items nicht verlieren, selbst wenn die Registry sie nicht kennt.
+   const used=[...board.nodes.filter(n=>n.kind==='craft').flatMap(n=>[...n.recipe,n.result]).filter(Boolean).map(s=>s.id),...board.favorites.filter(id=>!isCustomItemId(id))];
+   const all=[...names,...used.filter(id=>!names.some(x=>x.id===id)).map(id=>({id,name:id.replaceAll('_',' ')}))];
+   catalog=[...new Map(all.map(i=>[i.id,i])).values()].sort((a,b)=>a.name.localeCompare(b.name,'en'));
+   catalogLoaded=true;
+   catalogVersion=src.includes('rendermite.dev')?'Minecraft Java 26.3 (Inventar-Registry)':
+     src.includes('api.github.com')?'Minecraft Java (GitHub-Registry)':
+     src.includes('26.1')?'Minecraft Java 26.1':
+     src.includes('1.21.11')?'Minecraft Java 1.21.11':'Minecraft Java (automatisch aktualisiert)';
+   success=true;break;
+  }catch(err){console.info('Itemquelle nicht verfügbar',src,err.message)}
+ }
+ catalogLoading=false;
+ renderCatalog();
+ if(!success){catalogVersion='Grundauswahl (offline)';renderCatalog();if(force)notify('Online-Itemliste nicht erreichbar. Grundauswahl bleibt verfügbar.')}
+}
+function renderCatalog(){
+ const query=$('itemSearch').value.trim().toLowerCase();
+ const available=new Map([...catalog,...board.favorites.filter(id=>!isCustomItemId(id)).map(id=>({id,name:displayItemName(id)}))].map(x=>[x.id,x]));
+ const all=[...board.customItems.map(x=>({id:x.id,name:x.name,custom:true})),...available.values()];
+ const tabItems=catalogTab==='custom'?all.filter(x=>x.custom):catalogTab==='favorites'?all.filter(x=>board.favorites.includes(x.id)):all;
+ const filtered=tabItems.filter(x=>x.id.includes(query.replaceAll(' ','_'))||x.name.toLowerCase().includes(query)||customItem(x.id)?.baseId.includes(query.replaceAll(' ','_')));
+ const visible=filtered.slice(0,catalogShown);
+ document.querySelectorAll('[data-catalog-tab]').forEach(button=>{
+  const active=button.dataset.catalogTab===catalogTab;
+  button.classList.toggle('active',active);
+  button.setAttribute('aria-selected',String(active));
+ });
+ $('itemGrid').innerHTML=visible.length?visible.map(item=>{
+  const starred=board.favorites.includes(item.id);
+  return `<div class="catalog-entry ${item.custom?'custom':''}"><button type="button" class="catalog-item" data-item="${escapeHTML(item.id)}" title="${escapeHTML(item.name)}${item.custom?' · Eigenes Item'+(customItem(item.id)?.lore?' · '+escapeHTML(customItem(item.id).lore):''):' · minecraft:'+escapeHTML(item.id)}">${itemImg(item.id)}<span class="item-name">${escapeHTML(item.name)}</span></button><button type="button" class="catalog-favorite" data-favorite="${escapeHTML(item.id)}" aria-pressed="${starred}" title="${starred?'Aus Favoriten entfernen':'Zu Favoriten hinzufügen'}" aria-label="${escapeHTML(item.name)}: ${starred?'Favorit entfernen':'Als Favorit markieren'}">${starred?'★':'☆'}</button><button type="button" class="catalog-edit" data-edit-base="${escapeHTML(item.id)}" title="${item.custom?'Eigenes Item bearbeiten':'Eigene Variante erstellen'}" aria-label="${escapeHTML(item.name)} bearbeiten">✎</button></div>`;
+ }).join(''):`<div class="item-grid-empty">${query?'Keine passenden Items gefunden.':catalogTab==='favorites'?'Noch keine Favoriten. Tippe bei einem Item auf ☆.':catalogTab==='custom'?'Noch keine eigenen Items. Erstelle eins über ✎ im Reiter „Alle Items“.':'Keine Items vorhanden.'}</div>`;
+ $('itemCount').textContent=`${filtered.length.toLocaleString('de-DE')} Items · ${board.favorites.length} Favoriten · ${board.customItems.length} eigene · ${catalogVersion}`;
+ $('itemMore').style.display=filtered.length>catalogShown?'block':'none';
+}
+function toggleItemFavorite(id){
+ if(!isCustomItemId(id)&&!(/^[a-z0-9_]{1,90}$/).test(id))return;
+ if(isCustomItemId(id)&&!customItem(id))return;
+ const index=board.favorites.indexOf(id);
+ if(index>=0)board.favorites.splice(index,1);
+ else if(board.favorites.length<2400)board.favorites.push(id);
+ else {notify('Maximal 2.400 Favoriten möglich.');return}
+ save();renderCatalog();
+}
+
+function openItemEditor(id,withPlacement=false){
+ const old=customItem(id),baseId=old?.baseId||id;
+ if(!(/^[a-z0-9_]{1,90}$/).test(baseId))return;
+ editorState={id:old?.id||null,baseId,placement:withPlacement&&!old&&chosenSlot?{...chosenSlot}:withPlacement&&old&&chosenSlot&&getCraftSlot(byId(chosenSlot.id),chosenSlot.key)?.id===old.id?{...chosenSlot}:null};
+ $('editorHeading').textContent=old?'Eigenes Item bearbeiten':'Neues Item erstellen';
+ $('editorName').value=old?.name||displayItemName(baseId);
+ $('editorLore').value=old?.lore||'';
+ $('editorEnchanted').checked=Boolean(old?.enchanted);
+ $('editorSave').textContent=old?'Änderungen speichern':'Eigenes Item erstellen';
+ $('itemEditorOverlay').classList.remove('hidden');updateItemEditorPreview();
+ $('editorName').focus();$('editorName').select();
+}
+function updateItemEditorPreview(){if(!editorState)return;
+ const id=editorState.id||editorState.baseId;
+ $('editorPreview').innerHTML=`${itemImg(id,$('editorEnchanted').checked)}<div class="item-preview-names"><strong>${escapeHTML($('editorName').value.trim()||'Unbenanntes Item')}</strong><small>${escapeHTML(editorState.baseId.replaceAll('_',' '))}${$('editorEnchanted').checked?' · ✦ Verzaubert':''}</small></div>`;
+}
+function closeItemEditor(){editorState=null;$('itemEditorOverlay').classList.add('hidden')}
+$('editorClose').onclick=$('editorCancel').onclick=closeItemEditor;
+$('itemEditorOverlay').addEventListener('pointerdown',event=>{if(event.target===$('itemEditorOverlay'))closeItemEditor()});
+$('editorName').addEventListener('input',updateItemEditorPreview);
+$('editorEnchanted').addEventListener('change',updateItemEditorPreview);
+$('customItemForm').addEventListener('submit',event=>{
+ event.preventDefault();if(!editorState)return;
+ const name=$('editorName').value.trim().slice(0,64);
+ if(!name){$('editorName').focus();return}
+ const id=editorState.id||'custom_'+uid().slice(0,24);
+ const item=normCustomItem({id,baseId:editorState.baseId,name,lore:$('editorLore').value,enchanted:$('editorEnchanted').checked});
+ if(!item)return;
+ const existing=board.customItems.findIndex(i=>i.id===id);
+ if(existing>=0)board.customItems[existing]=item;else board.customItems.unshift(item);
+ const placement=editorState.placement;
+ if(placement){const n=byId(placement.id);if(n){const previous=getCraftSlot(n,placement.key);assignCraftSlot(n,placement.key,{id,count:previous?.count||1});chosenSlot=placement;selectedNode=n.id;selectedEdge=null}}
+ closeItemEditor();save();renderNodes();renderCatalog();notify(existing>=0?'Eigenes Item aktualisiert.':'Eigenes Item erstellt und gespeichert.');
+});
+
+// Gemeinsame Kanten/Mitten sowie gleichmäßige Abstände zwischen Elementen.
+// Der Abstand wird in Bildschirm-Pixeln geprüft, damit Snapping bei jedem Zoom
+// auf PC und iPad gleich präzise funktioniert.
+function clearSnapGuides(){$('snapGuides').replaceChildren()}
+function alignSnap(n,x,y,disable=false){
+ if(disable||board.nodes.length<2){clearSnapGuides();return {x,y}}
+ const tolerance=10/view.scale;
+ const mover={x,y,w:n.w,h:n.h};
+ let bestX=null,bestY=null;
+ const xAnchors=a=>[{value:a.x,kind:'left'},{value:a.x+a.w/2,kind:'center'},{value:a.x+a.w,kind:'right'}];
+ const yAnchors=a=>[{value:a.y,kind:'top'},{value:a.y+a.h/2,kind:'middle'},{value:a.y+a.h,kind:'bottom'}];
+ const attempt=(axis,diff,ref,moving,other,kind)=>{
+  const curr=axis==='x'?bestX:bestY;
+  if(Math.abs(diff)>tolerance||(curr&&Math.abs(diff)>=Math.abs(curr.diff)))return;
+  const next={diff,ref,moving,other,kind};if(axis==='x')bestX=next;else bestY=next;
+ };
+ for(const other of board.nodes){
+  if(other.id===n.id)continue;
+  for(const moving of xAnchors(mover))for(const ref of xAnchors(other))
+   attempt('x',ref.value-moving.value,ref.value,mover,other,'align');
+  for(const moving of yAnchors(mover))for(const ref of yAnchors(other))
+   attempt('y',ref.value-moving.value,ref.value,mover,other,'align');
+  // Zusätzlich am gleichen freien Abstand (24px) einrasten, damit sich
+  // nebeneinander / untereinander platzierte Kästen gleichmäßig anordnen.
+  const yOverlap=Math.min(y+mover.h,other.y+other.h)-Math.max(y,other.y);
+  const xOverlap=Math.min(x+mover.w,other.x+other.w)-Math.max(x,other.x);
+  const gap=24;
+  if(yOverlap>0){
+   attempt('x',(other.x+other.w+gap)-x,other.x+other.w+gap,mover,other,'gap');
+   attempt('x',(other.x-gap-mover.w)-x,other.x-gap,mover,other,'gap');
+  }
+  if(xOverlap>0){
+   attempt('y',(other.y+other.h+gap)-y,other.y+other.h+gap,mover,other,'gap');
+   attempt('y',(other.y-gap-mover.h)-y,other.y-gap,mover,other,'gap');
+  }
+ }
+ if(bestX)x+=bestX.diff;
+ if(bestY)y+=bestY.diff;
+ const screenX=v=>view.x+v*view.scale;
+ const screenY=v=>view.y+v*view.scale;
+ let lines='';
+ if(bestX){
+  const o=bestX.other,from=Math.min(y,o.y)-22,until=Math.max(y+n.h,o.y+o.h)+22;
+  const xx=screenX(bestX.ref);
+  lines+=`<line x1="${xx}" y1="${screenY(from)}" x2="${xx}" y2="${screenY(until)}"/>`;
+ }
+ if(bestY){
+  const o=bestY.other,from=Math.min(x,o.x)-22,until=Math.max(x+n.w,o.x+o.w)+22;
+  const yy=screenY(bestY.ref);
+  lines+=`<line x1="${screenX(from)}" y1="${yy}" x2="${screenX(until)}" y2="${yy}"/>`;
+ }
+ $('snapGuides').innerHTML=lines;
+ return {x:Math.round(x),y:Math.round(y)};
+}
+function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n)}
+function renderNodes(){nodeLayer.innerHTML=board.nodes.map(n=>n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':''}>${escapeHTML(n.text)}</textarea>${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges()}
+function pickEdgePoint(n,target){const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=target.x-cx,dy=target.y-cy;const w=n.w/2,h=n.h/2;
+ if(n.shape==='circle'||n.shape==='ellipse'){const den=Math.sqrt((dx/w)**2+(dy/h)**2)||1;return {x:cx+dx/den,y:cy+dy/den}}
+ let poly;if(n.shape==='triangle')poly=[[0,-h],[w,h],[-w,h]];else if(n.shape==='diamond')poly=[[0,-h],[w,0],[0,h],[-w,0]];else poly=[[-w,-h],[w,-h],[w,h],[-w,h]];
+ const det=(a,b,c,d)=>a*d-b*c;let best=Infinity;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],sx=q[0]-p[0],sy=q[1]-p[1],den=det(dx,dy,sx,sy);if(Math.abs(den)<1e-9)continue;const t=det(p[0],p[1],sx,sy)/den,u=det(p[0],p[1],dx,dy)/den;if(t>0&&t<best&&u>=0&&u<=1)best=t}const t=Number.isFinite(best)?best:1;return {x:cx+dx*t,y:cy+dy*t}}
+function arrowGeom(p,heading,size,color){const mag=Math.hypot(heading.x,heading.y)||1,ux=heading.x/mag,uy=heading.y/mag,L=8+size*1.5,W=4+size*.8;const bx=p.x-ux*L,by=p.y-uy*L;return `<polygon class="arrow-head" points="${p.x},${p.y} ${bx-uy*W},${by+ux*W} ${bx+uy*W},${by-ux*W}" fill="${color}"/>`}
+function portWorld(n,side){if(side==='top')return {x:n.x+n.w/2,y:n.y};if(side==='right')return {x:n.x+n.w,y:n.y+n.h/2};if(side==='bottom')return {x:n.x+n.w/2,y:n.y+n.h};return {x:n.x,y:n.y+n.h/2}}
+function portNormal(side){return ({top:{x:0,y:-1},right:{x:1,y:0},bottom:{x:0,y:1},left:{x:-1,y:0}})[side]||{x:1,y:0}}
+function screenAt(point){return {x:view.x+point.x*view.scale,y:view.y+point.y*view.scale}}
+function edgeGeometry(e){const a=byId(e.from),b=byId(e.to);if(!a||!b)return null;
+ const ac={x:a.x+a.w/2,y:a.y+a.h/2},bc={x:b.x+b.w/2,y:b.y+b.h/2};
+ const p=e.fromPort?portWorld(a,e.fromPort):pickEdgePoint(a,bc),q=e.toPort?portWorld(b,e.toPort):pickEdgePoint(b,ac),dx=q.x-p.x,dy=q.y-p.y;
+ const startOut=e.fromPort?portNormal(e.fromPort):(Math.abs(dx)>Math.abs(dy)?{x:Math.sign(dx)||1,y:0}:{x:0,y:Math.sign(dy)||1});
+ const endOut=e.toPort?portNormal(e.toPort):(Math.abs(dx)>Math.abs(dy)?{x:-Math.sign(dx)||-1,y:0}:{x:0,y:-Math.sign(dy)||-1});
+ let d,startDirection,endDirection;
+ if(e.style==='straight'){d=`M ${p.x} ${p.y} L ${q.x} ${q.y}`;startDirection={x:-dx,y:-dy};endDirection={x:dx,y:dy}}
+ else if(e.style==='elbow'){
+  const horizontal=(e.fromPort?['left','right'].includes(e.fromPort):Math.abs(dx)>Math.abs(dy));
+  if(horizontal){const mid=(p.x+q.x)/2;d=`M ${p.x} ${p.y} L ${mid} ${p.y} L ${mid} ${q.y} L ${q.x} ${q.y}`;startDirection={x:p.x-mid,y:0};endDirection={x:q.x-mid,y:0}}
+  else {const mid=(p.y+q.y)/2;d=`M ${p.x} ${p.y} L ${p.x} ${mid} L ${q.x} ${mid} L ${q.x} ${q.y}`;startDirection={x:0,y:p.y-mid};endDirection={x:0,y:q.y-mid}}
+ }else{
+  const span=Math.max(40,Math.min(170,Math.hypot(dx,dy)*.38)),c1={x:p.x+startOut.x*span,y:p.y+startOut.y*span},c2={x:q.x+endOut.x*span,y:q.y+endOut.y*span};
+  d=`M ${p.x} ${p.y} C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${q.x} ${q.y}`;
+  startDirection={x:p.x-c1.x,y:p.y-c1.y};endDirection={x:q.x-c2.x,y:q.y-c2.y};
+ }
+ return {p,q,d,startDirection,endDirection}
+}
+function drawEdges(){const valid=board.edges.map(e=>({edge:e,geo:edgeGeometry(e)})).filter(x=>x.geo);if(!valid.length){edgeLayer.innerHTML='';edgeLayer.style.width='0px';edgeLayer.style.height='0px';return}const xs=valid.flatMap(v=>[v.geo.p.x,v.geo.q.x]),ys=valid.flatMap(v=>[v.geo.p.y,v.geo.q.y]);const minx=Math.min(...xs)-120,miny=Math.min(...ys)-120,maxx=Math.max(...xs)+120,maxy=Math.max(...ys)+120;edgeLayer.style.left=minx+'px';edgeLayer.style.top=miny+'px';edgeLayer.style.width=(maxx-minx)+'px';edgeLayer.style.height=(maxy-miny)+'px';edgeLayer.setAttribute('viewBox',`${minx} ${miny} ${maxx-minx} ${maxy-miny}`);
+ edgeLayer.innerHTML=valid.map(({edge:e,geo:g})=>{const chosen=e.id===selectedEdge;const dash=e.dash==='dash'?'10 7':e.dash==='dot'?'2 8':'';const head1=e.arrow==='both'?arrowGeom(g.p,g.startDirection,e.width,e.color):'';const head2=e.arrow!=='none'?arrowGeom(g.q,g.endDirection,e.width,e.color):'';return `<g data-edge="${escapeHTML(e.id)}"><path class="edge-visible" d="${g.d}" stroke="${e.color}" stroke-width="${e.width+(chosen?1:0)}" ${dash?`stroke-dasharray="${dash}"`:''}/>${chosen?`<path class="edge-visible" d="${g.d}" stroke="#b8caff" opacity=".25" stroke-width="${e.width+7}"/>`:''}${head1}${head2}<path class="edge-hit" d="${g.d}" data-edge="${escapeHTML(e.id)}"/></g>`}).join('')}
+function refreshSelection(){
+ for(const el of nodeLayer.children){el.classList.toggle('selected',el.dataset.id===selectedNode);el.classList.toggle('link-origin',el.dataset.id===pendingLink?.id)}
+ // Die gewählte Crafting-Zelle muss auch visuell abgewählt werden.
+ // Kein komplettes Neu-Rendern: die Itembilder bleiben geladen.
+ for(const slot of nodeLayer.querySelectorAll('.craft-slot')){
+  const active=Boolean(chosenSlot&&selectedNode===chosenSlot.id&&slot.closest('.node')?.dataset.id===chosenSlot.id&&slot.dataset.slot===chosenSlot.key);
+  slot.classList.toggle('chosen',active);
+  slot.setAttribute('aria-pressed',String(active));
+ }
+ $('selectTool').classList.toggle('active',!linkMode);$('linkTool').classList.toggle('active',linkMode);
+ // Alle Anschluss-Punkte sind ausschliesslich sichtbar, solange eine
+ // Verbindung wirklich gezogen wird oder die zweite Beruehrung aussteht.
+ document.querySelector('.app').classList.toggle('connecting',Boolean(linkDrag||pendingLink));
+ $('linkBanner').classList.toggle('hidden',!linkMode&&!pendingLink);
+ $('linkBanner').textContent=pendingLink
+   ? 'Verbinden: Wähle den Zielpunkt einer anderen Form · Esc zum Abbrechen'
+   : selectedNode
+     ? 'Verbinden: Ziehe von einem sichtbaren Punkt zu einer anderen Form'
+     : 'Wähle zuerst eine Form aus, um ihre Verbindungspunkte anzuzeigen';
+ drawEdges();renderInspector();
+}
+function selectNode(id){selectedNode=id;selectedEdge=null;if(chosenSlot?.id!==id)chosenSlot=null;refreshSelection()}
+function selectEdge(id){exitTextEditing();selectedNode=null;selectedEdge=id;chosenSlot=null;refreshSelection()}
+function setLinkMode(flag){linkMode=flag;pendingLink=null;$('shapeMenu').classList.remove('show');refreshSelection()}
+function connectPorts(source,target){
+ if(source.id===target.id){notify('Wähle eine andere Form.');return false}
+ if(board.edges.some(e=>e.from===source.id&&e.to===target.id&&e.fromPort===source.side&&e.toPort===target.side)){notify('Diese Verbindung gibt es schon.');return false}
+ const e=normEdge({id:uid(),from:source.id,to:target.id,fromPort:source.side,toPort:target.side});
+ board.edges.push(e);exitTextEditing();linkMode=false;pendingLink=null;selectEdge(e.id);save();return true;
+}
+function nearestPort(clientX,clientY,exceptId){
+ let candidate=null,dist=Number.POSITIVE_INFINITY;
+ for(const n of board.nodes){if(n.id===exceptId)continue;
+  for(const side of sides){const p=screenAt(portWorld(n,side)),d=Math.hypot(p.x-clientX,p.y-clientY);
+   if(d<dist){dist=d;candidate={id:n.id,side}}}
+ }
+ return dist<38?candidate:null;
+}
+function highlightTarget(target){nodeLayer.querySelectorAll('.port.target').forEach(el=>el.classList.remove('target'));
+ if(!target)return;const n=[...nodeLayer.children].find(el=>el.dataset.id===target.id);
+ n?.querySelector(`.port[data-side="${target.side}"]`)?.classList.add('target');
+}
+function drawLinkPreview(x,y,target){
+ if(!linkDrag)return;const src=byId(linkDrag.id);if(!src)return;
+ const p=screenAt(portWorld(src,linkDrag.side)),normal=portNormal(linkDrag.side),q=target?screenAt(portWorld(byId(target.id),target.side)):{x,y};
+ const targetNormal=target?portNormal(target.side):{x:0,y:0};
+ const distance=Math.hypot(q.x-p.x,q.y-p.y),m=Math.max(44,Math.min(155,distance*.36));
+ const c1={x:p.x+normal.x*m,y:p.y+normal.y*m},c2={x:q.x+targetNormal.x*m,y:q.y+targetNormal.y*m};
+ $('linkPreviewPath').setAttribute('d',`M ${p.x} ${p.y} C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${q.x} ${q.y}`);
+}
+function finishLinkDrag(event,cancel=false){
+ if(!linkDrag||linkDrag.pointer!==event.pointerId)return;
+ const wasMoving=linkDrag.moved,source={id:linkDrag.id,side:linkDrag.side};
+ const target=cancel?null:nearestPort(event.clientX,event.clientY,source.id);
+ $('linkPreviewPath').setAttribute('d','');highlightTarget(null);linkDrag=null;
+ if(target){connectPorts(source,target);return}
+ if(wasMoving){pendingLink=null;refreshSelection();return}
+ // Zwei einzelne Beruehrungen funktionieren auf dem iPad genauso wie Mausklicks.
+ if(pendingLink&&pendingLink.id===source.id&&pendingLink.side===source.side){pendingLink=null}
+ else if(pendingLink&&pendingLink.id!==source.id){connectPorts(pendingLink,source);return}
+ else{pendingLink=source;selectedNode=source.id;selectedEdge=null}
+ refreshSelection();
+}
+function placeNext(w,h){
+  const ref=byId(selectedNode)||board.nodes[board.nodes.length-1];
+  if(!ref)return worldAt(innerWidth/2,innerHeight/2);
+  const gap=58,cx=ref.x+ref.w/2,cy=ref.y+ref.h/2;
+  const candidates=[
+    {x:cx-w/2,y:ref.y-h-gap},
+    {x:cx-w/2,y:ref.y+ref.h+gap},
+    {x:ref.x-w-gap,y:cy-h/2},
+    {x:ref.x+ref.w+gap,y:cy-h/2},
+    {x:ref.x-w-gap,y:ref.y-h-gap},
+    {x:ref.x+ref.w+gap,y:ref.y-h-gap},
+    {x:ref.x-w-gap,y:ref.y+ref.h+gap},
+    {x:ref.x+ref.w+gap,y:ref.y+ref.h+gap}
+  ];
+  function score(c){
+    const left=c.x*view.scale+view.x,top=c.y*view.scale+view.y,right=left+w*view.scale,bottom=top+h*view.scale;
+    const safeL=innerWidth>750?95:15,safeR=innerWidth>750?innerWidth-270:innerWidth-15;
+    const offscreen=Math.max(0,safeL-left)+Math.max(0,right-safeR)+Math.max(0,65-top)+Math.max(0,bottom-(innerHeight-90));
+    let overlap=0;
+    for(const n of board.nodes){const dx=Math.max(0,Math.min(c.x+w,n.x+n.w)-Math.max(c.x,n.x)),dy=Math.max(0,Math.min(c.y+h,n.y+n.h)-Math.max(c.y,n.y));overlap+=dx*dy}
+    return overlap*3+offscreen*50
+  }
+  const candidate=candidates.reduce((best,c)=>score(c)<score(best)?c:best,candidates[0]);
+  return {x:candidate.x+w/2,y:candidate.y+h/2}
+}
+function addShape(shape='rect',pos=null){
+  const sized={rect:[255,110],round:[255,114],circle:[185,185],ellipse:[245,144],triangle:[230,200],diamond:[205,205]};
+  const [w,h]=sized[shape]||sized.rect;
+  const p=pos||placeNext(w,h);
+  const n=normNode({id:uid(),x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape,text:''});
+  board.nodes.push(n);selectedNode=n.id;selectedEdge=null;$('shapeMenu').classList.remove('show');setLinkMode(false);renderNodes();save();
+  // Die Form ist ausgewaehlt; Texteingabe startet erst bei einem Klick in die Form.
+}
+function addCraft(){const w=410,h=257,p=placeNext(w,h),n=normNode({id:uid(),kind:'craft',text:'CRAFTING',x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),recipe:Array(9).fill(null),result:null});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();if(innerWidth<500&&board.nodes.length===1)zoom(.74);notify('Crafting erstellt. Klicke einen Slot, um ein Item auszuwählen.')}
+function removeSelected(){if(selectedNode){if(chosenSlot?.id===selectedNode)chosenSlot=null;board.nodes=board.nodes.filter(n=>n.id!==selectedNode);board.edges=board.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);selectedNode=null;renderNodes();save()}else if(selectedEdge){board.edges=board.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;refreshSelection();save()}else notify('Wähle zuerst eine Form oder Verbindung aus.')}
+function duplicateSelected(){const src=byId(selectedNode);if(!src){notify('Wähle eine Form zum Duplizieren aus.');return}const n={...structuredClone(src),id:uid(),x:src.x+40,y:src.y+40,submapId:null,submapEnabled:false};board.nodes.push(n);selectedNode=n.id;selectedEdge=null;renderNodes();save()}
+function menuChips(prop,items,value){return `<div class="chiprow">${items.map(([v,label])=>`<button class="chip ${v===value?'selected':''}" data-set="${prop}" data-value="${v}">${label}</button>`).join('')}</div>`}
+function colorField(label,prop,value){return `<div class="field"><label class="field-label" for="c-${prop}">${label}</label><div class="colorline"><input class="color-input" id="c-${prop}" type="color" data-set="${prop}" value="${value}"><span>${value.toUpperCase()}</span></div><div class="swatches">${colors.map(c=>`<button type="button" class="swatch" style="--c:${c}" title="${c}" data-set="${prop}" data-value="${c}"></button>`).join('')}</div></div>`}
+function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=edgeById(selectedEdge);if(!n&&!e){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');if(n&&n.kind==='craft'){const slot=chosenSlot?.id===n.id?(chosenSlot.key==='out'?n.result:n.recipe[Number(chosenSlot.key)]):null;el.innerHTML=`<div class="inspector-head"><h2>Crafting</h2><button class="iconbtn" data-close aria-label="Schließen">✕</button></div>
+ <div class="field"><label class="field-label">Titel</label><input class="select" maxlength="46" data-craft-title value="${escapeHTML(n.text)}" placeholder="CRAFTING"></div>
+ <p class="tiny-note">Klicke ein belegtes Feld zum Bearbeiten. Per Ziehen kannst du Items zwischen Feldern tauschen oder außerhalb des Tisches entfernen.</p>
+ ${chosenSlot?.id===n.id?`<hr>${slot?`<div class="field"><label class="field-label">${escapeHTML(displayItemName(slot.id))}${customItem(slot.id)?.enchanted?' ✦':''}</label><div style="display:flex;align-items:center;gap:13px">${itemImg(slot.id)}<span class="tiny-note">${escapeHTML(customItem(slot.id)?.lore||'Minecraft-Item')}</span></div></div>`:''}<div class="field"><label class="field-label">Ausgewählter Slot</label><div class="field-inline" style="flex-wrap:wrap;justify-content:flex-start"><button class="btn" data-craft-pick>Wechseln</button>${slot?`<button class="btn" data-craft-edit>✎ Bearbeiten</button><button class="btn" data-craft-clear>Entfernen</button>`:''}</div></div>${slot?`<div class="field field-inline"><label class="field-label">Anzahl (1–64)</label><input class="number" data-craft-count type="number" min="1" max="64" value="${slot.count}"></div>`:''}`:'<div class="actions"><button class="btn" data-craft-pick>Itemkatalog öffnen</button></div>'}
+ <hr><div class="actions"><button class="btn" data-duplicate>Duplizieren</button><button class="btn" data-delete>Löschen</button></div>`}
+ else if(n){el.innerHTML=`<div class="inspector-head"><h2>Form gestalten</h2><button class="iconbtn" data-close aria-label="Schließen"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div>
+ <div class="field"><label class="checkline"><input type="checkbox" data-submap-toggle ${n.submapEnabled?'checked':''}> <strong>Unter-Mindmap öffnen</strong></label><p class="tiny-note" style="margin:6px 0 9px">Beim Antippen dieser Form eine eigene Mindmap für das Thema öffnen.</p></div>
+ ${n.submapEnabled?`<div class="field"><label class="field-label" for="submapText">Text / Themenname</label><input class="select" id="submapText" data-submap-text maxlength="90" value="${escapeHTML(n.text)}" placeholder="z. B. Zombie Slayer"></div><div class="field"><button class="btn" type="button" data-open-submap>↗ Unter-Mindmap öffnen</button></div><hr>`:''}
+ <div class="field"><label class="field-label">Form</label><select class="select" data-set="shape">${[['rect','Rechteck'],['round','Abgerundetes Rechteck'],['circle','Kreis'],['ellipse','Ellipse'],['triangle','Dreieck'],['diamond','Raute']].map(([v,l])=>`<option value="${v}" ${n.shape===v?'selected':''}>${l}</option>`).join('')}</select></div>
+ ${colorField('Umrandung','borderColor',n.borderColor)}
+ <div class="field field-inline"><label class="field-label" for="bwidth">Linienstärke</label><input class="number" id="bwidth" type="number" min="1" max="10" step="1" data-set="borderWidth" value="${n.borderWidth}"></div>
+ <div class="field"><label class="checkline"><input type="checkbox" data-set="filled" ${n.filled?'checked':''}> Hintergrund ausfüllen</label></div>
+ ${n.filled?colorField('Hintergrundfarbe','fillColor',n.fillColor):''}
+ <hr><div class="field"><label class="field-label">Schriftart</label><select class="select" data-set="font"><option value="sans" ${n.font==='sans'?'selected':''}>Sans Serif</option><option value="serif" ${n.font==='serif'?'selected':''}>Serif</option><option value="mono" ${n.font==='mono'?'selected':''}>Monospace</option></select></div>
+ ${colorField('Schriftfarbe','textColor',n.textColor)}
+ <div class="field field-inline"><label class="field-label" for="fontsize">Schriftgröße</label><input class="number" id="fontsize" type="number" min="10" max="52" step="1" data-set="fontSize" value="${n.fontSize}"></div>
+ <div class="field"><label class="field-label">Schriftstärke</label>${menuChips('fontWeight',[['400','Normal'],['600','Halbfett'],['700','Fett']],n.fontWeight)}</div>
+ <div class="field"><label class="field-label">Textausrichtung</label>${menuChips('align',[['left','Links'],['center','Mitte'],['right','Rechts']],n.align)}</div>
+ <div class="actions"><button class="btn" data-duplicate>Duplizieren</button><button class="btn" data-delete>Löschen</button></div>`}
+ else {el.innerHTML=`<div class="inspector-head"><h2>Verbindung gestalten</h2><button class="iconbtn" data-close aria-label="Schließen"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div>
+ <div class="field"><label class="field-label">Verlauf</label>${menuChips('style',[['curve','Gebogen'],['straight','Gerade'],['elbow','Eckig']],e.style)}</div>
+ <div class="field"><label class="field-label">Linienart</label>${menuChips('dash',[['solid','Durchgezogen'],['dash','Gestrichelt'],['dot','Gepunktet']],e.dash)}</div>
+ <div class="field"><label class="field-label">Pfeilspitzen</label>${menuChips('arrow',[['none','Keine'],['end','Eine'],['both','Beide']],e.arrow)}</div>
+ ${colorField('Linienfarbe','color',e.color)}
+ <div class="field field-inline"><label class="field-label" for="lwidth">Linienstärke</label><input class="number" id="lwidth" type="number" min="1" max="10" step="1" data-set="width" value="${e.width}"></div>
+ <p class="tiny-note">Die Verbindung folgt automatisch, wenn du eine Form verschiebst.</p>
+ <div class="actions"><button class="btn" data-delete>Verbindung löschen</button></div>`}}
+function applyProp(prop,val){const item=byId(selectedNode)||edgeById(selectedEdge);if(!item)return;const num=['borderWidth','fontSize','width'];if(num.includes(prop)){const parsed=Number(val);if(!Number.isFinite(parsed))return;val=clamp(parsed,prop==='fontSize'?10:1,prop==='fontSize'?52:10)}if(prop==='shape'&&!types.includes(val))return;if(['color','borderColor','textColor','fillColor'].includes(prop))val=validColor(val,item[prop]);if(prop==='filled')val=Boolean(val);item[prop]=val;if(item.shape){paintNode(item);if(prop==='shape'||prop==='filled')renderInspector()}else drawEdges();save()}
+$('inspector').addEventListener('input',event=>{if(event.target.matches('[data-submap-text]')){const n=byId(selectedNode);if(n?.kind==='shape'){n.text=event.target.value.slice(0,90);const ta=nodeLayer.querySelector('.node.selected .node-text');if(ta){ta.value=n.text;layoutTextarea(ta,n)}save({group:'submap-label:'+n.id})}return}if(event.target.matches('[data-craft-title]')){const n=byId(selectedNode);if(n?.kind==='craft'){n.text=event.target.value.slice(0,46);const title=nodeLayer.querySelector('.craft-node.selected .craft-head span');if(title)title.textContent=n.text;save({group:'craft-title:'+n.id})}return}if(event.target.matches('[data-craft-count]')){const n=byId(selectedNode),k=chosenSlot?.key;if(n?.kind==='craft'&&chosenSlot?.id===n.id){const slot=k==='out'?n.result:n.recipe[Number(k)];if(slot){slot.count=clamp(Number(event.target.value)||1,1,64);save({group:'count:'+n.id+':'+k});refreshCraftSlots()}}return}const el=event.target,prop=el.dataset.set;if(!prop)return;if(el.type==='color'||el.type==='number')applyProp(prop,el.value)});
+$('inspector').addEventListener('change',event=>{const el=event.target;if(el.matches('[data-submap-toggle]')){const n=byId(selectedNode);if(n)ensureSubmap(n,el.checked);return}const prop=el.dataset.set;if(!prop)return;applyProp(prop,el.type==='checkbox'?el.checked:el.value);if(el.type==='checkbox'||el.tagName==='SELECT')renderInspector()});
+$('inspector').addEventListener('click',event=>{if(event.target.closest('[data-open-submap]')){openSubmap(selectedNode);return}if(event.target.closest('[data-craft-pick]')){openCatalog();return}if(event.target.closest('[data-craft-edit]')){const n=byId(chosenSlot?.id);const slot=getCraftSlot(n,chosenSlot?.key);if(slot)openItemEditor(slot.id,true);return}if(event.target.closest('[data-craft-clear]')){const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);return}if(event.target.closest('[data-close]')){selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();return}if(event.target.closest('[data-delete]')){removeSelected();return}if(event.target.closest('[data-duplicate]')){duplicateSelected();return}const b=event.target.closest('button[data-set]');if(!b)return;applyProp(b.dataset.set,b.dataset.value);renderInspector()});
+let suppressSubmapClickUntil=0;
+nodeLayer.addEventListener('click',event=>{
+ const slot=event.target.closest('.craft-slot');
+ if(slot){event.preventDefault();event.stopPropagation();if(performance.now()<ignoreSlotClickUntil)return;chooseCraftSlot(slot.closest('.node').dataset.id,slot.dataset.slot);return}
+ const el=event.target.closest('.node');
+ if(!el||event.target.closest('.port,.node-handle')||performance.now()<suppressSubmapClickUntil)return;
+ const n=byId(el.dataset.id);
+ if(n?.submapEnabled){event.preventDefault();event.stopPropagation();openSubmap(n.id)}
+});
+nodeLayer.addEventListener('input',event=>{if(!event.target.matches('textarea'))return;const n=byId(event.target.closest('.node')?.dataset.id);if(n){n.text=event.target.value;layoutTextarea(event.target,n);save({group:'text:'+n.id})}});
+nodeLayer.addEventListener('focusin',event=>{const n=event.target.closest('.node');if(n&&!linkMode)selectNode(n.dataset.id)});
+nodeLayer.addEventListener('pointerdown',event=>{
+ if(event.button!==0&&event.pointerType!=='touch')return;const el=event.target.closest('.node');if(!el)return;
+ event.stopPropagation();const id=el.dataset.id,port=event.target.closest('.port');
+ if(port){
+  exitTextEditing();event.preventDefault();
+  linkDrag={id,side:port.dataset.side,pointer:event.pointerId,startX:event.clientX,startY:event.clientY,moved:false};
+  selectNode(id);try{port.setPointerCapture(event.pointerId)}catch{}return;
+ }
+ if(pendingLink){pendingLink=null;refreshSelection()}
+ if(event.target.closest('.craft-slot')){selectNode(id);beginSlotItemDrag(event,event.target.closest('.craft-slot'));return}
+ if(chosenSlot?.id===id){chosenSlot=null}
+ selectNode(id);
+ if(event.target.matches('textarea'))return;
+ exitTextEditing();const n=byId(id);if(!n)return;event.preventDefault();const mode=event.target.closest('.resize-handle')?'resize':'drag';
+ move={pointer:event.pointerId,id,mode,handle:!!event.target.closest('.node-handle'),clientX:event.clientX,clientY:event.clientY,x:n.x,y:n.y,w:n.w,h:n.h};try{nodeLayer.setPointerCapture(event.pointerId)}catch{}
+});
+nodeLayer.addEventListener('pointermove',event=>{if(!move||move.pointer!==event.pointerId)return;const n=byId(move.id);if(!n)return;const dx=(event.clientX-move.clientX)/view.scale,dy=(event.clientY-move.clientY)/view.scale;if(move.mode==='drag'){
+ const pos=alignSnap(n,move.x+dx,move.y+dy,event.altKey);
+ n.x=pos.x;n.y=pos.y;
+}else if(n.shape==='circle'){clearSnapGuides();const size=clamp(Math.max(move.w+dx,move.h+dy),100,800);n.w=Math.round(size);n.h=Math.round(size)}else{clearSnapGuides();n.w=Math.round(clamp(move.w+dx,110,1000));n.h=Math.round(clamp(move.h+dy,95,800))}paintNode(n);drawEdges()});
+const finishMove=event=>{if(move&&event.pointerId===move.pointer){const last=move,dist=Math.hypot(event.clientX-last.clientX,event.clientY-last.clientY);if(dist>7)suppressSubmapClickUntil=performance.now()+600;move=null;clearSnapGuides();if(dist<=7&&!last.handle&&last.mode==='drag'&&byId(last.id)?.submapEnabled){openSubmap(last.id);return}save()}};
+nodeLayer.addEventListener('pointerup',finishMove);nodeLayer.addEventListener('pointercancel',finishMove);
+// Der Pointer bleibt bei Touch-Geraeten am Quellpunkt gefangen; Zielpunkte werden geometrisch erkannt.
+window.addEventListener('pointermove',event=>{if(!linkDrag||event.pointerId!==linkDrag.pointer)return;
+ if(Math.hypot(event.clientX-linkDrag.startX,event.clientY-linkDrag.startY)>8)linkDrag.moved=true;
+ const target=nearestPort(event.clientX,event.clientY,linkDrag.id);
+ highlightTarget(target);drawLinkPreview(event.clientX,event.clientY,target);
+});
+window.addEventListener('pointerup',event=>finishLinkDrag(event));
+window.addEventListener('pointercancel',event=>finishLinkDrag(event,true));
+edgeLayer.addEventListener('pointerdown',event=>{const hit=event.target.closest('.edge-hit');if(!hit)return;event.preventDefault();event.stopPropagation();if(!linkMode)selectEdge(hit.dataset.edge)});
+viewport.addEventListener('pointerdown',event=>{
+ if(event.target.closest('.node')||event.target.closest('.edge-hit'))return;
+ if(event.button!==0&&event.pointerType!=='touch')return;
+ exitTextEditing();pendingLink=null;event.preventDefault();
+ try{viewport.setPointerCapture(event.pointerId)}catch{}
+ pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+ if(pointers.size===1){viewport.classList.add('panning');selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection()}
+ else if(pointers.size===2){const p=[...pointers.values()],cx=(p[0].x+p[1].x)/2,cy=(p[0].y+p[1].y)/2;pinch={dist:Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),scale:view.scale,point:worldAt(cx,cy)}}
+});
+viewport.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;const prev=pointers.get(event.pointerId);pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size>=2&&pinch){const p=[...pointers.values()],cx=(p[0].x+p[1].x)/2,cy=(p[0].y+p[1].y)/2,dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);view.scale=clamp(pinch.scale*dist/pinch.dist,.25,3);view.x=cx-pinch.point.x*view.scale;view.y=cy-pinch.point.y*view.scale;renderView()}else if(pointers.size===1){view.x+=event.clientX-prev.x;view.y+=event.clientY-prev.y;renderView()}});
+function endPointer(event){pointers.delete(event.pointerId);if(pointers.size<2)pinch=null;if(!pointers.size)viewport.classList.remove('panning')}
+viewport.addEventListener('pointerup',endPointer);viewport.addEventListener('pointercancel',endPointer);
+viewport.addEventListener('wheel',event=>{event.preventDefault();zoom(Math.exp(-event.deltaY*(event.deltaMode===1?14:1)*.0014),event.clientX,event.clientY)},{passive:false});
+// Auf der leeren Flaeche gibt es absichtlich keine Doppelklick- oder Doppeltipp-Aktion.
+window.addEventListener('pointerdown',event=>{if(!event.target.closest('.node-text'))exitTextEditing()},true);
+
+// Slot verschieben: PC direkt ziehen; auf iPad erst kurz halten, dann ziehen.
+function beginSlotItemDrag(event,slotEl){
+ if(slotItemDrag||!slotEl||event.button>0)return;
+ const nodeId=slotEl.closest('.node')?.dataset.id,key=slotEl.dataset.slot;
+ const data=getCraftSlot(byId(nodeId),key);
+ if(!data)return; // Leere Felder bleiben normale Buttons.
+ const touch=event.pointerType==='touch';
+ slotItemDrag={pointer:event.pointerId,nodeId,key,slot:structuredClone(data),startX:event.clientX,startY:event.clientY,
+  moved:false,armed:!touch,holdTimer:null,el:slotEl,cancelled:false};
+ if(touch){slotItemDrag.holdTimer=setTimeout(()=>{if(slotItemDrag&&slotItemDrag.pointer===event.pointerId&&!slotItemDrag.cancelled){slotItemDrag.armed=true;slotEl.classList.add('removing-source')}},330)}
+ try{slotEl.setPointerCapture(event.pointerId)}catch{}
+}
+function moveSlotItemDrag(event){
+ const drag=slotItemDrag;if(!drag||drag.pointer!==event.pointerId)return;
+ const dist=Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY);
+ if(!drag.armed){if(dist>11){drag.cancelled=true;clearTimeout(drag.holdTimer)}return}
+ if(dist>7)drag.moved=true;
+ if(!drag.moved)return;
+ event.preventDefault();
+ if(!dragGhost){dragGhost=document.createElement('div');dragGhost.className='item-drag-ghost';dragGhost.innerHTML=itemImg(drag.slot.id);document.body.appendChild(dragGhost)}
+ dragGhost.style.left=event.clientX+'px';dragGhost.style.top=event.clientY+'px';
+ const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');
+ setDropHighlight(target||null);
+}
+function endSlotItemDrag(event){
+ const drag=slotItemDrag;if(!drag||drag.pointer!==event.pointerId)return;
+ clearTimeout(drag.holdTimer);drag.el.classList.remove('removing-source');
+ const target=drag.moved?document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot'):null;
+ if(drag.moved){
+  ignoreSlotClickUntil=performance.now()+220;
+  const source=byId(drag.nodeId),targetNode=byId(target?.closest('.node')?.dataset.id),targetKey=target?.dataset.slot;
+  if(source){
+   if(targetNode&&targetKey!==undefined&&!(source.id===targetNode.id&&drag.key===targetKey)){
+    const targetItem=getCraftSlot(targetNode,targetKey);
+    assignCraftSlot(targetNode,targetKey,drag.slot);
+    assignCraftSlot(source,drag.key,targetItem);
+    notify(targetItem?'Items getauscht.':'Item verschoben.');
+   }else if(!targetNode){assignCraftSlot(source,drag.key,null);notify('Item entfernt.');}
+   selectedNode=null;selectedEdge=null;chosenSlot=null;save();refreshCraftCards();refreshSelection();
+  }
+ }
+ if(dragGhost){dragGhost.remove();dragGhost=null}
+ setDropHighlight(null);slotItemDrag=null;
+}
+window.addEventListener('pointermove',moveSlotItemDrag);
+window.addEventListener('pointerup',endSlotItemDrag);
+window.addEventListener('pointercancel',event=>{if(slotItemDrag&&event.pointerId===slotItemDrag.pointer){slotItemDrag.moved=false;endSlotItemDrag(event)}});
+
+$('craftTool').onclick=addCraft;
+$('catalogTool').onclick=()=>{if($('itemPanel').classList.contains('show'))closeCatalog();else openCatalog()};
+$('closeItems').onclick=$('closeItemsBottom').onclick=closeCatalog;
+$('itemSearch').addEventListener('input',()=>{catalogShown=120;renderCatalog()});
+document.querySelector('.item-tabs').addEventListener('click',event=>{const button=event.target.closest('[data-catalog-tab]');if(!button)return;catalogTab=button.dataset.catalogTab;catalogShown=120;$('itemSearch').value='';renderCatalog();$('catalogScroll').scrollTop=0});
+$('itemMore').onclick=()=>{catalogShown+=120;renderCatalog()};
+$('itemRefresh').onclick=()=>loadCatalog(true);
+$('clearCraftSlot').onclick=()=>{const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);else notify('Bitte zuerst einen Crafting-Slot auswählen.')};
+$('itemGrid').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleItemFavorite(favorite.dataset.favorite);return}const edit=event.target.closest('[data-edit-base]');if(edit){openItemEditor(edit.dataset.editBase,Boolean(chosenSlot));return}const b=event.target.closest('.catalog-item');if(!b||catalogItemDrag?.moved||performance.now()<ignoreCatalogClickUntil)return;const n=byId(chosenSlot?.id);if(!n){notify('Wähle einen Slot im Crafting-Feld oder ziehe das Item hinein.');return}setCraftSlot(n,chosenSlot.key,b.dataset.item)});
+let dragGhost=null,hoverSlot=null,ignoreCatalogClickUntil=0;
+function setDropHighlight(el){if(hoverSlot&&hoverSlot!==el)hoverSlot.classList.remove('drag-target');hoverSlot=el;if(el)el.classList.add('drag-target')}
+function beginCatalogDrag(event){const target=event.target.closest('[data-item]');if(!target||event.button>0)return;catalogItemDrag={pointer:event.pointerId,item:target.dataset.item,startX:event.clientX,startY:event.clientY,moved:false};try{target.setPointerCapture(event.pointerId)}catch{}}
+function moveCatalogDrag(event){if(!catalogItemDrag||catalogItemDrag.pointer!==event.pointerId)return;const drag=catalogItemDrag;if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>7)drag.moved=true;if(!drag.moved)return;event.preventDefault();if(!dragGhost){dragGhost=document.createElement('div');dragGhost.className='item-drag-ghost';dragGhost.innerHTML=itemImg(drag.item);document.body.appendChild(dragGhost)}dragGhost.style.left=event.clientX+'px';dragGhost.style.top=event.clientY+'px';const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');setDropHighlight(target||null)}
+function endCatalogDrag(event){if(!catalogItemDrag||catalogItemDrag.pointer!==event.pointerId)return;const drag=catalogItemDrag;if(drag.moved){ignoreCatalogClickUntil=performance.now()+500;const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.craft-slot');if(target){const n=byId(target.closest('.node')?.dataset.id);if(n){chosenSlot={id:n.id,key:target.dataset.slot};selectedNode=n.id;selectedEdge=null;setCraftSlot(n,target.dataset.slot,drag.item);refreshSelection();}}else notify('Ziehe das Item direkt auf einen Crafting-Slot.')}if(dragGhost){dragGhost.remove();dragGhost=null}setDropHighlight(null);catalogItemDrag=null;}
+$('itemGrid').addEventListener('pointerdown',beginCatalogDrag);
+window.addEventListener('pointermove',moveCatalogDrag);
+window.addEventListener('pointerup',endCatalogDrag);
+window.addEventListener('pointercancel',endCatalogDrag);
+
+$('shapeTool').onclick=()=>{$('shapeMenu').classList.toggle('show');$('moreMenu').classList.remove('show')};
+$('emptyAdd').onclick=()=>{$('shapeMenu').classList.add('show')};
+$('shapeMenu').addEventListener('click',event=>{const button=event.target.closest('[data-add]');if(button)addShape(button.dataset.add)});
+$('linkTool').onclick=()=>setLinkMode(!linkMode);$('selectTool').onclick=()=>{setLinkMode(false);exitTextEditing()};$('deleteTool').onclick=removeSelected;$('duplicateTool').onclick=duplicateSelected;
+$('undoTool').onclick=()=>restoreHistory(-1);$('redoTool').onclick=()=>restoreHistory(1);
+$('zoomIn').onclick=()=>zoom(1.25);$('zoomOut').onclick=()=>zoom(.8);$('centerBtn').onclick=centerAll;
+updateMapTrail();
+$('backMap').onclick=()=>{if(board.parent)goToMap(board.parent.boardId)};
+$('breadcrumbs').addEventListener('click',event=>{const button=event.target.closest('[data-map-id]');if(button)goToMap(button.dataset.mapId)});
+$('boardTitle').value=board.title;$('boardTitle').addEventListener('input',event=>{board.title=event.target.value;save({group:'board-title'})});
+$('moreBtn').onclick=()=>{$('moreMenu').classList.toggle('show');$('shapeMenu').classList.remove('show')};
+window.addEventListener('pointerdown',event=>{if(!event.target.closest('#moreMenu')&&!event.target.closest('#moreBtn'))$('moreMenu').classList.remove('show');if(!event.target.closest('#shapeMenu')&&!event.target.closest('#shapeTool')&&!event.target.closest('#emptyAdd'))$('shapeMenu').classList.remove('show')});
+$('newBoard').onclick=()=>{location.hash='b='+uid();location.reload()};$('centerBoard').onclick=()=>{centerAll();$('moreMenu').classList.remove('show')};
+$('exportBoard').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,...board,submapBoards:collectSubmapBoards(board)},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(board.title||'mindmap').replace(/[^a-z0-9äöüß_-]/gi,'-').slice(0,42)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);$('moreMenu').classList.remove('show');notify('Mindmap als JSON gespeichert.')};
+$('importBoard').onclick=()=>$('fileInput').click();$('fileInput').addEventListener('change',async event=>{const f=event.target.files?.[0];if(!f)return;try{if(f.size>16_000_000)throw Error('Datei zu groß');const payload=JSON.parse(await f.text());const imported=validBoard(payload);if(!imported)throw Error('Unbekanntes Format');imported.parent=board.parent;installSubmapBoards(imported,payload);board=imported;selectedNode=null;selectedEdge=null;$('boardTitle').value=board.title;updateMapTrail();renderNodes();centerAll();save();notify('Mindmap und Unter-Mindmaps importiert.')}catch(error){notify('Import fehlgeschlagen: '+error.message)}event.target.value='';$('moreMenu').classList.remove('show')});
+$('shareBtn').onclick=async()=>{const url=new URL(location.href);url.hash='b='+boardId;try{await navigator.clipboard.writeText(url.toString());notify(cloudReady?'Link kopiert! Über diesen Link kann deine Mindmap gemeinsam bearbeitet werden.':'Link kopiert. Cloud noch nicht verbunden – Inhalte sind derzeit nur auf diesem Gerät.')}catch{window.prompt('Mindmap-Link kopieren:',url.toString())}};
+window.addEventListener('keydown',event=>{
+ const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
+ // Der Item-Editor ist ein ungespeichertes Formular: dort bleibt Undo des Textfelds nativ.
+ if(mod&&!event.altKey&&!event.target.closest?.('#itemEditorOverlay')){
+  if(key==='z'||key==='y'){
+   event.preventDefault();
+   if(key==='z'&&!event.shiftKey)restoreHistory(-1);
+   else restoreHistory(1);
+   return;
+  }
+ }
+ if(event.key==='Escape'&&editorState){closeItemEditor();return}if(event.key==='Escape'){exitTextEditing();setLinkMode(false);selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();$('shapeMenu').classList.remove('show');$('moreMenu').classList.remove('show')}if(event.target.matches('input,textarea,select'))return;if(['Delete','Backspace'].includes(event.key)){event.preventDefault();if(selectedNode||selectedEdge)removeSelected()}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='d'){event.preventDefault();duplicateSelected()}});
+window.addEventListener('hashchange',()=>{if(boardFromUrl()!==boardId)location.reload()});window.addEventListener('resize',renderView);
+renderView();renderNodes();renderCatalog();updateHistoryButtons();
+function cloudEndpoint(name){return CLOUD_CONFIG.url.replace(/\/$/,'')+'/rest/v1/rpc/'+name}
+async function cloudCall(name,payload){
+ const response=await fetch(cloudEndpoint(name),{
+  method:'POST',headers:{'Content-Type':'application/json','apikey':CLOUD_CONFIG.anonKey,...(CLOUD_CONFIG.anonKey.startsWith('eyJ')?{'Authorization':'Bearer '+CLOUD_CONFIG.anonKey}:{})},
+  body:JSON.stringify(payload),cache:'no-store'
+ });
+ if(!response.ok){const detail=await response.text();throw new Error('Cloud '+response.status+': '+detail.slice(0,160))}
+ const raw=await response.text();return raw?JSON.parse(raw):null;
+}
+async function pushCloud(){
+ if(!CLOUD_ENABLED||!cloudReady||!cloudDirty||cloudBusy)return;
+ cloudBusy=true;
+ const revision=cloudRevision;
+ try{
+  const snapshot=JSON.parse(JSON.stringify(board));
+  await cloudCall('mindflow_save',{p_id:boardId,p_data:snapshot});
+  if(revision===cloudRevision){cloudDirty=false;dirty=false;cloudLastData=JSON.stringify(snapshot);status('Cloud synchronisiert')}
+ }catch(error){status('Cloud offline – lokal gespeichert',true);console.warn(error)}
+ finally{cloudBusy=false;if(cloudDirty){clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,1700)}}
+}
+async function cloudRefresh(){
+ if(!cloudReady||cloudBusy||cloudDirty||document.activeElement?.matches('textarea,input,[contenteditable=true]'))return;
+ try{
+  const data=await cloudCall('mindflow_get',{p_id:boardId});
+  if(!data)return;
+  const parsed=validBoard(data);
+  if(!parsed)return;
+  const next=JSON.stringify(parsed);
+  if(next!==JSON.stringify(board)){
+    board=parsed;
+    try{localStorage.setItem(storageKey(boardId),next)}catch{}
+    $('boardTitle').value=board.title;selectedNode=null;selectedEdge=null;chosenSlot=null;
+    updateMapTrail();renderNodes();renderCatalog();resetHistory();
+  }
+  status('Cloud synchronisiert');
+ }catch(error){status('Cloud offline – lokal gespeichert',true);console.warn(error)}
+}
+async function initCloud(){
+ if(!CLOUD_ENABLED){status('Lokal gespeichert');$('cloudInfo').textContent='Cloud noch nicht konfiguriert. Die Mindmap wird nur in diesem Browser gespeichert.';return}
+ $('cloudInfo').textContent='Cloud aktiv: Wer den geheimen Mindmap-Link besitzt, kann die Inhalte lesen und bearbeiten.';
+ status('Cloud verbinden …');
+ try{
+  const remote=await cloudCall('mindflow_get',{p_id:boardId});
+  if(remote){
+   const parsed=validBoard(remote);
+   if(!parsed)throw new Error('Ungültige Cloud-Daten');
+   board=parsed;
+   try{localStorage.setItem(storageKey(boardId),JSON.stringify(board))}catch{}
+   $('boardTitle').value=board.title;updateMapTrail();renderNodes();renderCatalog();resetHistory();
+   cloudLastData=JSON.stringify(board);
+  }
+  cloudReady=true;
+  if(!remote){cloudDirty=true;cloudRevision++;await pushCloud()}
+  else status('Cloud synchronisiert');
+  cloudTimer=setInterval(cloudRefresh,4500);
+ }catch(error){status('Cloud nicht erreichbar – lokal',true);console.warn(error);notify('Cloud-Verbindung fehlgeschlagen. Prüfe die Cloud-Konfiguration.')}
+}
+window.addEventListener('online',()=>{if(cloudReady)pushCloud();else initCloud()});
+window.addEventListener('pagehide',()=>{if(cloudDirty&&cloudReady)pushCloud()});
+initCloud();
+</script>
+</body>
+</html>

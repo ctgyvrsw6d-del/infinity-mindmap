@@ -345,7 +345,7 @@
 .mc-head-cube.mc-head-fallback .mc-head-faces{display:none}
 #sbHeadTexture,#sbHeadName{font-size:16px;user-select:text;-webkit-user-select:text}
 
-#shapeMenu{max-height:min(460px,70dvh);width:min(270px,calc(100vw - 24px));overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#shapeMenu{max-height:min(550px,calc(100dvh - 110px - env(safe-area-inset-bottom,0px)));width:min(285px,calc(100vw - 24px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .combat-arena{border:1px solid #ffffff20;border-radius:12px;background:linear-gradient(160deg,#253440,#181b23);padding:16px;margin:12px 0;text-align:center}
 .combat-mob-name{font-weight:700;font-size:18px;color:#f1f3fa;overflow-wrap:anywhere}
 .combat-health-track{height:18px;background:#381f25;border:1px solid #ffffff22;border-radius:6px;overflow:hidden;margin:10px 0 5px}

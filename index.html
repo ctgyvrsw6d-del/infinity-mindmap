@@ -541,10 +541,10 @@
 .eq-3d-skin-overlay{pointer-events:none}
 .eq-3d-face.glint::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(125deg,transparent 0 22%,#b08bff88 27%,#e0bbffb0 32%,#89b7ff60 38%,transparent 44%);background-size:220% 220%;mix-blend-mode:screen;animation:eq3dShine 3.1s linear infinite;pointer-events:none}
 @keyframes eq3dShine{0%{background-position:160% 100%}100%{background-position:-60% -20%}}
-.eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*14.4);height:calc(var(--u)*14.4);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*-7.881),calc(var(--u)*-2.1),calc(var(--u)*5.929)) translate(-50%,-50%) rotateY(-112.3deg)}
+.eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*10.8);height:calc(var(--u)*10.8);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*-7.670625),calc(var(--u)*-.0375),calc(var(--u)*4.23644)) translate(-50%,-50%) rotateY(-123.37deg)}
 .eq-3d-held-side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(.6px);display:grid;place-items:center}
 .eq-3d-held-side.back{transform:rotateY(180deg) translateZ(.6px)}
-.eq-3d-held:not([data-handheld="1"]){width:calc(var(--u)*8.4);height:calc(var(--u)*8.4);transform:translate3d(calc(var(--u)*-6),calc(var(--u)*2.85),calc(var(--u)*1.35)) translate(-50%,-50%) rotateY(-112.3deg)}
+.eq-3d-held:not([data-handheld="1"]){width:calc(var(--u)*8.4);height:calc(var(--u)*8.4);transform:translate3d(calc(var(--u)*-6),calc(var(--u)*2.85),calc(var(--u)*1.35)) translate(-50%,-50%) rotateY(-123.37deg)}
 .eq-3d-face.glint::after{background-color:#a36bff36}
 .eq-3d-held[data-enchanted="1"] .item-stack-icon.enchanted.loaded::after{opacity:1}
 
@@ -2228,8 +2228,8 @@ function equipmentDepthRenderer(view,model,options={}){
  const heldBase=held?.dataset.base||'';
  const handheld=/(?:_sword|_spear|_axe|_pickaxe|_shovel|_hoe|_rod|_stick|bow|trident|mace)$/.test(heldBase);
  // A true palm anchor inside the right arm, not on its exterior.
- const grip=[-6,2.85,1.35],uAxis=[-.38,0,.925],normal=[.925,0,.38],itemSize=handheld?14.4:8.4;
- let anchorU=handheld?2.5/16:.5,anchorV=handheld?13.5/16:.5;
+ const grip=[-6,3,1.7],uAxis=[-.55,0,.83516465],normal=[.83516465,0,.55],itemSize=handheld?10.8:8.4;
+ let anchorU=handheld?3.5/16:.5,anchorV=handheld?12.5/16:.5;
  const itemPoint=(u,v,depth)=>[grip[0]+(u-anchorU)*itemSize*uAxis[0]+depth*normal[0],grip[1]+(v-anchorV)*itemSize,grip[2]+(u-anchorU)*itemSize*uAxis[2]+depth*normal[2]];
  const addItemFace=(corners,uvs)=>{
   for(const i of [0,1,2,0,2,3])data.push(...itemPoint(...corners[i]),...uvs[i]);
@@ -2248,13 +2248,13 @@ function equipmentDepthRenderer(view,model,options={}){
      // This also accommodates sprites with transparent margins.
      let best=Infinity;
      for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(opaque(x,y)){
-      const u=(x+.5)/w,v=(y+.5)/h,score=(u-2.5/16)**2+(v-13.5/16)**2;
+      const u=(x+.5)/w,v=(y+.5)/h,score=(u-3.5/16)**2+(v-12.5/16)**2;
       if(score<best){best=score;anchorU=u;anchorV=v}
      }
     }
    }catch(error){console.warn('Held item alpha mask unavailable',error)}
   }
-  const thickness=.42,front=thickness,back=-thickness;
+  const thickness=.29,front=thickness,back=-thickness;
   const uv=[[0,0],[1,0],[1,1],[0,1]];
   addItemFace([[0,0,front],[1,0,front],[1,1,front],[0,1,front]],uv);
   addItemFace([[0,0,back],[1,0,back],[1,1,back],[0,1,back]],uv);
@@ -2289,8 +2289,19 @@ function equipmentDepthRenderer(view,model,options={}){
   const ratio=Math.min(3,window.devicePixelRatio||1),width=Math.round(w*ratio),height=Math.round(h*ratio);
   if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
   gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  const unit=Math.min(options.snapshot?Infinity:6.1,w*.04,h*.029);
-  gl.uniform2f(loc.scale,2*unit/w,2*unit/h);const angle=options.angles||eqAvatarAngles;gl.uniform2f(loc.angle,angle.yaw*degrees,angle.pitch*degrees);
+  // Fit the complete model, including the held-item mesh, within the actual canvas.
+  // The projection matches the vertex shader; keep a 5px safety margin on every edge.
+  const angle=options.angles||eqAvatarAngles,ay=angle.yaw*degrees,ax=angle.pitch*degrees;
+  const cy=Math.cos(ay),sy=Math.sin(ay),cx=Math.cos(ax),sx=Math.sin(ax);
+  let maxX=0,maxY=0;
+  for(let i=0;i<data.length;i+=5){
+   const x=data[i],y=data[i+1],z=data[i+2],qx=cy*x+sy*z,qz=-sy*x+cy*z;
+   const py=cx*y-sx*qz,pz=sx*y+cx*qz,perspective=Math.max(.5,1-pz/125);
+   maxX=Math.max(maxX,Math.abs(qx/perspective));maxY=Math.max(maxY,Math.abs(py/perspective));
+  }
+  const margin=Math.min(5,w*.06,h*.06);
+  const unit=Math.min(options.snapshot?Infinity:6.1,w*.04,h*.029,(w/2-margin)/Math.max(1,maxX),(h/2-margin)/Math.max(1,maxY));
+  gl.uniform2f(loc.scale,2*unit/w,2*unit/h);gl.uniform2f(loc.angle,ay,ax);
   gl.uniform1f(loc.clock,time/1000);
   const draw=b=>{gl.uniform1f(loc.mode,b.mode);gl.uniform4fv(loc.color,b.color);gl.uniform1f(loc.shine,b.shine?1:0);gl.polygonOffset(0,b.bias);gl.drawArrays(gl.TRIANGLES,b.first,b.count||6)};
   for(const b of batches){
@@ -2343,7 +2354,7 @@ function equipmentMapPreviews(){
    if(!target.isConnected||target.classList.contains('has-snapshot'))continue;
    const n=byId(target.closest('.node')?.dataset.id);if(!n?.plan||n.plan.type!=='equipment')continue;
    const fields=n.plan.fields;
-   const key=JSON.stringify(['grip-glint-v2',n.w,n.h,['helmet','chestplate','leggings','boots','weapon'].map(k=>{const i=customItem(fields[k]);return i?[i.id,i.baseId,i.dyeRecipe,i.enchanted,i.details]:null})]);
+   const key=JSON.stringify(['grip-fit-v3',n.w,n.h,['helmet','chestplate','leggings','boots','weapon'].map(k=>{const i=customItem(fields[k]);return i?[i.id,i.baseId,i.dyeRecipe,i.enchanted,i.details]:null})]);
    if(state.cache.has(key)){show(target,state.cache.get(key));continue}
    const view=target.querySelector('.eq-3d-view'),model=view?.querySelector('.eq-3d-model');if(!view||!model)continue;
    model.style.setProperty('--yaw','-28deg');model.style.setProperty('--pitch','-12deg');

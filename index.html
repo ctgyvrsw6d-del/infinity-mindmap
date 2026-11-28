@@ -431,6 +431,36 @@
 @media(max-width:1000px){.mob-picker-layout{grid-template-columns:minmax(0,1fr) 260px}.mob-cats{grid-column:1/-1;display:flex;overflow:auto;gap:6px}.mob-cat{flex-shrink:0;min-height:40px;gap:8px}}
 @media(max-width:650px){#sbOverlay:has(.mob-picker) .item-editor{padding:11px}.mob-picker-layout{grid-template-columns:1fr;gap:10px}.mob-grid{max-height:36dvh;grid-template-columns:repeat(auto-fill,minmax(89px,1fr))}.mob-tile{min-height:112px}.mob-tile .mob-art{height:63px;width:63px}.mob-detail{grid-template-columns:1fr}.mob-hero{min-height:98px}.mob-hero .mob-art{width:78px;height:80px}.mob-footer{position:sticky;bottom:0;background:#0e1320;padding:9px 0;margin-top:9px}.mob-footer button{flex:1;min-height:44px}}
 
+
+/* Custom item gallery — independent of the crafting item picker. */
+#sbOverlay:has(.ci-gallery) .item-editor{width:min(1380px,100%);max-height:calc(100dvh - 28px);background:#0e1320;border:1px solid #454360;color:#f1f0fa;padding:18px}
+.ci-gallery{--ci-border:#33384d;--ci-muted:#aab1c7;--ci-purple:#b18afa;font-size:13px}
+.ci-layout{display:grid;grid-template-columns:155px minmax(0,1fr) minmax(275px,350px);gap:14px;align-items:start}
+.ci-cats{display:grid;gap:7px}.ci-cat,.ci-tile,.ci-mode{background:#151b29;border:1px solid var(--ci-border);color:#eef0fa;border-radius:10px;cursor:pointer;font:inherit;touch-action:manipulation}
+.ci-cat{display:flex;align-items:center;gap:7px;padding:11px 9px;text-align:left;min-height:44px}.ci-cat small{margin-left:auto;color:var(--ci-muted)}
+.ci-cat.active,.ci-mode.active{background:#30234b;border-color:#a78bfa;color:#f0e5ff}
+.ci-search{display:flex;gap:7px;align-items:center;margin-bottom:12px}.ci-search input{min-width:0;flex:1;background:#101525!important}.ci-mode{min-width:40px;min-height:40px}
+.ci-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;max-height:58dvh;overflow:auto;overscroll-behavior:contain;padding:4px}
+.ci-tile{min-width:0;min-height:139px;padding:9px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;overflow:hidden}
+.ci-tile strong{overflow-wrap:anywhere;font-size:13px}.ci-tile.active{border-color:#b18afa;background:#26203c;box-shadow:inset 0 0 18px #8054ec33,0 0 7px #a45cff55}.ci-tile:hover,.ci-tile:focus-visible{border-color:#b18afa}
+.ci-gallery .ci-tile .item-stack-icon{--item-size:76px!important;width:76px;height:76px}.ci-gallery .item-icon{object-fit:contain}
+.ci-rarity{display:inline-block;font-size:10px;letter-spacing:.04em;font-weight:750;border:1px solid currentColor;border-radius:7px;padding:3px 7px;background:#111421;max-width:100%;overflow-wrap:anywhere}
+.ci-grid.list-mode{grid-template-columns:1fr}.ci-grid.list-mode .ci-tile{flex-direction:row;justify-content:flex-start;min-height:65px;text-align:left;padding:7px 10px}.ci-grid.list-mode .ci-tile .item-stack-icon{--item-size:46px!important;width:46px;height:46px}.ci-grid.list-mode .ci-rarity{margin-left:auto}
+.ci-detail{display:grid;gap:9px;min-width:0;max-height:72dvh;overflow:auto;overscroll-behavior:contain;padding-right:2px}
+.ci-hero{display:flex;gap:14px;align-items:center;padding:14px 10px;min-height:135px;border:1px solid #494064;border-radius:12px;background:radial-gradient(ellipse at 25% 48%,#46316a,#141927 70%)}.ci-hero .item-stack-icon{--item-size:104px!important;width:104px;height:104px}.ci-hero .ci-names{min-width:0}.ci-hero strong{font-size:20px;display:block;overflow-wrap:anywhere;margin-bottom:7px}.ci-hero small{display:block;color:var(--ci-muted);margin-top:6px;overflow-wrap:anywhere}
+.ci-panel{background:#141a28;border:1px solid var(--ci-border);border-radius:10px;padding:11px;min-width:0}.ci-panel h3{font-size:13px;margin:0 0 8px;color:#e5e2f5}.ci-panel p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45}.ci-muted{color:var(--ci-muted);font-size:12px}.ci-stat{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #ffffff09}.ci-stat:last-child{border-bottom:0}.ci-stat b{font-variant-numeric:tabular-nums}
+.ci-recipe{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0}.ci-recipe-grid{display:grid;grid-template-columns:repeat(3,34px);gap:3px}.ci-recipe-slot{position:relative;display:grid;place-items:center;width:34px;height:34px;background:#262c3b;border:1px solid #55526e;border-radius:5px}.ci-recipe-slot .item-stack-icon{--item-size:29px!important;width:29px;height:29px}.ci-recipe-slot small{position:absolute;right:1px;bottom:0;z-index:3;font-size:10px;text-shadow:0 1px 2px #000}.ci-recipe-arrow{font-size:24px;color:#a7a3bb}.ci-recipe-output{width:43px;height:43px;border-color:#aa82ee}.ci-recipe-output .item-stack-icon{--item-size:36px!important;width:36px;height:36px}
+.ci-actions{display:flex;gap:7px;flex-wrap:wrap}.ci-actions .btn{flex:1;min-height:38px;white-space:nowrap}.ci-actions .ci-danger{color:#ff9ca4;border-color:#783c4a;background:#39202c}.ci-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}.ci-footer .btn.primary{background:#6740d5;border-color:#9874ff;color:#fff}.ci-empty{grid-column:1/-1;text-align:center;padding:32px 10px;border:1px dashed #45435a;border-radius:10px;color:var(--ci-muted);line-height:1.5}
+#itemEditorOverlay .item-editor{width:min(850px,100%);background:#111725;border:1px solid #454360;max-height:90dvh;color:#eef0fa}
+#itemEditorOverlay .ci-editor-layout{display:grid;grid-template-columns:minmax(205px,0.8fr) minmax(0,1.4fr);gap:16px;align-items:start}
+#itemEditorOverlay .item-editor-preview{flex-direction:column;align-items:center;text-align:center;background:radial-gradient(ellipse at 50% 20%,#40305e,#171c2a 68%);border-color:#494064;margin-bottom:0;padding:18px 12px}
+#itemEditorOverlay .item-editor-preview .item-stack-icon{--item-size:126px!important;width:126px;height:126px}
+#itemEditorOverlay .item-preview-names strong{font-size:19px}
+#itemEditorOverlay .ci-editor-lore{margin-top:9px;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;line-height:1.45;font-size:12px}
+#itemEditorOverlay .editor-input{background:#202638;border-color:#3a4158}
+#itemEditorOverlay #sbItemDetails{margin:10px 0}#itemEditorOverlay .editor-actions{position:sticky;bottom:-12px;padding:9px 0;background:#111725}
+@media(max-width:1000px){.ci-layout{grid-template-columns:minmax(0,1fr) minmax(255px,310px)}.ci-cats{grid-column:1/-1;display:flex;overflow:auto}.ci-cat{flex-shrink:0;gap:10px}}
+@media(max-width:650px){#sbOverlay:has(.ci-gallery) .item-editor{padding:11px}.ci-layout{grid-template-columns:1fr;gap:10px}.ci-grid{max-height:34dvh;grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}.ci-tile{min-height:110px}.ci-gallery .ci-tile .item-stack-icon{--item-size:57px!important;width:57px;height:57px}.ci-detail{max-height:none;overflow:visible}.ci-hero{min-height:100px}.ci-hero .item-stack-icon{--item-size:78px!important;width:78px;height:78px}#itemEditorOverlay .ci-editor-layout{grid-template-columns:1fr}#itemEditorOverlay .item-editor-preview{flex-direction:row;text-align:left}#itemEditorOverlay .item-editor-preview .item-stack-icon{--item-size:80px!important;width:80px;height:80px}}
 </style>
 </head>
 <body>
@@ -482,7 +512,7 @@
       <button type="button" class="item-tab" data-catalog-tab="custom" role="tab" aria-selected="false" aria-controls="itemGrid">Eigene</button>
     </div>
     <input class="item-search" id="itemSearch" type="search" placeholder="Item oder ID suchen …" autocomplete="off" aria-label="Minecraft-Item suchen">
-    <div class="item-filter-row"><span id="itemCount">Katalog wird geladen …</span><button id="itemRefresh" type="button">Aktualisieren</button></div>
+    <button type="button" class="btn" id="customGalleryOpen" style="margin:6px 0;min-height:38px;border-color:#7663ab;color:#ded0ff">▦ Custom Items verwalten</button><div class="item-filter-row"><span id="itemCount">Katalog wird geladen …</span><button id="itemRefresh" type="button">Aktualisieren</button></div>
     <div class="item-catalog-scroll" id="catalogScroll"><div id="itemGrid" class="item-grid"></div><button class="item-load-more" id="itemMore">Mehr anzeigen</button></div>
     <div class="item-panel-footer"><button class="btn" id="clearCraftSlot">Slot leeren</button><button class="btn" id="closeItemsBottom">Fertig</button></div>
   </section>
@@ -490,7 +520,7 @@
   <div class="item-editor-overlay hidden" id="itemEditorOverlay" role="presentation">
     <section class="item-editor" role="dialog" aria-modal="true" aria-labelledby="editorHeading">
       <div class="item-editor-head"><h2 id="editorHeading">Eigenes Minecraft-Item</h2><button type="button" id="editorClose" class="iconbtn" aria-label="Item-Editor schließen">✕</button></div>
-      <div class="item-editor-preview" id="editorPreview" aria-live="polite"></div>
+      <div class="ci-editor-layout"><div class="item-editor-preview" id="editorPreview" aria-live="polite"></div>
       <form id="customItemForm">
         <div class="field"><label class="field-label" for="editorName">Itemname</label><input class="editor-input" id="editorName" maxlength="64" required placeholder="z. B. Dragon Sword"></div>
         <details id="sbItemDetails"><summary>Skyblock – Stats, Rarity &amp; Ability</summary><div id="sbItemFields"></div><div class="sb-tooltip" id="sbTooltip"></div></details><div class="field"><label class="field-label" for="editorLore">Beschreibung / Lore</label><textarea class="editor-input" id="editorLore" maxlength="600" placeholder="Beschreibe dein Item …"></textarea></div>
@@ -506,7 +536,7 @@
          <label class="editor-check"><input type="checkbox" id="editorEnchanted"><span>Verzaubert <span style="color:#bba5ff">✦</span> – lila Glanz anzeigen</span></label>
         <p class="tiny-note">Name, Beschreibung, Verzauberungs-Effekt und gegebenenfalls die Lederfarbe bleiben in deiner Mindmap gespeichert.</p>
         <div class="editor-actions"><button type="button" class="btn" id="editorCancel">Abbrechen</button><button type="submit" class="btn primary" id="editorSave">Eigenes Item speichern</button></div>
-      </form>
+      </form></div>
     </section>
   </div>
   <div class="item-editor-overlay hidden" id="shapeTextOverlay" role="presentation">
@@ -1130,9 +1160,9 @@ function renderArmorPalette(){
 function updateItemEditorPreview(){if(!editorState)return;sbUpdateTooltip();
  renderArmorPalette();
  const id=editorState.id||editorState.baseId;
- $('editorPreview').innerHTML=`${itemImg(id,$('editorEnchanted').checked,armorDyeColor(effectiveDyeRecipe()),sbReadItem())}<div class="item-preview-names"><strong>${escapeHTML($('editorName').value.trim()||'Unbenanntes Item')}</strong><small>${escapeHTML(editorState.baseId.replaceAll('_',' '))}${$('editorEnchanted').checked?' · ✦ Verzaubert':''}</small></div>`;
+ $('editorPreview').innerHTML=`${itemImg(id,$('editorEnchanted').checked,armorDyeColor(effectiveDyeRecipe()),sbReadItem())}<div class="item-preview-names"><strong>${escapeHTML($('editorName').value.trim()||'Unbenanntes Item')}</strong><small>${escapeHTML(editorState.baseId.replaceAll('_',' '))}${$('editorEnchanted').checked?' · ✦ Verzaubert':''}</small><div id="ciPreviewLore" class="ci-editor-lore"></div></div>`;ciUpdatePreviewText();
 }
-function closeItemEditor(){editorState=null;$('itemEditorOverlay').classList.add('hidden')}
+function closeItemEditor(){const back=editorState?.galleryReturn;editorState=null;$('itemEditorOverlay').classList.add('hidden');if(back&&back.boardId===boardId)sbItems(back.id,back.category,back.query,back.list)}
 $('editorClose').onclick=$('editorCancel').onclick=closeItemEditor;
 $('itemEditorOverlay').addEventListener('pointerdown',event=>{if(event.target===$('itemEditorOverlay'))closeItemEditor()});
 $('editorName').addEventListener('input',updateItemEditorPreview);
@@ -1150,7 +1180,7 @@ $('customItemForm').addEventListener('submit',event=>{
  const id=editorState.id||'custom_'+uid().slice(0,24);
  const item=normCustomItem({id,baseId:editorState.baseId,name,lore:$('editorLore').value,enchanted:$('editorEnchanted').checked,dyeRecipe:effectiveDyeRecipe(),details:sbReadItem()});
  if(!item)return;
- const existing=board.customItems.findIndex(i=>i.id===id);
+ const existing=board.customItems.findIndex(i=>i.id===id);if(editorState.galleryReturn)editorState.galleryReturn.id=id;
  if(existing>=0)board.customItems[existing]=item;else board.customItems.unshift(item);
  const placement=editorState.placement;
  if(placement){const n=byId(placement.id);if(n){const previous=getCraftSlot(n,placement.key);assignCraftSlot(n,placement.key,{id,count:previous?.count||1});chosenSlot=placement;selectedNode=n.id;selectedEdge=null}}
@@ -1503,6 +1533,7 @@ window.addEventListener('pointerdown',event=>{if(!event.target.closest('#invento
 window.addEventListener('keydown',event=>{if(event.key==='Escape')closeInventoryMenu()});
 $('catalogTool').onclick=()=>{if($('itemPanel').classList.contains('show'))closeCatalog();else openCatalog()};
 $('closeItems').onclick=$('closeItemsBottom').onclick=closeCatalog;
+$('customGalleryOpen').onclick=()=>{closeCatalog();sbItems()};
 $('itemSearch').addEventListener('input',()=>{catalogShown=120;renderCatalog()});
 document.querySelector('.item-tabs').addEventListener('click',event=>{const button=event.target.closest('[data-catalog-tab]');if(!button)return;catalogTab=button.dataset.catalogTab;catalogShown=120;$('itemSearch').value='';renderCatalog();$('catalogScroll').scrollTop=0});
 $('itemMore').onclick=()=>{catalogShown+=120;renderCatalog()};
@@ -1557,15 +1588,15 @@ function sbReadItem(){const v=id=>$(id)?.value??'';return sbDetails({rarity:v('s
 const SB_COLORS=['#000000','#0000aa','#00aa00','#00aaaa','#aa0000','#aa00aa','#ffaa00','#aaaaaa','#555555','#5555ff','#55ff55','#55ffff','#ff5555','#ff55ff','#ffff55','#ffffff'];
 function sbLore(t){let c='#bcbcbc';return String(t??'').split(/(§[0-9a-fr])/i).map(x=>{if(/^§[0-9a-fr]$/i.test(x)){c=x[1].toLowerCase()==='r'?'#bcbcbc':SB_COLORS[parseInt(x[1],16)];return ''}return '<span style="color:'+c+'">'+escapeHTML(x)+'</span>'}).join('')}
 function sbTooltip(name,lore,d){d=sbDetails(d);const color=SB_RARITY[d.rarity];return '<strong style="color:'+color+'">'+escapeHTML(name)+'</strong><br>'+SB_STATS.filter(k=>d.stats[k]!==undefined).map(k=>escapeHTML(k)+': <span style="color:#ff5555">'+(d.stats[k]>=0?'+':'')+d.stats[k]+'</span><br>').join('')+(lore?'<br>'+sbLore(lore)+'<br>':'')+(d.ability?'<br><span style="color:#ffaa00">Ability: '+escapeHTML(d.ability)+'</span><br>'+sbLore(d.abilityText)+'<br>':'')+(d.mana!==''?'Mana Cost: '+d.mana+'<br>':'')+(d.cooldown!==''?'Cooldown: '+d.cooldown+'s<br>':'')+'<br><strong style="color:'+color+'">'+escapeHTML(d.rarity+' '+d.type.toUpperCase())+'</strong>'}
-function sbUpdateTooltip(){if(editorState&&$('sbRarity'))$('sbTooltip').innerHTML=sbTooltip($('editorName').value,$('editorLore').value,sbReadItem())}
+function sbUpdateTooltip(){if(editorState&&$('sbRarity')){$('sbTooltip').innerHTML=sbTooltip($('editorName').value,$('editorLore').value,sbReadItem());ciUpdatePreviewText()}}
 function sbHeadPreviewEvent(e){if(e.target.id==='sbHeadTexture'||e.target.id==='sbHeadName'){const field=$('sbHeadTexture'),status=$('headTextureStatus');if(status)status.textContent=field?.value.trim()&&!normalizeHeadTexture(field.value)?'Bitte eine gültige textures.minecraft.net/texture/… URL oder Texture-ID eingeben.':'Kopfvorschau wird direkt aktualisiert.';updateItemEditorPreview()}else sbUpdateTooltip()}
-$('sbItemFields').addEventListener('input',sbHeadPreviewEvent);$('sbItemFields').addEventListener('change',sbHeadPreviewEvent);$('editorLore').addEventListener('input',sbUpdateTooltip);
+$('sbItemFields').addEventListener('input',sbHeadPreviewEvent);$('sbItemFields').addEventListener('change',sbHeadPreviewEvent);$('editorLore').addEventListener('input',()=>{sbUpdateTooltip();ciUpdatePreviewText()});
 let sbState=null;
 function sbShow(title,html){$('sbTitle').textContent=title;$('sbContent').innerHTML=html;$('sbOverlay').classList.remove('hidden');$('sbOverlay').querySelector('.item-editor').scrollTop=0}
 function sbClose(){sbState=null;$('sbOverlay').classList.add('hidden');$('sbContent').innerHTML=''}
 $('sbClose').onclick=sbClose;
 function sbChoices(){const m=new Map([...board.customItems.map(i=>[i.id,i.name]),...catalog.map(i=>[i.id,i.name])]);return '<datalist id="sbChoices">'+[...m].slice(0,4000).map(([id,name])=>'<option value="'+escapeHTML(id)+'">'+escapeHTML(name)+'</option>').join('')+'</datalist>'}
-function sbMenu(){exitTextEditing();closeCatalog();$('moreMenu').classList.remove('show');sbState={mode:'menu'};sbShow('Skyblock-Planer','<p class="tiny-note">Erstelle Planungsmodule auf deiner Mindmap. Sie lassen sich wie Formen verbinden und verschieben.</p><div class="sb-grid">'+Object.entries(SB_DEFS).map(([k,d])=>'<button class="sb-tile" data-add-sb="'+k+'">'+d.icon+' '+d.name+'</button>').join('')+'<button class="sb-tile" data-sb-command="calc">∑ Crafting-Kalkulator</button><button class="sb-tile" data-sb-command="items">▦ Eigene Items</button><button class="sb-tile" data-sb-command="compare">⇄ Item-Vergleich</button><button class="sb-tile" data-sb-command="search">⌕ Mindmap-Suche</button></div>')}
+function sbMenu(){exitTextEditing();closeCatalog();$('moreMenu').classList.remove('show');sbState={mode:'menu'};sbShow('Skyblock-Planer','<p class="tiny-note">Erstelle Planungsmodule auf deiner Mindmap. Sie lassen sich wie Formen verbinden und verschieben.</p><div class="sb-grid">'+Object.entries(SB_DEFS).map(([k,d])=>'<button class="sb-tile" data-add-sb="'+k+'">'+d.icon+' '+d.name+'</button>').join('')+'<button class="sb-tile" data-sb-command="calc">∑ Crafting-Kalkulator</button><button class="sb-tile" data-sb-command="items">▦ Custom Items</button><button class="sb-tile" data-sb-command="compare">⇄ Item-Vergleich</button><button class="sb-tile" data-sb-command="search">⌕ Mindmap-Suche</button></div>')}
 function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;if(type==='mob'){combatMobEditor();return}const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
 function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(n.plan.type==='mob'){combatMobEditor(id);return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
 function sbSummary(p){if(p.type==='skill')return 'Gesamt-XP: '+p.rows.reduce((a,r)=>a+(Number(r.xp)||0),0).toLocaleString('de-DE');if(['mob','loot'].includes(p.type))return 'Erwartete Items / Kill: '+p.rows.reduce((a,r)=>a+(Number(r.chance)||0)/100*((Number(r.min)||0)+(Number(r.max)||0))/2,0).toLocaleString('de-DE',{maximumFractionDigits:5})+' · unabhängige Drops, ohne Magic Find';return ''}
@@ -1582,14 +1613,64 @@ function sbFocus(id){const n=byId(id);if(!n){notify('Ziel wurde entfernt.');retu
 function sbCalc(id,amount,nodes){const recipes=new Map(),raw=new Map(),surplus=new Map(),cycles=new Set();let visits=0;for(const n of nodes){if(n.kind==='craft'&&n.inventoryType==='crafting'&&n.result&&n.recipe.some(Boolean)&&!recipes.has(n.result.id))recipes.set(n.result.id,n)}function walk(k,num,stack){if(!Number.isFinite(num)||num<=0)return;const use=Math.min(num,surplus.get(k)||0);surplus.set(k,(surplus.get(k)||0)-use);num-=use;if(!num)return;const rec=recipes.get(k);if(!rec||stack.has(k)||++visits>10000||stack.size>40){if(rec)cycles.add(k);raw.set(k,(raw.get(k)||0)+num);return}const c=Math.ceil(num/rec.result.count);surplus.set(k,(surplus.get(k)||0)+c*rec.result.count-num);for(const i of rec.recipe.filter(Boolean))walk(i.id,i.count*c,new Set(stack).add(k))}walk(id,amount,new Set());return {raw:[...raw],cycles:[...cycles]}}
 function sbCalcOpen(){sbState={mode:'calc'};const first=board.nodes.find(n=>n.kind==='craft'&&n.inventoryType==='crafting'&&n.result)?.result.id||'';sbShow('Crafting-Kalkulator','<p class="tiny-note">Rekursiver Rohstoffbedarf aus Rezepten dieser Mindmap. Bei Alternativen gilt das erste Rezept.</p><div class="sb-grid">'+sbField('Ziel-Item','sbCalcItem',first,'i')+sbField('Anzahl','sbCalcAmount',1,'n')+'</div><button class="btn primary" data-sb-command="runCalc">Berechnen</button><div id="sbCalcResult"></div>'+sbChoices())}
 function sbRunCalc(){const id=$('sbCalcItem').value.trim(),amount=Math.floor(Number($('sbCalcAmount').value));if(!/^[a-z0-9_]{1,90}$/.test(id)||!Number.isFinite(amount)||amount<1||amount>1e9){notify('Gültiges Item und Anzahl eingeben.');return}const res=sbCalc(id,amount,board.nodes);$('sbCalcResult').innerHTML='<h3>Basis-Items</h3>'+res.raw.map(([k,v])=>'<div class="sb-row">'+escapeHTML(displayItemName(k))+' · '+v.toLocaleString('de-DE')+'</div>').join('')+(res.cycles.length?'<p class="tiny-note">Zyklus / Rechenlimit: '+escapeHTML(res.cycles.map(displayItemName).join(', '))+' – manuell prüfen.</p>':'')}
-function sbItems(){sbState={mode:'items'};sbShow('Eigene Items','<p class="tiny-note">Alle Referenzen derselben Item-ID in dieser Mindmap zeigen das aktuelle Item.</p><button class="btn primary" data-sb-command="newItem">+ Basis-Item auswählen</button>'+board.customItems.map(i=>'<div class="sb-row sb-head">'+itemImg(i.id)+'<strong style="color:'+SB_RARITY[sbDetails(i.details).rarity]+'">'+escapeHTML(i.name)+'</strong><button class="btn" data-item-edit="'+i.id+'">Bearbeiten</button></div>').join(''))}
+const CI_CATS=[['all','Alle Items','▦'],['weapon','Waffen','⚔'],['armor','Rüstungen','♜'],['tool','Werkzeuge','⛏'],['accessory','Accessoires','◇'],['material','Materialien','▰'],['other','Sonstiges','★']];
+function ciCategory(item){
+ const d=sbDetails(item.details),t=d.type.toLowerCase(),id=item.baseId;
+ if(/accessor|talisman|amulet|ring|necklace|bracelet|schmuck|anhänger/.test(t))return 'accessory';
+ if(/armor|rüstung|helmet|chestplate|leggings|boots|helm|stiefel/.test(t)||/_(helmet|chestplate|leggings|boots)$/.test(id))return 'armor';
+ if(/weapon|waffe|sword|schwert|bow|bogen|dagger|dolch|mace|trident|spear/.test(t)||/(?:_sword$|^bow$|^crossbow$|^trident$|^mace$|_spear$)/.test(id))return 'weapon';
+ if(/tool|werkzeug|pickaxe|hoe|shovel|drill|axt|spitzhacke|angel/.test(t)||/_(pickaxe|axe|hoe|shovel)$|^fishing_rod$|^shears$/.test(id))return 'tool';
+ if(/material|resource|rohstoff|ingredient|zutat/.test(t)||/_(ingot|nugget|scrap|shard|dust)$|^(diamond|emerald|coal|redstone|lapis_lazuli|quartz|amethyst_shard|nether_star|stick|string|leather|iron_ingot|gold_ingot)$/.test(id))return 'material';
+ return 'other';
+}
+function ciRarity(d){return '<span class="ci-rarity" style="color:'+SB_RARITY[d.rarity]+'">'+escapeHTML(d.rarity.replaceAll('_',' '))+'</span>'}
+function ciUpdatePreviewText(){const box=$('ciPreviewLore');if(!box||!editorState)return;const d=sbReadItem(),l=$('editorLore').value;box.innerHTML=ciRarity(d)+(d.type?'<p>'+escapeHTML(d.type)+'</p>':'')+(l?'<p>'+sbLore(l)+'</p>':'');}
+function sbItems(id=null,category='all',query='',list=false){
+ sbState={mode:'items',selected:id,category:CI_CATS.some(c=>c[0]===category)?category:'all',query,list};
+ sbShow('Custom Items','<div class="ci-gallery"><p class="tiny-note">Deine eigenen Items dieser Mindmap · Bilder, Beschreibung, Stats, Fähigkeiten und Crafting-Rezepte.</p><div class="ci-layout"><nav class="ci-cats" id="ciCats" aria-label="Item-Kategorien"></nav><section><div class="ci-search"><input class="editor-input" id="ciSearch" type="search" placeholder="Item suchen …" aria-label="Custom Items suchen"><button type="button" class="ci-mode" data-ci-mode="grid" aria-label="Rasteransicht">▦</button><button type="button" class="ci-mode" data-ci-mode="list" aria-label="Listenansicht">☰</button></div><div id="ciGrid" class="ci-grid"></div></section><section id="ciDetail" class="ci-detail" aria-label="Item-Details"></section></div><div class="ci-footer"><span class="ci-muted" id="ciCount"></span><button type="button" class="btn primary" data-sb-command="newItem">+ Custom Item erstellen</button></div></div>');
+ $('ciSearch').value=query;ciRender();
+}
+function ciRender(){
+ const st=sbState;if(st?.mode!=='items'||!$('ciGrid'))return;
+ const items=board.customItems,q=st.query.trim().toLowerCase();
+ const matches=items.filter(i=>(st.category==='all'||ciCategory(i)===st.category)&&(!q||[i.name,i.baseId,i.lore,i.details?.type,i.details?.rarity].some(v=>String(v||'').toLowerCase().includes(q))));
+ if(!matches.some(i=>i.id===st.selected))st.selected=matches[0]?.id||null;
+ $('ciCats').innerHTML=CI_CATS.map(([k,label,icon])=>'<button type="button" class="ci-cat '+(k===st.category?'active':'')+'" data-ci-cat="'+k+'" aria-pressed="'+(k===st.category)+'">'+icon+' '+label+'<small>'+items.filter(i=>k==='all'||ciCategory(i)===k).length+'</small></button>').join('');
+ $('ciGrid').classList.toggle('list-mode',st.list);
+ document.querySelectorAll('[data-ci-mode]').forEach(b=>{const active=(b.dataset.ciMode==='list')===st.list;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ $('ciGrid').innerHTML=matches.length?matches.map(i=>'<button type="button" class="ci-tile '+(i.id===st.selected?'active':'')+'" data-ci-select="'+i.id+'" aria-pressed="'+(i.id===st.selected)+'">'+itemImg(i.id)+'<strong>'+escapeHTML(i.name)+'</strong>'+ciRarity(sbDetails(i.details))+'</button>').join(''):'<div class="ci-empty">'+(items.length?'Keine passenden Items.':'Noch keine Custom Items. Wähle über + ein Minecraft-Basis-Item und passe es an.')+'</div>';
+ $('ciCount').textContent=matches.length+' von '+items.length+' Custom Items';ciDetail();
+}
+function ciDetail(){
+ const st=sbState,i=customItem(st.selected);if(!i){$('ciDetail').innerHTML='<div class="ci-empty">Wähle ein Item, um seine Details zu sehen.</div>';return}
+ const d=sbDetails(i.details),e=escapeHTML;
+ const recipes=board.nodes.filter(n=>n.kind==='craft'&&n.inventoryType==='crafting'&&n.result?.id===i.id);
+ const slot=(v,out=false)=>'<div class="ci-recipe-slot '+(out?'ci-recipe-output':'')+'" title="'+e(v?displayItemName(v.id):'Leerer Slot')+'">'+(v?itemImg(v.id)+(v.count>1?'<small>'+v.count+'</small>':''):'')+'</div>';
+ const recipe=recipes[0],stats=SB_STATS.filter(k=>d.stats[k]!==undefined);
+ $('ciDetail').innerHTML='<div class="ci-hero">'+itemImg(i.id)+'<div class="ci-names"><strong style="color:'+SB_RARITY[d.rarity]+'">'+e(i.name)+'</strong>'+ciRarity(d)+'<small>'+e(d.type||CI_CATS.find(c=>c[0]===ciCategory(i))[1])+' · '+e(i.baseId)+(i.enchanted?' · ✦ Enchanted':'')+'</small></div></div>'+
+ '<div class="ci-panel"><h3>▤ Beschreibung</h3><p>'+(i.lore?sbLore(i.lore):'<span class="ci-muted">Keine Beschreibung eingetragen.</span>')+'</p></div>'+
+ '<div class="ci-panel"><h3>⚔ Werte / Stats</h3>'+(stats.length?stats.map(k=>'<div class="ci-stat"><span>'+e(k)+'</span><b style="color:'+(d.stats[k]<0?'#ff929a':'#99e99a')+'">'+(d.stats[k]>0?'+':'')+Number(d.stats[k]).toLocaleString('de-DE',{maximumFractionDigits:4})+(['Crit Chance','Crit Damage','Attack Speed'].includes(k)?'%':'')+'</b></div>').join(''):'<span class="ci-muted">Noch keine Werte eingetragen.</span>')+'</div>'+
+ ((d.ability||d.abilityText||d.mana!==''||d.cooldown!=='')?'<div class="ci-panel"><h3>✦ Ability</h3><strong style="color:#ffc879">'+e(d.ability||'Fähigkeit')+'</strong><p>'+sbLore(d.abilityText)+'</p>'+(d.mana!==''?'<div class="ci-stat">Mana Cost <b>'+d.mana+'</b></div>':'')+(d.cooldown!==''?'<div class="ci-stat">Cooldown <b>'+d.cooldown+' s</b></div>':'')+'</div>':'')+
+ '<div class="ci-panel"><h3>▦ Crafting-Rezept</h3>'+(recipe?'<div class="ci-recipe"><div class="ci-recipe-grid">'+Array.from({length:9},(_,k)=>slot(recipe.recipe[k])).join('')+'</div><span class="ci-recipe-arrow">→</span>'+slot(recipe.result,true)+'</div><button type="button" class="btn" data-focus="'+e(recipe.id)+'">Rezept auf Mindmap öffnen</button>'+(recipes.length>1?'<p class="ci-muted">'+recipes.length+' Rezepte vorhanden · erstes angezeigt</p>':''):'<p class="ci-muted">Noch kein Crafting-Rezept. Lege dieses Item als Ergebnis eines Crafting Tables fest.</p>')+'</div>'+
+ '<div class="ci-actions"><button type="button" class="btn primary" data-ci-edit="'+i.id+'">✎ Bearbeiten</button><button type="button" class="btn" data-ci-copy="'+i.id+'">▣ Duplizieren</button><button type="button" class="btn ci-danger" data-ci-delete="'+i.id+'">Löschen</button></div>';
+}
+function ciAction(b){
+ const st=sbState,d=b.dataset;if(st?.mode!=='items')return false;
+ if(d.ciCat){st.category=d.ciCat;ciRender();return true}
+ if(d.ciMode){st.list=d.ciMode==='list';ciRender();return true}
+ if(d.ciSelect){st.selected=d.ciSelect;ciRender();return true}
+ if(d.ciEdit){const id=d.ciEdit,back={boardId,id,category:st.category,query:st.query,list:st.list};sbClose();openItemEditor(id,false);if(editorState){editorState.galleryReturn=back;$('sbItemDetails').open=true}return true}
+ if(d.ciCopy){const i=customItem(d.ciCopy);if(!i)return true;if(board.customItems.length>=800){notify('Maximal 800 Custom Items pro Mindmap.');return true}const copy=normCustomItem({...structuredClone(i),id:'custom_'+uid().slice(0,24),name:i.name.slice(0,56)+' (Kopie)'});if(!copy)return true;board.customItems.unshift(copy);st.selected=copy.id;st.query='';$('ciSearch').value='';save();renderNodes();renderCatalog();ciRender();notify('Custom Item dupliziert.');return true}
+ if(d.ciDelete){const i=customItem(d.ciDelete);if(!i)return true;if(board.nodes.some(n=>JSON.stringify(n).includes(i.id))||board.customItems.some(other=>other.id!==i.id&&JSON.stringify(other).includes(i.id))){notify('Dieses Item wird noch in der Mindmap verwendet. Entferne zuerst die Referenzen.');return true}if(!window.confirm('„'+i.name+'“ wirklich löschen?'))return true;board.customItems=board.customItems.filter(x=>x.id!==i.id);board.favorites=board.favorites.filter(x=>x!==i.id);st.selected=null;save();renderNodes();renderCatalog();ciRender();notify('Custom Item gelöscht.');return true}
+ return false;
+}
 function sbCompare(){sbState={mode:'compare'};const opts=[['','Item wählen'],...board.customItems.map(i=>[i.id,i.name])];sbShow('Item-Vergleich','<div class="sb-grid">'+sbSelect('Item A','sbA',opts,'')+sbSelect('Item B','sbB',opts,'')+'</div><div class="sb-grid" id="sbCompareResult"></div>')}
 function sbCompareRender(){$('sbCompareResult').innerHTML=[$('sbA').value,$('sbB').value].map(id=>{const i=customItem(id);return '<div class="sb-tooltip">'+(i?sbTooltip(i.name,i.lore,i.details):'Item auswählen')+'</div>'}).join('')}
 function sbSearch(){sbState={mode:'search'};sbShow('Mindmap-Suche',sbField('Suche','sbQuery','')+'<div id="sbResults"></div>');sbSearchRender()}
 function sbSearchRender(){const q=$('sbQuery').value.toLowerCase();$('sbResults').innerHTML=board.nodes.filter(n=>(n.text+' '+JSON.stringify(n.plan||{})+' '+(n.recipe||[]).filter(Boolean).map(i=>displayItemName(i.id)).join(' ')).toLowerCase().includes(q)).slice(0,120).map(n=>'<div class="sb-row sb-head">'+escapeHTML((n.plan?.name||n.text||'Form').split('\n')[0])+'<button class="btn" data-focus="'+escapeHTML(n.id)+'">Anzeigen</button></div>').join('')+board.customItems.filter(i=>i.name.toLowerCase().includes(q)).slice(0,100).map(i=>'<div class="sb-row sb-head">'+escapeHTML(i.name)+'<button class="btn" data-item-edit="'+i.id+'">Item bearbeiten</button></div>').join('')}
-$('sbContent').addEventListener('input',e=>{if(sbState?.mode==='plan'&&e.target.type!=='file')sbSyncPlan();if(sbState?.mode==='gui'&&e.target.type!=='file')sbSyncGui();if(e.target.id==='sbQuery')sbSearchRender()});
+$('sbContent').addEventListener('input',e=>{if(sbState?.mode==='plan'&&e.target.type!=='file')sbSyncPlan();if(sbState?.mode==='gui'&&e.target.type!=='file')sbSyncGui();if(e.target.id==='sbQuery')sbSearchRender();if(e.target.id==='ciSearch'&&sbState?.mode==='items'){sbState.query=e.target.value;ciRender()}});
 $('sbContent').addEventListener('change',async e=>{if(!sbState)return;if(['sbA','sbB'].includes(e.target.id))sbCompareRender();if(['sbImageFile','sbGuiImage'].includes(e.target.id)){const st=sbState;try{const data=await sbLoadImage(e.target.files?.[0]);if(sbState!==st)return;if(st.mode==='plan'){sbSyncPlan();st.draft.image=data;sbRenderPlan()}else if(st.mode==='gui'){sbSyncGui();st.draft.background=data;sbRenderGui()}}catch(err){notify(err.message)}}});
-$('sbContent').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!sbState)return;const d=b.dataset,c=d.sbCommand;if(d.addSb){sbAdd(d.addSb);return}if(c==='close'){sbClose();return}if(c==='calc'){sbCalcOpen();return}if(c==='items'){sbItems();return}if(c==='compare'){sbCompare();return}if(c==='search'){sbSearch();return}if(c==='runCalc'){sbRunCalc();return}if(d.focus){sbFocus(d.focus);return}if(d.itemEdit){sbClose();openItemEditor(d.itemEdit,false);return}if(c==='newItem'){sbClose();chosenSlot=null;openCatalog();notify('Tippe beim gewünschten Basis-Item auf ✎.');return}
+$('sbContent').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!sbState)return;const d=b.dataset,c=d.sbCommand;if(ciAction(b))return;if(d.addSb){sbAdd(d.addSb);return}if(c==='close'){sbClose();return}if(c==='calc'){sbCalcOpen();return}if(c==='items'){sbItems();return}if(c==='compare'){sbCompare();return}if(c==='search'){sbSearch();return}if(c==='runCalc'){sbRunCalc();return}if(d.focus){sbFocus(d.focus);return}if(d.itemEdit){sbClose();openItemEditor(d.itemEdit,false);return}if(c==='newItem'){sbClose();chosenSlot=null;openCatalog();notify('Tippe beim gewünschten Basis-Item auf ✎.');return}
  if(sbState.mode==='plan'){sbSyncPlan();if(c==='addRow'){if(sbState.draft.rows.length<200)sbState.draft.rows.push({});sbRenderPlan()}else if(d.removeRow!==undefined){sbState.draft.rows.splice(Number(d.removeRow),1);sbRenderPlan()}else if(c==='clearImage'){sbState.draft.image='';sbRenderPlan()}else if(c==='savePlan')sbSavePlan();return}
  if(sbState.mode==='gui'){sbSyncGui();if(d.slotGui!==undefined){sbState.key=d.slotGui;sbRenderGui()}else if(c==='clearBg'){sbState.draft.background='';sbRenderGui()}else if(c==='saveGui'||c==='testGui'){const n=byId(sbState.id);if(!n)return;n.gui=sbGui(sbState.draft,n.recipe.length);sbClose();refreshCraftCards();renderInspector();save();if(c==='testGui')sbPreview(n.id);else notify('GUI gespeichert.')}return}
  if(sbState.mode==='preview'&&d.target){const n=byId(d.target);if(n?.kind==='craft'&&n.inventoryType!=='crafting')sbPreview(n.id);else sbFocus(d.target)}

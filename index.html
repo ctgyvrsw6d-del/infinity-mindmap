@@ -362,6 +362,58 @@
 .combat-section{margin:12px 0;border-top:1px solid #ffffff16;padding-top:12px}
 .combat-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 #sbContent .combat-fields .editor-input{width:100%;font-size:16px}
+
+/* Infinity mob gallery */
+#sbOverlay:has(.mob-picker) .item-editor{width:min(1250px,100%);background:#0e1320;border:1px solid #444967;padding:18px;max-height:calc(100dvh - 28px);color:#f0f1fb}
+.mob-picker{--mp-bg:#151b29;--mp-line:#30384d;--mp-accent:#a78bfa;color:#eef0fa}
+.mob-picker button{font:inherit;cursor:pointer;touch-action:manipulation}
+.mob-picker-layout{display:grid;grid-template-columns:150px minmax(0,1fr) 300px;gap:14px;align-items:start}
+.mob-cats,.mob-gallery,.mob-detail{min-width:0}
+.mob-cats{display:grid;gap:8px}
+.mob-cat,.mob-tile,.mob-tier,.mob-layout-btn{background:#151b29;border:1px solid #30384d;color:#e9e9f3;border-radius:10px;padding:10px;text-align:left}
+.mob-cat{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:46px;font-size:13px!important}
+.mob-cat small{color:#a3a9bf}
+.mob-cat.active,.mob-layout-btn.active,.mob-tier.active{border-color:#a78bfa;background:#30224c;color:#e9ddff}
+.mob-searchbar{display:flex;gap:7px;margin-bottom:12px;align-items:center}
+.mob-searchbar input{flex:1;min-width:0;background:#0b1020!important}
+.mob-layout-btn{padding:9px 12px;text-align:center}
+.mob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;max-height:57dvh;overflow:auto;padding:4px;overscroll-behavior:contain}
+.mob-tile{min-width:0;min-height:138px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;padding:8px 4px;overflow:hidden}
+.mob-tile:hover,.mob-tile:focus-visible{border-color:#a78bfa}
+.mob-tile.active{border-color:#b183ff;box-shadow:inset 0 0 16px #8054ec44,0 0 8px #a45cff75;background:#221b39}
+.mob-tile strong{font-size:13px;overflow-wrap:anywhere}
+.mob-tile small,.mob-category{font-size:11px;font-weight:650;color:#aeb5c9}
+.mob-hostile{color:#fb8089!important}.mob-neutral{color:#7eddb3!important}.mob-passive{color:#8bdc83!important}.mob-boss{color:#cfa0ff!important}.mob-custom{color:#efc46d!important}
+.mob-grid.list-mode{grid-template-columns:1fr}
+.mob-grid.list-mode .mob-tile{min-height:66px;flex-direction:row;justify-content:flex-start;padding:7px 12px;text-align:left;gap:12px}
+.mob-grid.list-mode .mob-tile svg{width:50px;height:50px;flex-shrink:0}
+.mob-grid.list-mode .mob-tile small{margin-left:auto}
+.mob-art{display:block;width:82px;height:86px;overflow:visible;filter:drop-shadow(0 7px 5px #0007);flex-shrink:0}
+.mob-detail{display:grid;gap:9px}
+.mob-hero{display:flex;align-items:center;gap:10px;min-height:135px;padding:10px;background:radial-gradient(ellipse at 25% 50%,#263452,#101624 72%);border:1px solid #30384d;border-radius:12px}
+.mob-hero .mob-art{width:104px;height:112px}
+.mob-hero strong{display:block;font-size:20px;overflow-wrap:anywhere}
+.mob-hero small{display:block;font-size:11px;color:#aeb5c9;overflow-wrap:anywhere}
+.mob-panel{background:#131926;border:1px solid #30384d;border-radius:10px;padding:10px;display:grid;gap:8px}
+.mob-panel h3{font-size:13px;margin:0;color:#dcdcf0}
+.mob-panel label{font-size:12px;color:#c5cadc;min-width:0}
+.mob-panel .editor-input{margin-top:4px;min-width:0;width:100%;background:#202638!important;border-color:#353c52}
+.mob-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mob-tier-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mob-tier{font-size:11px!important;text-align:center;padding:8px 3px;min-height:36px}
+.mob-tier[data-mob-tier="elite"]{color:#62caff}.mob-tier[data-mob-tier="boss"]{color:#ff848c}.mob-tier[data-mob-tier="slayer"]{color:#d8a3ff}
+.mob-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.mob-footer .primary{background:#6740d5!important;border-color:#9874ff!important;color:white!important}
+.mob-node-card{position:absolute;inset:8px 12px;display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden;pointer-events:none;color:inherit;z-index:1}
+.mob-node-card .mob-art{width:30%;height:90%;max-width:110px;min-width:0}
+.mob-node-copy{min-width:0;overflow:hidden;display:grid;gap:4px}
+.mob-node-copy strong{font-size:1em;overflow-wrap:anywhere;line-height:1.1}
+.mob-node-copy small{font-size:.63em;line-height:1.25;color:#c2c9da;overflow-wrap:anywhere}
+.node.mob-node .node-text{opacity:0!important;inset:8px 12px!important;width:calc(100% - 24px)!important;height:calc(100% - 16px)!important;transform:none!important;z-index:2;cursor:pointer}
+.combat-mob-name .mob-art{width:108px;height:112px;margin:0 auto 5px}
+@media(max-width:1000px){.mob-picker-layout{grid-template-columns:minmax(0,1fr) 260px}.mob-cats{grid-column:1/-1;display:flex;overflow:auto;gap:6px}.mob-cat{flex-shrink:0;min-height:40px;gap:8px}}
+@media(max-width:650px){#sbOverlay:has(.mob-picker) .item-editor{padding:11px}.mob-picker-layout{grid-template-columns:1fr;gap:10px}.mob-grid{max-height:36dvh;grid-template-columns:repeat(auto-fill,minmax(89px,1fr))}.mob-tile{min-height:112px}.mob-tile .mob-art{height:63px;width:63px}.mob-detail{grid-template-columns:1fr}.mob-hero{min-height:98px}.mob-hero .mob-art{width:78px;height:80px}.mob-footer{position:sticky;bottom:0;background:#0e1320;padding:9px 0;margin-top:9px}.mob-footer button{flex:1;min-height:44px}}
+
 </style>
 </head>
 <body>
@@ -542,8 +594,96 @@ function combatHit(state,calc,random,mode='random'){
 }
 
 function sbDetails(x){x=x||{};const stats={};for(const k of SB_STATS){const v=sbNum(x.stats?.[k],-1e9,1e9);if(v!=='')stats[k]=v}return {rarity:Object.hasOwn(SB_RARITY,x.rarity)?x.rarity:'COMMON',type:sbText(x.type,40),stats,ability:sbText(x.ability,80),abilityText:sbText(x.abilityText,600),mana:sbNum(x.mana),cooldown:sbNum(x.cooldown),headName:/^[a-z0-9_]{1,16}$/i.test(x.headName||'')?x.headName:'',headTexture:normalizeHeadTexture(x.headTexture)}}
+
+const MOB_CATALOG=[
+ ['zombie','Zombie','hostile','humanoid','#69953c','#208d99','#3f427e','zombie'],
+ ['skeleton','Skelett','hostile','humanoid','#d9d9ce','#b9b9ac','#a5a6a2','skeleton'],
+ ['creeper','Creeper','hostile','creeper','#77b83c','#4d982f','#286a35','creeper'],
+ ['spider','Spinne','hostile','spider','#4c4138','#3a312b','#5f5147','spider'],
+ ['enderman','Enderman','neutral','tall','#292333','#211d29','#312d3b','enderman'],
+ ['blaze','Blaze','hostile','blaze','#f6ca43','#c67b22','#e6ad28','blaze'],
+ ['wither_skeleton','Wither-Skelett','hostile','humanoid','#49484a','#3a393c','#353538','skeleton'],
+ ['piglin','Piglin','neutral','humanoid','#e3a090','#75462e','#68443b','piglin'],
+ ['iron_golem','Eisengolem','neutral','golem','#d4d4c2','#bfc3ac','#a3a791','golem'],
+ ['slime','Slime','hostile','cube','#7acb49','#58a735','#34832c','slime'],
+ ['magma_cube','Magmawürfel','hostile','cube','#7e2819','#451512','#9a3118','magma'],
+ ['warden','Warden','boss','golem','#245764','#15343e','#244b55','warden'],
+ ['wither','Wither','boss','wither','#41414a','#24232d','#35353b','skeleton'],
+ ['ender_dragon','Enderdrache','boss','dragon','#393044','#211d2a','#57446c','enderman'],
+ ['cave_spider','Höhlenspinne','hostile','spider','#315b62','#25444d','#3a6771','spider'],
+ ['husk','Wüstenzombie','hostile','humanoid','#a89763','#a7946a','#6b6859','zombie'],
+ ['drowned','Ertrunkener','hostile','humanoid','#6c9b86','#52746b','#52666c','zombie'],
+ ['stray','Eiswanderer','hostile','humanoid','#c2dae0','#8199a6','#788b94','skeleton'],
+ ['witch','Hexe','hostile','humanoid','#bc9882','#684377','#44314b','witch'],
+ ['pillager','Plünderer','hostile','humanoid','#9d9e97','#65525e','#403845','villager'],
+ ['villager','Dorfbewohner','passive','humanoid','#c19b7d','#856247','#6a4b35','villager'],
+ ['vindicator','Diener','hostile','humanoid','#a9aaa2','#646d79','#4a5159','villager'],
+ ['evoker','Magier','hostile','humanoid','#a2a69d','#30363d','#3c424c','villager'],
+ ['zombified_piglin','Zombie-Piglin','neutral','humanoid','#c58d83','#61835b','#997262','piglin'],
+ ['cow','Kuh','passive','animal','#7e6251','#e4dfd4','#6d5140','cow'],
+ ['pig','Schwein','passive','animal','#eea6ae','#e4909b','#bd6a7b','piglin'],
+ ['sheep','Schaf','passive','animal','#e1d7cb','#f0efde','#aa9a82','animal'],
+ ['chicken','Huhn','passive','bird','#efeee6','#e1e1d5','#de9c35','bird'],
+ ['wolf','Wolf','neutral','animal','#b8bbb9','#d4d6d0','#898c8c','animal'],
+ ['cat','Katze','passive','animal','#d7ac69','#e3bd7f','#ad824a','animal'],
+ ['fox','Fuchs','passive','animal','#d27636','#c0652b','#5d4136','animal'],
+ ['bee','Biene','neutral','cube','#f5c653','#8d592a','#cf9e3b','bee'],
+ ['snow_golem','Schneegolem','passive','golem','#d89136','#e6edf3','#c5d9e2','pumpkin'],
+ ['phantom','Phantom','hostile','dragon','#738ab5','#475d86','#536c99','enderman'],
+ ['ghast','Ghast','hostile','ghast','#e3e2df','#c7c9ca','#a7adb1','ghast'],
+ ['ravager','Verwüster','hostile','animal','#707b7c','#566364','#3e4c4e','golem'],
+ ['custom','Eigener Mob','custom','humanoid','#a38bdd','#605094','#4a3d74','custom']
+];
+const MOB_CATEGORY=[['all','Alle Mobs','▦'],['hostile','Hostile','☠'],['neutral','Neutral','◆'],['passive','Passive','♧'],['boss','Boss-Mobs','♛'],['custom','Custom','★']];
+const MOB_TIER=[['normal','Normal'],['elite','Elite'],['boss','Boss'],['slayer','Slayer']];
+function mobFind(id){return MOB_CATALOG.find(m=>m[0]===String(id).replace(/^minecraft:/,''))||['custom','Eigener Mob','custom','humanoid','#a38bdd','#605094','#4a3d74','custom']}
+function mobCategory(m){return (MOB_CATEGORY.find(c=>c[0]===m[2])||MOB_CATEGORY[5])[1]}
+function mobVariants(id){return [['normal','Standard'],...(id==='zombie'?[['armored','Armored Zombie'],['corrupted','Corrupted Zombie'],['revenant','Revenant Zombie']]:[['armored','Armored'],['corrupted','Corrupted']]),['boss','Boss-Variante'],['custom','Eigene Variante']]}
+function mobArt(id){
+ const m=mobFind(id),[,,cat,form,head,body,legs,face]=m;
+ const shade=(hex,k)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(hex.slice(i,i+2),16)*k))).toString(16).padStart(2,'0')).join('');
+ let a='<svg class="mob-art" viewBox="0 0 112 124" aria-hidden="true" focusable="false"><ellipse cx="55" cy="114" rx="37" ry="5" fill="#05080f" opacity=".55"/>';
+ const r=(x,y,w,h,c)=>{a+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c+'"/>'};
+ const box=(x,y,w,h,d,c,texture=true)=>{
+  a+='<path d="M'+x+' '+y+'l'+d+' -'+Math.round(d*.55)+'h'+w+'l-'+d+' '+Math.round(d*.55)+'Z" fill="'+shade(c,1.22)+'"/><path d="M'+(x+w)+' '+y+'l'+d+' -'+Math.round(d*.55)+'v'+h+'l-'+d+' '+Math.round(d*.55)+'Z" fill="'+shade(c,.64)+'"/>';
+  r(x,y,w,h,c);
+  if(texture&&w>=13&&h>=13){const step=Math.max(4,Math.floor(w/5));for(let i=0;i<4;i++){const xx=x+((i*7+3)%Math.max(1,w-step)),yy=y+((i*11+5)%Math.max(1,h-step));r(xx,yy,step,step,shade(c,i%2?.85:1.10))}}
+ };
+ const eyes=(x,y,w=28,kind=face)=>{
+  const c=kind==='enderman'?'#d98cff':kind==='spider'?'#ff3b3b':kind==='warden'?'#65e4dd':kind==='slime'?'#306926':kind==='magma'?'#ffbd24':'#20252a';
+  r(x+3,y,w*.24,5,c);r(x+w*.64,y,w*.24,5,c);
+  if(kind==='creeper'){r(x+w*.34,y+6,w*.32,11,c);r(x+w*.18,y+12,w*.64,7,c)}
+  else if(kind==='piglin'||kind==='villager'){r(x+w*.35,y+7,w*.36,8,shade(head,.78))}
+  else if(kind==='skeleton'){r(x+w*.28,y+10,w*.44,3,c);r(x+w*.36,y+13,3,3,c);r(x+w*.57,y+13,3,3,c)}
+  else if(kind==='ghast'){r(x+w*.38,y+10,w*.24,8,c)}
+  else r(x+w*.35,y+11,w*.3,3,c);
+ };
+ if(form==='humanoid'||form==='tall'||form==='golem'){
+  const tall=form==='tall',golem=form==='golem',hw=tall?25:golem?34:30, hx=43, hy=tall?8:16, torsoY=hy+hw, torsoH=tall?36:31, legY=torsoY+torsoH, legH=113-legY, armW=tall?7:golem?15:11;
+  box(43,legY,12,legH,7,legs);box(57,legY,12,legH,7,legs);
+  box(hx-4,torsoY,hw+4,torsoH,10,body);
+  if(face==='skeleton'){for(let j=0;j<3;j++)r(hx,torsoY+5+j*7,hw-4,3,shade(head,1.05))}
+  box(hx-4-armW,torsoY+3,armW,tall?45:face==='zombie'?16:32,7,face==='zombie'?head:body);
+  box(hx+hw+1,torsoY+2,armW,tall?45:face==='zombie'?16:32,7,face==='zombie'?head:body);
+  if(face==='zombie'){box(hx-12,torsoY+10,10,13,7,head);box(hx+hw+5,torsoY+9,10,13,7,head)}
+  box(hx,hy,hw,hw,12,head);eyes(hx+2,hy+11,hw-4);
+  if(face==='warden'){box(hx-10,hy-3,8,17,5,'#1f8d8b');box(hx+hw+6,hy-3,8,17,5,'#1f8d8b');r(hx+7,torsoY+8,18,17,'#315f62');r(hx+11,torsoY+13,10,8,'#77b7a9')}
+  if(face==='golem'){r(hx+3,torsoY+5,5,21,'#6b8741');r(hx+8,torsoY+17,8,4,'#77974e')}
+  if(face==='witch'){box(hx-9,hy-1,48,5,9,'#343043');box(hx+8,hy-14,18,15,8,'#343043')}
+ }else if(form==='creeper'){box(34,96,16,15,8,legs);box(58,96,16,15,8,legs);box(43,53,29,45,11,body);box(36,17,39,36,14,head);eyes(39,29,33)}
+ else if(form==='spider'){for(let i=0;i<4;i++){const y=69+i*8;a+='<path d="M49 '+y+'L'+(20-i*3)+' '+(y-9)+'L'+(8+i*2)+' '+(y+8)+'M68 '+y+'L'+(90+i*3)+' '+(y-8)+'L'+(105-i*2)+' '+(y+8)+'" fill="none" stroke="'+legs+'" stroke-width="7" stroke-linejoin="bevel"/>'}box(43,48,39,34,13,body);box(29,68,32,25,10,head);eyes(31,76,28)}
+ else if(form==='cube'){box(28,45,56,61,17,head);if(face==='magma'){for(let j=0;j<4;j++)r(29,51+j*13,54,5,body)}if(face==='bee'){for(let j=0;j<3;j++)r(36+j*15,45,6,60,body);box(40,29,18,5,12,'#dce5eb');box(62,27,15,5,10,'#dce5eb')}eyes(38,68,36)}
+ else if(form==='blaze'){for(let i=0;i<8;i++){const x=18+(i*23)%78,y=52+(i*19)%44;box(x,y,6,23,4,legs)}box(40,27,31,32,10,head);eyes(42,39,27)}
+ else if(form==='wither'){box(49,56,12,47,6,body);box(22,48,64,10,8,legs);for(let i=0;i<3;i++){const x=17+i*29,y=i===1?22:36;box(x,y,24,24,8,head);eyes(x+2,y+8,20)}}
+ else if(form==='dragon'){a+='<path d="M48 65L10 38 3 71 32 64 46 80M65 65L102 38 109 71 82 64 67 80" fill="'+body+'" stroke="'+legs+'" stroke-width="3"/>';box(45,55,24,36,10,body);box(36,36,31,23,10,head);eyes(38,44,26);box(33,56,25,10,7,head);box(55,90,12,15,6,legs)}
+ else if(form==='ghast'){for(let i=0;i<5;i++)box(26+i*12,84,7,24+(i%2)*5,4,legs);box(23,28,61,57,16,head);eyes(32,51,43)}
+ else{const bird=form==='bird';const y=bird?79:83;for(const x of [34,63])box(x,y,9,29-(bird?4:0),5,legs);box(35,bird?55:59,46,bird?26:30,13,body);box(21,bird?36:46,30,30,10,head);eyes(23,bird?46:56,25);if(face==='cow'){box(22,40,7,9,4,'#d3c6b5');box(43,40,7,9,4,'#d3c6b5')}if(face==='bird')box(15,54,15,6,4,'#e9a43b');if(['animal','piglin'].includes(face)){box(23,41,8,11,4,head);box(43,41,8,11,4,head)}}
+ return a+'</svg>';
+}
+function mobNodeCard(n){const p=n.plan,f=p.fields,m=mobFind(f.base),tier=MOB_TIER.find(x=>x[0]===f.tier)||MOB_TIER[0],e=escapeHTML;return '<div class="mob-node-card" style="color:'+e(n.textColor)+';font-size:'+n.fontSize+'px">'+mobArt(f.base)+'<div class="mob-node-copy"><strong>'+e(p.name||m[1])+'</strong><small class="mob-category mob-'+m[2]+'">'+e(tier[1])+' · '+e(mobCategory(m))+'</small><small>HP '+e(f.hp===''?'–':f.hp)+' · DEF '+e(f.defense===''?'–':f.defense)+'</small><small>DMG '+e(f.damage===''?'–':f.damage)+' · XP '+e(f.xp===''?'–':f.xp)+'</small></div></div>'}
+
 const SB_DEFS={
- mob:{name:'Mob / Boss',icon:'☠',fields:[['base','Minecraft-Mob'],['hp','Health','n'],['damage','Damage','n'],['defense','Defense','n'],['xp','Combat XP','n'],['spawn','Spawn-Bedingungen','a'],['abilities','Fähigkeiten','a']],rows:[['item','Drop','i'],['chance','Chance %','p'],['min','Min.','n'],['max','Max.','n'],['req','Voraussetzung']]},
+ mob:{name:'Mob / Boss',icon:'☠',fields:[['base','Minecraft-Mob'],['hp','Health','n'],['damage','Damage','n'],['defense','Defense','n'],['xp','Combat XP','n'],['speed','Speed','n'],['variant','Variante'],['tier','Tier'],['spawn','Spawn-Bedingungen','a'],['abilities','Fähigkeiten','a']],rows:[['item','Drop','i'],['chance','Chance %','p'],['min','Min.','n'],['max','Max.','n'],['req','Voraussetzung']]},
  loot:{name:'Loot Table',icon:'▤',fields:[['source','Mob / Quelle'],['rule','Magic Find / Regeln','a']],rows:[['item','Drop','i'],['chance','Chance %','p'],['min','Min.','n'],['max','Max.','n'],['req','Voraussetzung']]},
  skill:{name:'Skill / Progression',icon:'↗',fields:[['category','Skill'],['rule','XP-Quelle','a']],rows:[['level','Level','n'],['xp','XP je Level','n'],['item','Item-Belohnung','i'],['reward','Weitere Belohnung']]},
  collection:{name:'Collection',icon:'▦',fields:[['resource','Ressource','i']],rows:[['level','Stufe','n'],['amount','Benötigte Ressourcen','n'],['item','Freigeschaltetes Item','i'],['reward','Freischaltung']]},
@@ -1043,8 +1183,8 @@ function alignSnap(n,x,y,disable=false){
  $('snapGuides').innerHTML=lines;
  return {x:Math.round(x),y:Math.round(y)};
 }
-function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n)}
-function renderNodes(){nodeLayer.innerHTML=board.nodes.map(n=>n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges()}
+function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n);const mc=el.querySelector('.mob-node-card');if(mc){mc.style.fontSize=n.fontSize+'px';mc.style.color=n.textColor}}
+function renderNodes(){nodeLayer.innerHTML=board.nodes.map(n=>n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''} ${n.plan?.type==='mob'?'mob-node':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.plan?.type==='mob'?mobNodeCard(n):''}${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges()}
 function pickEdgePoint(n,target){const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=target.x-cx,dy=target.y-cy;const w=n.w/2,h=n.h/2;
  if(n.shape==='circle'||n.shape==='ellipse'){const den=Math.sqrt((dx/w)**2+(dy/h)**2)||1;return {x:cx+dx/den,y:cy+dy/den}}
  let poly;if(n.shape==='triangle')poly=[[0,-h],[w,h],[-w,h]];else if(n.shape==='diamond')poly=[[0,-h],[w,0],[0,h],[-w,0]];else poly=[[-w,-h],[w,-h],[w,h],[-w,h]];
@@ -1398,7 +1538,7 @@ function sbClose(){sbState=null;$('sbOverlay').classList.add('hidden');$('sbCont
 $('sbClose').onclick=sbClose;
 function sbChoices(){const m=new Map([...board.customItems.map(i=>[i.id,i.name]),...catalog.map(i=>[i.id,i.name])]);return '<datalist id="sbChoices">'+[...m].slice(0,4000).map(([id,name])=>'<option value="'+escapeHTML(id)+'">'+escapeHTML(name)+'</option>').join('')+'</datalist>'}
 function sbMenu(){exitTextEditing();closeCatalog();$('moreMenu').classList.remove('show');sbState={mode:'menu'};sbShow('Skyblock-Planer','<p class="tiny-note">Erstelle Planungsmodule auf deiner Mindmap. Sie lassen sich wie Formen verbinden und verschieben.</p><div class="sb-grid">'+Object.entries(SB_DEFS).map(([k,d])=>'<button class="sb-tile" data-add-sb="'+k+'">'+d.icon+' '+d.name+'</button>').join('')+'<button class="sb-tile" data-sb-command="calc">∑ Crafting-Kalkulator</button><button class="sb-tile" data-sb-command="items">▦ Eigene Items</button><button class="sb-tile" data-sb-command="compare">⇄ Item-Vergleich</button><button class="sb-tile" data-sb-command="search">⌕ Mindmap-Suche</button></div>')}
-function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
+function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;if(type==='mob'){combatMobEditor();return}const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
 function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(n.plan.type==='mob'){combatMobEditor(id);return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
 function sbSummary(p){if(p.type==='skill')return 'Gesamt-XP: '+p.rows.reduce((a,r)=>a+(Number(r.xp)||0),0).toLocaleString('de-DE');if(['mob','loot'].includes(p.type))return 'Erwartete Items / Kill: '+p.rows.reduce((a,r)=>a+(Number(r.chance)||0)/100*((Number(r.min)||0)+(Number(r.max)||0))/2,0).toLocaleString('de-DE',{maximumFractionDigits:5})+' · unabhängige Drops, ohne Magic Find';return ''}
 function sbRenderPlan(){const p=sbState.draft,d=SB_DEFS[p.type];sbShow(d.icon+' '+d.name,'<div class="sb-grid">'+sbField('Name','sbName',p.name)+sbSelect('Status','sbStatus',[['planned','Geplant'],['doing','In Entwicklung'],['done','Fertig']],p.status)+'</div><div class="sb-grid">'+d.fields.map(([k,l,t])=>sbField(l,'sb_f_'+k,p.fields[k],t,'data-sb-field="'+k+'"')).join('')+'</div>'+sbField('Notizen','sbNotes',p.notes,'a')+(d.rows.length?'<hr><div class="sb-head"><strong>Tabelle</strong><button class="btn" data-sb-command="addRow">+ Eintrag</button></div>'+p.rows.map((row,i)=>'<div class="sb-row"><div class="sb-head"><strong>#'+(i+1)+(row.item?' · '+escapeHTML(displayItemName(row.item)):'')+'</strong><button class="iconbtn" data-remove-row="'+i+'" aria-label="Eintrag löschen">✕</button></div><div class="sb-grid">'+d.rows.map(([k,l,t])=>sbField(l,'sb_r_'+i+'_'+k,row[k],t,'data-sb-field="'+k+'" data-sb-row="'+i+'"')).join('')+'</div></div>').join(''):'')+'<p class="tiny-note" id="sbSummary">'+sbSummary(p)+'</p><label>Bildreferenz (optional)<input type="file" class="editor-input" id="sbImageFile" accept="image/png,image/jpeg,image/webp"></label>'+(p.image?'<img class="sb-art" src="'+p.image+'" alt="Referenz"><button class="btn" data-sb-command="clearImage">Bild entfernen</button>':'')+'<div class="sb-actions"><button class="btn primary" data-sb-command="savePlan">Speichern</button><button class="btn" data-sb-command="close">Abbrechen</button></div>'+sbChoices())}
@@ -1432,12 +1572,59 @@ function combatFmt(v,digits=2){return Number.isFinite(v)?v.toLocaleString('de-DE
 function combatIsWeapon(id){const i=customItem(id),base=i?.baseId||id;return /(?:_sword|_axe|_mace|^mace$|^trident$|^bow$|^crossbow$|^spear$)/.test(base)||i?.details?.stats?.Damage!==undefined}
 function combatMobs(){return board.nodes.filter(n=>n.plan?.type==='mob')}
 function combatWeapons(){const m=new Map(board.customItems.filter(i=>combatIsWeapon(i.id)).map(i=>[i.id,i.name]));for(const n of board.nodes){if(n.kind!=='craft')continue;for(const slot of [...n.recipe,n.result].filter(Boolean))if(combatIsWeapon(slot.id))m.set(slot.id,displayItemName(slot.id))}return [...m]}
-function combatMobEditor(id=null,returnToSim=false){const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;exitTextEditing();closeCatalog();const p=n?structuredClone(n.plan):sbPlan({type:'mob',name:'Zombie',fields:{base:'zombie',hp:1000,defense:100}});sbState={mode:'combatMob',id,returnToSim,draft:p};sbShow(n?'Mob bearbeiten':'Mob erstellen','<p class="tiny-note">Erstelle einen virtuellen Minecraft-Gegner für deine Balancing-Tests. Er erscheint als Element auf deiner Mindmap.</p><div class="combat-fields">'+sbField('Name','combatMobName',p.name)+sbSelect('Mob-Typ','combatMobType',[['zombie','Zombie'],['skeleton','Skeleton'],['spider','Spider'],['enderman','Enderman'],['creeper','Creeper'],['blaze','Blaze'],['wither','Wither'],['custom','Eigener Mob'],...(p.fields.base&&!['zombie','skeleton','spider','enderman','creeper','blaze','wither','custom'].includes(p.fields.base)?[[p.fields.base,p.fields.base]]:[])],p.fields.base||'custom')+sbField('Max. Health (HP)','combatMobHp',p.fields.hp===''?1000:p.fields.hp,'n')+sbField('Defense','combatMobDef',p.fields.defense===''?0:p.fields.defense,'n')+'</div><div class="sb-actions"><button class="btn primary" data-combat-action="saveMob">Mob speichern</button><button class="btn" data-combat-action="cancelMob">Abbrechen</button></div>')}
-function combatSaveMob(){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}p.name=$('combatMobName').value.trim()||'Mob';p.fields.base=$('combatMobType').value;p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=130,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(state.returnToSim)openCombatSimulator(n.id,state.weaponId)}
+
+function combatMobEditor(id=null,returnToSim=false){
+ const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;exitTextEditing();closeCatalog();
+ const p=n?structuredClone(n.plan):sbPlan({type:'mob',name:'Zombie',fields:{base:'zombie',hp:1000,defense:100,damage:75,xp:50,speed:.23,variant:'normal',tier:'normal'}});
+ sbState={mode:'combatMob',id,returnToSim,draft:p,category:'all',query:'',list:false,base:p.fields.base||'custom'};
+ sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats.</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button></div></div>');
+ mobRenderGallery();mobRenderDetail();
+}
+function mobEntries(){
+ const a=MOB_CATALOG.slice();
+ if(sbState.base&&!a.some(m=>m[0]===sbState.base)){
+  const m=mobFind(sbState.base);a.push([sbState.base,sbState.draft.name||sbState.base,m[2],...m.slice(3)]);
+ }
+ return a;
+}
+function mobRenderGallery(){
+ const state=sbState,a=mobEntries(),e=escapeHTML;
+ $('mobCategories').innerHTML=MOB_CATEGORY.map(([id,label,icon])=>'<button type="button" class="mob-cat '+(state.category===id?'active':'')+'" data-mob-cat="'+id+'" aria-pressed="'+(state.category===id)+'"><span>'+icon+' '+label+'</span><small>'+a.filter(m=>id==='all'||m[2]===id).length+'</small></button>').join('');
+ const q=state.query.trim().toLocaleLowerCase('de'),matches=a.filter(m=>(state.category==='all'||m[2]===state.category)&&(m[0]+' '+m[1]).toLocaleLowerCase('de').includes(q));
+ $('mobGrid').classList.toggle('list-mode',state.list);
+ $('mobGrid').innerHTML=matches.length?matches.map(m=>'<button type="button" class="mob-tile '+(state.base===m[0]?'active':'')+'" data-mob-id="'+e(m[0])+'" aria-pressed="'+(state.base===m[0])+'">'+mobArt(m[0])+'<strong>'+e(m[1])+'</strong><small class="mob-'+m[2]+'">'+mobCategory(m)+'</small></button>').join(''):'<p class="tiny-note">Keine Mobs gefunden.</p>';
+}
+function mobRenderDetail(){
+ const st=sbState,p=st.draft,f=p.fields,m=mobFind(st.base),e=escapeHTML,variant=f.variant||'normal',tier=f.tier||'normal';
+ const opts=mobVariants(m[0]);if(!opts.some(v=>v[0]===variant))opts.push([variant,variant]);
+ $('mobDetail').innerHTML='<div class="mob-hero">'+mobArt(st.base)+'<div><strong>'+e(m[1])+'</strong><span class="mob-category mob-'+m[2]+'">'+mobCategory(m)+'</span><small>'+e(st.base==='custom'?'Benutzerdefiniert':st.base.startsWith('minecraft:')?st.base:'minecraft:'+st.base)+'</small></div></div><div class="mob-panel">'+sbField('Name','combatMobName',p.name)+'<input type="hidden" id="combatMobType" value="'+e(st.base)+'"><h3>▥ Stats</h3><div class="mob-stat-grid">'+sbField('♥ HP','combatMobHp',f.hp===''?1000:f.hp,'n')+sbField('◆ Defense','combatMobDef',f.defense===''?0:f.defense,'n')+sbField('⚔ Damage','combatMobDamage',f.damage===''?0:f.damage,'n')+sbField('★ Combat XP','combatMobXp',f.xp===''?0:f.xp,'n')+sbField('↗ Speed','combatMobSpeed',f.speed===''?0:f.speed,'n')+'</div></div><div class="mob-panel">'+sbSelect('Variante','combatMobVariant',opts,variant)+'<h3>Tier / Seltenheit</h3><div class="mob-tier-row">'+MOB_TIER.map(([id,l])=>'<button type="button" class="mob-tier '+(tier===id?'active':'')+'" data-mob-tier="'+id+'" aria-pressed="'+(tier===id)+'">'+l+'</button>').join('')+'</div><details><summary class="tiny-note">Weitere Planungsdetails</summary>'+sbField('Spawn-Bedingungen','mobSpawn',f.spawn,'a')+sbField('Fähigkeiten','mobAbilities',f.abilities,'a')+sbField('Notizen','mobNotes',p.notes,'a')+'</details></div>';
+}
+function mobSync(){
+ const p=sbState.draft,f=p.fields;
+ p.name=$('combatMobName').value;p.notes=$('mobNotes').value;
+ for(const [k,id] of [['hp','combatMobHp'],['defense','combatMobDef'],['damage','combatMobDamage'],['xp','combatMobXp'],['speed','combatMobSpeed'],['variant','combatMobVariant'],['spawn','mobSpawn'],['abilities','mobAbilities']])f[k]=$(id).value;
+ f.base=sbState.base;
+}
+$('sbContent').addEventListener('input',e=>{if(sbState?.mode==='combatMob'&&e.target.id==='mobSearch'){sbState.query=e.target.value;mobRenderGallery()}});
+$('sbContent').addEventListener('click',e=>{
+ if(sbState?.mode!=='combatMob')return;
+ const b=e.target.closest('[data-mob-id],[data-mob-cat],[data-mob-tier],[data-mob-layout]');if(!b)return;
+ if(b.hasAttribute('data-mob-cat')){sbState.category=b.dataset.mobCat;mobRenderGallery();return}
+ if(b.hasAttribute('data-mob-layout')){sbState.list=b.dataset.mobLayout==='list';for(const el of $('sbContent').querySelectorAll('[data-mob-layout]')){const on=el.dataset.mobLayout===(sbState.list?'list':'grid');el.classList.toggle('active',on);el.setAttribute('aria-pressed',String(on))}mobRenderGallery();return}
+ mobSync();
+ if(b.hasAttribute('data-mob-tier')){sbState.draft.fields.tier=b.dataset.mobTier;for(const el of $('mobDetail').querySelectorAll('[data-mob-tier]')){const on=el.dataset.mobTier===b.dataset.mobTier;el.classList.toggle('active',on);el.setAttribute('aria-pressed',String(on))}return}
+ const id=b.dataset.mobId,old=sbState.base;if(id===old)return;
+ const m=mobEntries().find(m=>m[0]===id);if(!m)return;
+ if(!sbState.draft.name.trim()||sbState.draft.name===mobFind(old)[1])sbState.draft.name=m[1];
+ sbState.base=id;sbState.draft.fields.base=id;sbState.draft.fields.variant='normal';
+ mobRenderGallery();mobRenderDetail();
+});
+
+function combatSaveMob(){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}mobSync();for(const k of ['damage','xp','speed']){if(p.fields[k]!==''&&(!Number.isFinite(Number(p.fields[k]))||Number(p.fields[k])<0||Number(p.fields[k])>1e12)){notify('Bitte gültige, nichtnegative Stats eingeben.');return}}p.name=p.name.trim()||'Mob';p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=140,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(state.returnToSim)openCombatSimulator(n.id,state.weaponId)}
 function combatRead(){const val=id=>$(id)?.value??'';return combatMath({hp:val('combatHP'),defense:val('combatDefense'),damage:val('combatDamage'),strength:val('combatStrength'),chance:val('combatChance'),critDamage:val('combatCritDamage'),base:val('combatBase'),factor:val('combatFactor')})}
 function combatWeaponStats(id){const stats=customItem(id)?.details?.stats||{};return {damage:stats.Damage??0,strength:stats.Strength??0,chance:stats['Crit Chance']??0,critDamage:stats['Crit Damage']??0}}
 function combatLoadWeapon(){const id=$('combatWeapon').value,st=combatWeaponStats(id);sbState.weaponId=id;for(const [key,field] of [['damage','combatDamage'],['strength','combatStrength'],['chance','combatChance'],['critDamage','combatCritDamage']])$(field).value=st[key];$('combatWeaponIcon').innerHTML=id?itemImg(id)+'<span>'+escapeHTML(displayItemName(id))+'<br><small class="tiny-note">Gespeicherte Item-Stats geladen</small></span>':'<span class="tiny-note">Manuelle Testwerte – ändern keine Items.</span>';combatReset()}
-function combatLoadMob(){const id=$('combatMob').value,n=byId(id);sbState.mobId=id;if(n?.plan?.type==='mob'){$('combatHP').value=n.plan.fields.hp||1000;$('combatDefense').value=n.plan.fields.defense||0;$('combatMobTitle').textContent=n.plan.name||'Mob'}else{$('combatHP').value=1000;$('combatDefense').value=100;$('combatMobTitle').textContent='Test-Zombie'}combatReset()}
+function combatLoadMob(){const id=$('combatMob').value,n=byId(id);sbState.mobId=id;if(n?.plan?.type==='mob'){$('combatHP').value=n.plan.fields.hp||1000;$('combatDefense').value=n.plan.fields.defense||0;$('combatMobTitle').innerHTML=mobArt(n.plan.fields.base)+'<span>'+escapeHTML(n.plan.name||'Mob')+'</span>'}else{$('combatHP').value=1000;$('combatDefense').value=100;$('combatMobTitle').innerHTML=mobArt('zombie')+'<span>Test-Zombie</span>'}combatReset()}
 function openCombatSimulator(mobId=null,weaponId=null){exitTextEditing();closeCatalog();const mobs=combatMobs(),weapons=combatWeapons();if(weaponId&&!weapons.some(w=>w[0]===weaponId)&&combatIsWeapon(weaponId))weapons.unshift([weaponId,displayItemName(weaponId)]);const selectedMob=mobs.some(n=>n.id===mobId)?mobId:mobs[0]?.id||'',selectedWeapon=weapons.some(w=>w[0]===weaponId)?weaponId:weapons[0]?.[0]||'';sbState={mode:'combat',mobId:selectedMob,weaponId:selectedWeapon,run:null};sbShow('⚔ Combat Simulator','<p class="tiny-note">Balancing-Test für deine Minecraft-Items. Wähle einen Mob und ein eigenes Schwert. Alle Ergebnisse aktualisieren sich live.</p><div class="sb-grid">'+sbSelect('Mob','combatMob',[['','Test-Zombie (Beispiel)'],...mobs.map(n=>[n.id,n.plan.name])],selectedMob)+sbSelect('Waffe','combatWeapon',[['','Manuelle Testwerte'],...weapons],selectedWeapon)+'</div><div class="sb-actions"><button class="btn" data-combat-action="newMob">+ Mob erstellen</button><button class="btn" data-combat-action="editMob">Mob bearbeiten</button></div><div id="combatWeaponIcon"></div><div class="combat-fields">'+sbField('Health (HP)','combatHP',1000,'n')+sbField('Defense','combatDefense',100,'n')+sbField('Damage','combatDamage',100,'n')+sbField('Strength','combatStrength',100,'n')+sbField('Crit Chance %','combatChance',50,'p')+sbField('Crit Damage %','combatCritDamage',100,'n')+'</div><div class="combat-metrics" id="combatResults"></div><div class="combat-arena"><div class="combat-mob-name" id="combatMobTitle">Test-Zombie</div><div class="combat-health-track"><div class="combat-health-fill" id="combatHPBar" style="width:100%"></div></div><div id="combatHPText"></div><div id="combatLog" aria-live="polite"></div><div class="combat-actions"><button class="btn primary" data-combat-action="hit">1 Treffer</button><button class="btn" data-combat-action="normal">Normaler Treffer</button><button class="btn" data-combat-action="crit">Kritischer Treffer</button><button class="btn" data-combat-action="ten">10 Treffer</button><button class="btn" data-combat-action="reset">Reset</button></div></div><details class="combat-section"><summary>Schadensformel / Balancing-Einstellungen</summary><p class="tiny-note">Eigene, Hypixel-ähnliche Beispiel-Formel, nicht die exakte Serverberechnung. Normal = (Damage + Basisbonus) × (1 + Strength/100) × Defense-Faktor/(Defense-Faktor + Defense). Kritisch = Normal × (1 + Crit Damage/100). Crit Chance bestimmt zufällige kritische Treffer. Keine Fähigkeiten, Verzauberungen oder sonstigen Multiplikatoren.</p><div class="combat-fields">'+sbField('Basisbonus','combatBase',5,'n')+sbField('Defense-Faktor','combatFactor',100,'n')+'</div></details><p class="tiny-note">Manuell geänderte Testwerte ändern weder gespeicherte Waffen noch Mobs. Die Trefferwerte sind eine Planungshilfe.</p>');combatLoadMob();if(selectedWeapon)combatLoadWeapon();else{$('combatWeaponIcon').textContent='Manuelle Beispielwerte';combatReset()}}
 function combatMetric(label,value,cls=''){return '<div class="combat-metric '+cls+'"><small>'+label+'</small><strong>'+value+'</strong></div>'}
 function combatReset(){if(sbState?.mode!=='combat')return;const c=combatRead();sbState.run={remaining:c.hp,hits:0,crits:0,last:0,lastCrit:false};const info=$('combatResults');info.innerHTML=combatMetric('Normaler Schaden',combatFmt(c.normal))+combatMetric('Kritischer Schaden',combatFmt(c.crit),'crit')+combatMetric('Ø Schaden pro Treffer',combatFmt(c.average))+combatMetric('Nur normale Treffer',combatFmt(c.normalHits,0))+combatMetric('Nur kritische Treffer',combatFmt(c.critHits,0),'crit')+combatMetric(c.exact?'Ø benötigte Treffer':'Geschätzte Treffer',combatFmt(c.expected));combatRenderRun(c)}

@@ -23,6 +23,16 @@
   #nodes{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:2}
   .node{position:absolute;pointer-events:auto;touch-action:none;user-select:none;cursor:grab}
   .node:active{cursor:grabbing}
+.node.position-locked,.node.position-locked:active{cursor:default}
+.node.position-locked .move-handle,.node.position-locked .resize-handle,.node.edit-locked .port{visibility:hidden!important;pointer-events:none!important}
+.object-lock-mark{position:absolute;right:5px;top:-19px;font-size:13px;line-height:1;pointer-events:none;opacity:0;z-index:7}
+.node.selected .object-lock-mark{opacity:.9}
+.object-lock-settings{display:grid;gap:7px;padding:10px;margin:8px 0 13px;border:1px solid #ffffff20;border-radius:9px;background:#ffffff05}
+.object-lock-heading{display:flex;align-items:center;gap:7px;margin-bottom:2px;font-size:13px}
+.object-lock-heading svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7}
+.object-lock-settings p{margin:0 0 5px 23px}
+#inspector :disabled{opacity:.48;cursor:not-allowed}
+
   .node.has-submap{cursor:pointer}
   .node.has-submap .node-text{cursor:pointer;caret-color:transparent}
   /* Der kleine Griff bleibt bei Unter-Mindmaps erreichbar, damit man die Form bearbeiten und den Link wieder deaktivieren kann. */
@@ -917,8 +927,8 @@ function customItem(id){return board.customItems.find(item=>item.id===id)}
 function normItemSlot(slot){if(!slot||typeof slot!=='object'||typeof slot.id!=='string'||!/^[a-z0-9_]+$/.test(slot.id))return null;return {id:slot.id.slice(0,90),count:clamp(Math.round(Number(slot.count)||1),1,64)}}
 function inventoryLabel(type){return type==='small_chest'?'Small Chest':type==='large_chest'?'Large Chest':'Crafting'}
 function inventoryCount(type){return type==='small_chest'?27:type==='large_chest'?54:9}
-function normNode(n){const craft=n.kind==='craft';const inventoryType=craft&&['small_chest','large_chest'].includes(n.inventoryType)?n.inventoryType:'crafting';const chest=craft&&inventoryType!=='crafting';return {id:String(n.id||uid()).slice(0,60),kind:craft?'craft':'shape',inventoryType:craft?inventoryType:undefined,plan:craft?undefined:sbPlan(n.plan),gui:chest?sbGui(n.gui,inventoryCount(inventoryType)):undefined,x:clamp(Number(n.x)||0,-1e7,1e7),y:clamp(Number(n.y)||0,-1e7,1e7),w:craft?(chest?584:410):clamp(Number(n.w)||260,100,1000),h:craft?(inventoryType==='large_chest'?440:257):clamp(Number(n.h)||130,95,800),text:!craft&&sbPlan(n.plan)?sbLabel(sbPlan(n.plan)):String(n.text||(craft?inventoryLabel(inventoryType):'')).slice(0,5000),recipe:craft?Array.from({length:inventoryCount(inventoryType)},(_,i)=>normItemSlot(n.recipe?.[i])):undefined,result:craft&&!chest?normItemSlot(n.result):undefined,shape:types.includes(n.shape)?n.shape:'round',borderColor:validColor(n.borderColor,'#e4e8ef'),borderWidth:clamp(Number(n.borderWidth)||2,1,10),textColor:validColor(n.textColor,'#f1f2f5'),font:n.font in fonts?n.font:'sans',fontSize:clamp(Number(n.fontSize)||18,10,52),fontWeight:['400','600','700'].includes(String(n.fontWeight))?String(n.fontWeight):'400',align:['left','center','right'].includes(n.align)?n.align:'center',filled:Boolean(n.filled),fillColor:validColor(n.fillColor,'#30333b'),submapId:!craft&&!sbPlan(n.plan)&&/^[a-f0-9]{36}$/.test(n.submapId||'')?n.submapId:null,submapEnabled:!craft&&!sbPlan(n.plan)&&Boolean(n.submapEnabled)&&/^[a-f0-9]{36}$/.test(n.submapId||'')}}
-function normEdge(e){return {id:String(e.id||uid()).slice(0,60),from:e.from,to:e.to,color:validColor(e.color,'#afb5bf'),width:clamp(Number(e.width)||2,1,10),fromPort:sides.includes(e.fromPort)?e.fromPort:null,toPort:sides.includes(e.toPort)?e.toPort:null,style:['curve','straight','elbow'].includes(e.style)?e.style:'curve',dash:['solid','dash','dot'].includes(e.dash)?e.dash:'solid',arrow:['none','end','both'].includes(e.arrow)?e.arrow:'end'}}
+function normNode(n){const craft=n.kind==='craft';const inventoryType=craft&&['small_chest','large_chest'].includes(n.inventoryType)?n.inventoryType:'crafting';const chest=craft&&inventoryType!=='crafting';return {id:String(n.id||uid()).slice(0,60),kind:craft?'craft':'shape',positionLocked:n.positionLocked===true,editLocked:n.editLocked===true,inventoryType:craft?inventoryType:undefined,plan:craft?undefined:sbPlan(n.plan),gui:chest?sbGui(n.gui,inventoryCount(inventoryType)):undefined,x:clamp(Number(n.x)||0,-1e7,1e7),y:clamp(Number(n.y)||0,-1e7,1e7),w:craft?(chest?584:410):clamp(Number(n.w)||260,100,1000),h:craft?(inventoryType==='large_chest'?440:257):clamp(Number(n.h)||130,95,800),text:!craft&&sbPlan(n.plan)?sbLabel(sbPlan(n.plan)):String(n.text||(craft?inventoryLabel(inventoryType):'')).slice(0,5000),recipe:craft?Array.from({length:inventoryCount(inventoryType)},(_,i)=>normItemSlot(n.recipe?.[i])):undefined,result:craft&&!chest?normItemSlot(n.result):undefined,shape:types.includes(n.shape)?n.shape:'round',borderColor:validColor(n.borderColor,'#e4e8ef'),borderWidth:clamp(Number(n.borderWidth)||2,1,10),textColor:validColor(n.textColor,'#f1f2f5'),font:n.font in fonts?n.font:'sans',fontSize:clamp(Number(n.fontSize)||18,10,52),fontWeight:['400','600','700'].includes(String(n.fontWeight))?String(n.fontWeight):'400',align:['left','center','right'].includes(n.align)?n.align:'center',filled:Boolean(n.filled),fillColor:validColor(n.fillColor,'#30333b'),submapId:!craft&&!sbPlan(n.plan)&&/^[a-f0-9]{36}$/.test(n.submapId||'')?n.submapId:null,submapEnabled:!craft&&!sbPlan(n.plan)&&Boolean(n.submapEnabled)&&/^[a-f0-9]{36}$/.test(n.submapId||'')}}
+function normEdge(e){return {id:String(e.id||uid()).slice(0,60),from:e.from,to:e.to,positionLocked:e.positionLocked===true,editLocked:e.editLocked===true,color:validColor(e.color,'#afb5bf'),width:clamp(Number(e.width)||2,1,10),fromPort:sides.includes(e.fromPort)?e.fromPort:null,toPort:sides.includes(e.toPort)?e.toPort:null,style:['curve','straight','elbow'].includes(e.style)?e.style:'curve',dash:['solid','dash','dot'].includes(e.dash)?e.dash:'solid',arrow:['none','end','both'].includes(e.arrow)?e.arrow:'end'}}
 function validBoard(data){if(!data||typeof data!=='object')return null;const nodes=(Array.isArray(data.nodes)?data.nodes:[]).filter(n=>n&&typeof n.id==='string'&&Number.isFinite(n.x)&&Number.isFinite(n.y)).slice(0,1500).map(normNode);const ids=new Set(nodes.map(n=>n.id));const edges=(Array.isArray(data.edges)?data.edges:[]).filter(e=>e&&ids.has(e.from)&&ids.has(e.to)&&e.from!==e.to).slice(0,5000).map(normEdge);const favorites=(Array.isArray(data.favorites)?data.favorites:[]).filter(id=>typeof id==='string'&&id.length<=90&&(/^[a-z0-9_]+$/).test(id)).slice(0,2400);return {title:String(data.title||'Meine Mindmap').slice(0,70),nodes,edges,customItems:[...new Map((Array.isArray(data.customItems)?data.customItems:[]).slice(0,800).map(normCustomItem).filter(Boolean).map(item=>[item.id,item])).values()],favorites:[...new Set(favorites)],parent:data.parent&&/^[a-f0-9]{36}$/.test(data.parent.boardId||'')&&typeof data.parent.nodeId==='string'?{boardId:data.parent.boardId,nodeId:data.parent.nodeId,title:String(data.parent.title||'Mindmap').slice(0,70)}:null}}
 function boardFromUrl(){const s=new URLSearchParams(location.hash.replace(/^#/,''));const k=s.get('b');return /^[a-f0-9]{36}$/.test(k||'')?k:null}
 let boardId=boardFromUrl()||uid();
@@ -949,7 +959,7 @@ function updateMapTrail(){
  crumbs.innerHTML=chain.map((part,i)=>`${i?'<span aria-hidden="true">›</span>':''}<button type="button" data-map-id="${part.id}" title="${escapeHTML(part.title)}">${escapeHTML(part.title)}</button>`).join('');
 }
 function ensureSubmap(node,enabled){
- if(node.kind!=='shape')return;
+ if(node.kind!=='shape'||objectEditLocked(node))return;
  if(enabled){
   if(!isMapId(node.submapId))node.submapId=uid();
   if(!loadBoardById(node.submapId)){
@@ -1069,7 +1079,7 @@ function resizeShapeTextOverlay(){
  overlay.style.bottom='auto';overlay.style.right='auto';
 }
 function openShapeTextEditor(id){
- const n=byId(id);if(!n||n.kind!=='shape'||n.submapEnabled||n.plan||shapeTextId)return;
+ const n=byId(id);if(!n||n.kind!=='shape'||n.submapEnabled||n.plan||shapeTextId||objectEditLocked(n))return;
  exitTextEditing();selectNode(id);shapeTextId=id;
  const input=$('shapeTextInput');input.value=n.text;
  $('shapeTextOverlay').classList.remove('hidden');resizeShapeTextOverlay();
@@ -1077,7 +1087,7 @@ function openShapeTextEditor(id){
  try{input.setSelectionRange(input.value.length,input.value.length)}catch{}
 }
 function updateShapeText(){
- const n=byId(shapeTextId);if(!n||n.kind!=='shape'||n.submapEnabled)return;
+ const n=byId(shapeTextId);if(!n||n.kind!=='shape'||n.submapEnabled||objectEditLocked(n))return;
  const value=$('shapeTextInput').value.slice(0,5000);if(n.text===value)return;
  n.text=value;
  const ta=[...nodeLayer.children].find(el=>el.dataset.id===n.id)?.querySelector('.node-text');
@@ -1174,14 +1184,14 @@ document.addEventListener('error',event=>{
 },true);
 function isInventorySlot(n,key){return !!n&&n.kind==='craft'&&/^(0|[1-9][0-9]*)$/.test(String(key))&&Number(key)<n.recipe.length}
 function getCraftSlot(n,key){if(!n||n.kind!=='craft')return null;return key==='out'?(n.inventoryType==='crafting'?n.result:null):isInventorySlot(n,key)?n.recipe[Number(key)]:null}
-function assignCraftSlot(n,key,slot){if(!n||n.kind!=='craft')return false;const value=normItemSlot(slot);
+function assignCraftSlot(n,key,slot){if(!n||n.kind!=='craft')return false;if(objectEditLocked(n)){lockNotice();return false}const value=normItemSlot(slot);
  if(key==='out'&&n.inventoryType==='crafting')n.result=value;else if(isInventorySlot(n,key))n.recipe[Number(key)]=value;else return false;return true}
 function refreshCraftCards(){for(const el of nodeLayer.querySelectorAll('.craft-node')){const n=byId(el.dataset.id);if(n)el.querySelector('.craft-card').outerHTML=craftInnerHTML(n)}}
 function craftSlotHTML(slot,i,n){const output=i==='out';const key=output?'out':String(i),meta=n.gui?.slots?.[key];return `<button type="button" class="craft-slot ${slot?'has-item':''} ${output?'output':''} ${meta?.hidden?'sb-hidden':''} ${chosenSlot?.id===n.id&&chosenSlot?.key===key?'chosen':''}" data-slot="${key}" title="${output?'Endprodukt':(n.inventoryType==='crafting'?'Zutat ':'Slot ')+(Number(i)+1)}${slot?' · '+escapeHTML(displayItemName(slot.id))+(customItem(slot.id)?.lore?' · '+escapeHTML(customItem(slot.id).lore):''):''}">${output?'<span class="slot-label">Ergebnis</span>':''}${slot?itemImg(slot.id):'<span class="slot-empty">+</span>'}${slot?.count>1?`<span class="slot-count">${slot.count}</span>`:''}${meta?.target?'<span class="sb-link">↗</span>':''}</button>`}
 function craftInnerHTML(n){const chest=n.inventoryType!=='crafting';return `<div class="craft-card ${n.gui?.hideGrid?'sb-no-grid':''}">${n.gui?.background?`<img class="sb-gui-bg" alt="" src="${n.gui.background}">`:''}<div class="craft-head"><span>${escapeHTML(n.text||inventoryLabel(n.inventoryType))}</span>${chest?`<span class="chest-capacity">${n.recipe.length} Slots</span>`:''}<span class="craft-move" aria-hidden="true">⠿</span></div><div class="craft-body"><div class="craft-grid ${chest?'chest-grid':''}" ${chest?'style="--chest-rows:'+n.recipe.length/9+'"':''}>${n.recipe.map((slot,i)=>craftSlotHTML(slot,i,n)).join('')}</div>${chest?'':`<div class="craft-arrow"><svg viewBox="0 0 34 24"><path d="M2 12h28m-9-8 9 8-9 8"/></svg></div>${craftSlotHTML(n.result,'out',n)}`}</div></div>`}
 function refreshCraftSlots(){const id=selectedNode;if(!id)return;const n=byId(id);if(!n||n.kind!=='craft')return;const el=[...nodeLayer.children].find(x=>x.dataset.id===id);if(!el)return;el.querySelector('.craft-card').outerHTML=craftInnerHTML(n);}
 function setCraftSlot(n,key,itemId,count){if(!assignCraftSlot(n,key,itemId?{id:itemId,count:count||1}:null))return;save();refreshCraftCards();renderInspector()}
-function chooseCraftSlot(nodeId,key){const n=byId(nodeId);if(!n||n.kind!=='craft')return;selectedNode=nodeId;selectedEdge=null;chosenSlot={id:nodeId,key};if(getCraftSlot(n,key))closeCatalog();refreshSelection();if(!getCraftSlot(n,key))openCatalog();}
+function chooseCraftSlot(nodeId,key){const n=byId(nodeId);if(!n||n.kind!=='craft')return;if(objectEditLocked(n)){selectNode(nodeId);return}selectedNode=nodeId;selectedEdge=null;chosenSlot={id:nodeId,key};if(getCraftSlot(n,key))closeCatalog();refreshSelection();if(!getCraftSlot(n,key))openCatalog();}
 function focusCraftBesideCatalog(){
  const n=byId(chosenSlot?.id)||byId(selectedNode)||board.nodes.findLast(x=>x.kind==='craft');
  if(!n||n.kind!=='craft')return;
@@ -1283,6 +1293,7 @@ function toggleItemFavorite(id){
 
 function openItemEditor(id,withPlacement=false){
  const old=customItem(id),baseId=old?.baseId||id;
+ if((old&&lockedItemReference(old.id))||(withPlacement&&objectEditLocked(byId(chosenSlot?.id)))){lockNotice();return}
  if(!(/^[a-z0-9_]{1,90}$/).test(baseId))return;
  editorState={id:old?.id||null,baseId,placement:withPlacement&&!old&&chosenSlot?{...chosenSlot}:withPlacement&&old&&chosenSlot&&getCraftSlot(byId(chosenSlot.id),chosenSlot.key)?.id===old.id?{...chosenSlot}:null};
  editorState.dyeRecipe=normDyeRecipe(baseId,old?.dyeRecipe);editorState.pendingDyes=[];
@@ -1322,6 +1333,7 @@ $('armorRemoveDye').onclick=()=>{if(!editorState)return;editorState.pendingDyes.
 $('armorResetDye').onclick=()=>{if(!editorState)return;editorState.dyeRecipe=[];editorState.pendingDyes=[];updateItemEditorPreview()};
 $('customItemForm').addEventListener('submit',event=>{
  event.preventDefault();if(!editorState)return;
+ if(lockedItemReference(editorState.id)||objectEditLocked(byId(editorState.placement?.id))){lockNotice();return}
  const name=$('editorName').value.trim().slice(0,64);
  if(!name){$('editorName').focus();return}
  if(editorState.baseId==='player_head'&&$('sbHeadTexture')?.value.trim()&&!normalizeHeadTexture($('sbHeadTexture').value)){notify('Bitte eine gültige Minecraft-Texture-URL eingeben.');$('sbHeadTexture').focus();return}
@@ -1391,7 +1403,7 @@ function alignSnap(n,x,y,disable=false){
  return {x:Math.round(x),y:Math.round(y)};
 }
 function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;if(n.plan?.type==='equipment'){return}el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n);const mc=el.querySelector('.mob-node-card');if(mc){mc.style.fontSize=n.fontSize+'px';mc.style.color=n.textColor}const ic=el.querySelector('.ci-map-card');if(ic)ic.style.fontSize=n.fontSize+'px';const dc=el.querySelector('.md-map-card');if(dc)dc.style.fontSize=n.fontSize+'px'}
-function renderNodes(){for(const n of board.nodes)if(n.plan?.type==='equipment'&&n.w>=n.h*1.65){const cx=n.x+n.w/2,cy=n.y+n.h/2;n.w=180;n.h=260;n.x=Math.round(cx-90);n.y=Math.round(cy-130)}nodeLayer.innerHTML=board.nodes.map(n=>n.plan?.type==='equipment'?equipmentMapNode(n):n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''} ${n.plan?.type==='mob'?'mob-node':''} ${n.plan?.type==='custom_item'?'ci-item-node':''} ${n.plan?.type==='mob_drop'?'md-drop-node':''} ${n.plan?.type==='equipment'?'equipment-map-node':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.plan?.type==='mob'?mobNodeCard(n):n.plan?.type==='custom_item'?ciMapCard(n):n.plan?.type==='mob_drop'?mdMapCard(n):n.plan?.type==='equipment'?equipmentMapCard(n):''}${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges();equipmentMapPreviews()}
+function renderNodes(){for(const n of board.nodes)if(n.plan?.type==='equipment'&&!objectPositionLocked(n)&&n.w>=n.h*1.65){const cx=n.x+n.w/2,cy=n.y+n.h/2;n.w=180;n.h=260;n.x=Math.round(cx-90);n.y=Math.round(cy-130)}nodeLayer.innerHTML=board.nodes.map(n=>n.plan?.type==='equipment'?equipmentMapNode(n):n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''} ${n.plan?.type==='mob'?'mob-node':''} ${n.plan?.type==='custom_item'?'ci-item-node':''} ${n.plan?.type==='mob_drop'?'md-drop-node':''} ${n.plan?.type==='equipment'?'equipment-map-node':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.plan?.type==='mob'?mobNodeCard(n):n.plan?.type==='custom_item'?ciMapCard(n):n.plan?.type==='mob_drop'?mdMapCard(n):n.plan?.type==='equipment'?equipmentMapCard(n):''}${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges();equipmentMapPreviews()}
 function pickEdgePoint(n,target){const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=target.x-cx,dy=target.y-cy;const w=n.w/2,h=n.h/2;
  if(n.shape==='circle'||n.shape==='ellipse'){const den=Math.sqrt((dx/w)**2+(dy/h)**2)||1;return {x:cx+dx/den,y:cy+dy/den}}
  let poly;if(n.shape==='triangle')poly=[[0,-h],[w,h],[-w,h]];else if(n.shape==='diamond')poly=[[0,-h],[w,0],[0,h],[-w,0]];else poly=[[-w,-h],[w,-h],[w,h],[-w,h]];
@@ -1420,7 +1432,7 @@ function edgeGeometry(e){const a=byId(e.from),b=byId(e.to);if(!a||!b)return null
 }
 function drawEdges(){const valid=board.edges.map(e=>({edge:e,geo:edgeGeometry(e)})).filter(x=>x.geo);if(!valid.length){edgeLayer.innerHTML='';edgeLayer.style.width='0px';edgeLayer.style.height='0px';return}const xs=valid.flatMap(v=>[v.geo.p.x,v.geo.q.x]),ys=valid.flatMap(v=>[v.geo.p.y,v.geo.q.y]);const minx=Math.min(...xs)-120,miny=Math.min(...ys)-120,maxx=Math.max(...xs)+120,maxy=Math.max(...ys)+120;edgeLayer.style.left=minx+'px';edgeLayer.style.top=miny+'px';edgeLayer.style.width=(maxx-minx)+'px';edgeLayer.style.height=(maxy-miny)+'px';edgeLayer.setAttribute('viewBox',`${minx} ${miny} ${maxx-minx} ${maxy-miny}`);
  edgeLayer.innerHTML=valid.map(({edge:e,geo:g})=>{const chosen=e.id===selectedEdge;const dash=e.dash==='dash'?'10 7':e.dash==='dot'?'2 8':'';const head1=e.arrow==='both'?arrowGeom(g.p,g.startDirection,e.width,e.color):'';const head2=e.arrow!=='none'?arrowGeom(g.q,g.endDirection,e.width,e.color):'';return `<g data-edge="${escapeHTML(e.id)}"><path class="edge-visible" d="${g.d}" stroke="${e.color}" stroke-width="${e.width+(chosen?1:0)}" ${dash?`stroke-dasharray="${dash}"`:''}/>${chosen?`<path class="edge-visible" d="${g.d}" stroke="#b8caff" opacity=".25" stroke-width="${e.width+7}"/>`:''}${head1}${head2}<path class="edge-hit" d="${g.d}" data-edge="${escapeHTML(e.id)}"/></g>`}).join('')}
-function refreshSelection(){
+function refreshSelection(){syncObjectLockVisuals();
  for(const el of nodeLayer.children){el.classList.toggle('selected',el.dataset.id===selectedNode);el.classList.toggle('link-origin',el.dataset.id===pendingLink?.id)}
  // Die gewählte Crafting-Zelle muss auch visuell abgewählt werden.
  // Kein komplettes Neu-Rendern: die Itembilder bleiben geladen.
@@ -1445,6 +1457,7 @@ function selectNode(id){selectedNode=id;selectedEdge=null;if(chosenSlot?.id!==id
 function selectEdge(id){exitTextEditing();selectedNode=null;selectedEdge=id;chosenSlot=null;refreshSelection()}
 function setLinkMode(flag){linkMode=flag;pendingLink=null;$('shapeMenu').classList.remove('show');refreshSelection()}
 function connectPorts(source,target){
+ if(objectEditLocked(byId(source.id))||objectEditLocked(byId(target.id))){lockNotice();return false}
  if(source.id===target.id){notify('Wähle eine andere Form.');return false}
  if(board.edges.some(e=>e.from===source.id&&e.to===target.id&&e.fromPort===source.side&&e.toPort===target.side)){notify('Diese Verbindung gibt es schon.');return false}
  const e=normEdge({id:uid(),from:source.id,to:target.id,fromPort:source.side,toPort:target.side});
@@ -1452,7 +1465,7 @@ function connectPorts(source,target){
 }
 function nearestPort(clientX,clientY,exceptId){
  let candidate=null,dist=Number.POSITIVE_INFINITY;
- for(const n of board.nodes){if(n.id===exceptId)continue;
+ for(const n of board.nodes){if(n.id===exceptId||objectEditLocked(n))continue;
   for(const side of sides){const p=screenAt(portWorld(n,side)),d=Math.hypot(p.x-clientX,p.y-clientY);
    if(d<dist){dist=d;candidate={id:n.id,side}}}
  }
@@ -1517,11 +1530,54 @@ function addShape(shape='rect',pos=null){
   // Die Form ist ausgewaehlt; Texteingabe startet erst bei einem Klick in die Form.
 }
 function addCraft(inventoryType='crafting'){const n=normNode({id:uid(),kind:'craft',inventoryType,text:inventoryType==='crafting'?'CRAFTING':inventoryLabel(inventoryType),x:0,y:0});const p=placeNext(n.w,n.h);n.x=Math.round(p.x-n.w/2);n.y=Math.round(p.y-n.h/2);board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();if(inventoryType!=='crafting'){view.scale=clamp(Math.min(view.scale,(innerWidth-32)/n.w,(innerHeight-150)/n.h),.25,3);view.x=innerWidth/2-(n.x+n.w/2)*view.scale;view.y=innerHeight/2-(n.y+n.h/2)*view.scale;renderView()}else if(innerWidth<500&&board.nodes.length===1)zoom(.74);notify(inventoryLabel(inventoryType)+' erstellt. Klicke einen Slot, um ein Item auszuwählen.')}
-function removeSelected(){if(selectedNode){if(chosenSlot?.id===selectedNode)chosenSlot=null;board.nodes=board.nodes.filter(n=>n.id!==selectedNode);board.edges=board.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);selectedNode=null;renderNodes();save()}else if(selectedEdge){board.edges=board.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;refreshSelection();save()}else notify('Wähle zuerst eine Form oder Verbindung aus.')}
-function duplicateSelected(){const src=byId(selectedNode);if(!src){notify('Wähle eine Form zum Duplizieren aus.');return}const n={...structuredClone(src),id:uid(),x:src.x+40,y:src.y+40,submapId:null,submapEnabled:false};board.nodes.push(n);selectedNode=n.id;selectedEdge=null;renderNodes();save()}
+function removeSelected(){const item=byId(selectedNode)||edgeById(selectedEdge);if(objectEditLocked(item)||selectedEdge&&item?.positionLocked||selectedNode&&board.edges.some(e=>(e.from===selectedNode||e.to===selectedNode)&&(e.positionLocked||e.editLocked))){lockNotice();return}if(selectedNode){if(chosenSlot?.id===selectedNode)chosenSlot=null;board.nodes=board.nodes.filter(n=>n.id!==selectedNode);board.edges=board.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);selectedNode=null;renderNodes();save()}else if(selectedEdge){board.edges=board.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;refreshSelection();save()}else notify('Wähle zuerst eine Form oder Verbindung aus.')}
+function duplicateSelected(){const src=byId(selectedNode);if(!src){notify('Wähle eine Form zum Duplizieren aus.');return}if(objectEditLocked(src)){lockNotice();return}const n={...structuredClone(src),id:uid(),positionLocked:false,editLocked:false,x:src.x+40,y:src.y+40,submapId:null,submapEnabled:false};board.nodes.push(n);selectedNode=n.id;selectedEdge=null;renderNodes();save()}
 function menuChips(prop,items,value){return `<div class="chiprow">${items.map(([v,label])=>`<button class="chip ${v===value?'selected':''}" data-set="${prop}" data-value="${v}">${label}</button>`).join('')}</div>`}
 function colorField(label,prop,value){return `<div class="field"><label class="field-label" for="c-${prop}">${label}</label><div class="colorline"><input class="color-input" id="c-${prop}" type="color" data-set="${prop}" value="${value}"><span>${value.toUpperCase()}</span></div><div class="swatches">${colors.map(c=>`<button type="button" class="swatch" style="--c:${c}" title="${c}" data-set="${prop}" data-value="${c}"></button>`).join('')}</div></div>`}
-function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=edgeById(selectedEdge);if(!n&&!e){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');if(n&&n.kind==='craft'){const slot=chosenSlot?.id===n.id?(chosenSlot.key==='out'?n.result:n.recipe[Number(chosenSlot.key)]):null;el.innerHTML=`<div class="inspector-head"><h2>${inventoryLabel(n.inventoryType)}</h2><button class="iconbtn" data-close aria-label="Schließen">✕</button></div>
+function objectEditLocked(n){return n?.editLocked===true}
+function objectPositionLocked(n){
+ if(!n)return false;
+ if(n.positionLocked||n.editLocked)return true;
+ return board.edges.some(e=>(e.from===n.id||e.to===n.id)&&(e.positionLocked||e.editLocked));
+}
+function lockNotice(){notify('Dieses Objekt ist gesperrt. Entferne zuerst den Haken im Eigenschaftenfenster.')}
+function nodeUsesItem(n,id){
+ if(!n||!id)return false;
+ if(n.kind==='craft')return n.result?.id===id||n.recipe?.some(slot=>slot?.id===id);
+ const p=n.plan;if(!p)return false;
+ if(p.type==='mob_drop'){const mob=byId(p.fields.mob);return mob?.plan?.rows?.some(r=>r.id===p.fields.drop&&r.item===id)||false}
+ return Object.values(p.fields||{}).includes(id)||p.rows?.some(r=>Object.values(r).includes(id))||false;
+}
+function lockedItemReference(id){return board.nodes.some(n=>objectEditLocked(n)&&nodeUsesItem(n,id))}
+function syncObjectLockVisuals(){
+ for(const el of nodeLayer.children){
+  const n=byId(el.dataset.id);if(!n)continue;
+  el.classList.toggle('position-locked',objectPositionLocked(n));
+  el.classList.toggle('edit-locked',objectEditLocked(n));
+  const ta=el.querySelector('textarea.node-text');
+  if(ta)ta.readOnly=Boolean(n.editLocked||n.plan||n.submapEnabled);
+  let mark=el.querySelector('.object-lock-mark');
+  if(n.positionLocked||n.editLocked){if(!mark){mark=document.createElement('span');mark.className='object-lock-mark';mark.setAttribute('aria-hidden','true');el.append(mark)}mark.textContent=n.editLocked?'🔒':'🔐';mark.title=n.editLocked?'Bearbeitung gesperrt':'Position gesperrt'}
+  else mark?.remove();
+ }
+}
+function renderInspector(){
+ renderInspectorContent();
+ const el=$('inspector'),n=byId(selectedNode),e=edgeById(selectedEdge),item=n||e;if(!item)return;
+ const section=document.createElement('section');section.className='object-lock-settings';
+ section.innerHTML='<div class="object-lock-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><strong>Objekt sperren</strong></div>'+
+ '<label class="checkline"><input type="checkbox" data-object-lock="positionLocked" '+(item.positionLocked||item.editLocked?'checked ':'')+(item.editLocked?'disabled':'')+'> Position sperren</label><p class="tiny-note">'+(e?'Fixiert die Position der verbundenen Objekte.':'Verschieben und Größenänderung verhindern.')+'</p>'+
+ '<label class="checkline"><input type="checkbox" data-object-lock="editLocked" '+(item.editLocked?'checked':'')+'> Bearbeitung sperren</label><p class="tiny-note">Schützt Position, Inhalt und Löschen.</p>'+
+ (n&&!n.positionLocked&&!n.editLocked&&objectPositionLocked(n)?'<p class="tiny-note">Position durch eine gesperrte Verbindung fixiert.</p>':'');
+ el.querySelector('.inspector-head')?.after(section);
+ if(item.editLocked){
+  for(const control of el.querySelectorAll('input,select,textarea,button')){
+   if(control.closest('.object-lock-settings')||control.matches('[data-close],[data-open-submap],[data-sb-preview]'))continue;
+   control.disabled=true;control.setAttribute('aria-disabled','true');
+  }
+ }
+}
+function renderInspectorContent(){const el=$('inspector');const n=byId(selectedNode),e=edgeById(selectedEdge);if(!n&&!e){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');if(n&&n.kind==='craft'){const slot=chosenSlot?.id===n.id?(chosenSlot.key==='out'?n.result:n.recipe[Number(chosenSlot.key)]):null;el.innerHTML=`<div class="inspector-head"><h2>${inventoryLabel(n.inventoryType)}</h2><button class="iconbtn" data-close aria-label="Schließen">✕</button></div>
  <div class="field"><label class="field-label">Titel</label><input class="select" maxlength="46" data-craft-title value="${escapeHTML(n.text)}" placeholder="${inventoryLabel(n.inventoryType)}"></div>
  ${n.inventoryType!=='crafting'?`<div class="sb-actions"><button class="btn" data-sb-gui>GUI gestalten</button><button class="btn" data-sb-preview>Vorschau</button></div>`:''}<p class="tiny-note">Klicke ein belegtes Feld zum Bearbeiten. Per Ziehen kannst du Items zwischen Feldern tauschen oder außerhalb des Inventars entfernen.</p>
  ${chosenSlot?.id===n.id?`<hr>${slot?`<div class="field"><label class="field-label">${escapeHTML(displayItemName(slot.id))}${customItem(slot.id)?.enchanted?' ✦':''}</label><div style="display:flex;align-items:center;gap:13px">${itemImg(slot.id)}<span class="tiny-note">${escapeHTML(customItem(slot.id)?.lore||'Minecraft-Item')}</span></div></div>`:''}<div class="field"><label class="field-label">Ausgewählter Slot</label><div class="field-inline" style="flex-wrap:wrap;justify-content:flex-start"><button class="btn" data-craft-pick>Wechseln</button>${slot?`<button class="btn" data-craft-edit>✎ Bearbeiten</button>${combatIsWeapon(slot.id)?'<button class="btn" data-combat-item>⚔ Testen</button>':''}<button class="btn" data-craft-clear>Entfernen</button>`:''}</div></div>${slot?`<div class="field field-inline"><label class="field-label">Anzahl (1–64)</label><input class="number" data-craft-count type="number" min="1" max="64" value="${slot.count}"></div>`:''}`:'<div class="actions"><button class="btn" data-craft-pick>Itemkatalog öffnen</button></div>'}
@@ -1549,10 +1605,20 @@ function renderInspector(){const el=$('inspector');const n=byId(selectedNode),e=
  <div class="field field-inline"><label class="field-label" for="lwidth">Linienstärke</label><input class="number" id="lwidth" type="number" min="1" max="10" step="1" data-set="width" value="${e.width}"></div>
  <p class="tiny-note">Die Verbindung folgt automatisch, wenn du eine Form verschiebst.</p>
  <div class="actions"><button class="btn" data-delete>Verbindung löschen</button></div>`}}
-function applyProp(prop,val){const item=byId(selectedNode)||edgeById(selectedEdge);if(!item)return;const num=['borderWidth','fontSize','width'];if(num.includes(prop)){const parsed=Number(val);if(!Number.isFinite(parsed))return;val=clamp(parsed,prop==='fontSize'?10:1,prop==='fontSize'?52:10)}if(prop==='shape'&&!types.includes(val))return;if(['color','borderColor','textColor','fillColor'].includes(prop))val=validColor(val,item[prop]);if(prop==='filled')val=Boolean(val);item[prop]=val;if(item.shape){paintNode(item);if(prop==='shape'||prop==='filled')renderInspector()}else drawEdges();save()}
-$('inspector').addEventListener('input',event=>{if(event.target.matches('[data-submap-text]')){const n=byId(selectedNode);if(n?.kind==='shape'){n.text=event.target.value.slice(0,90);const ta=nodeLayer.querySelector('.node.selected .node-text');if(ta){ta.value=n.text;layoutTextarea(ta,n)}save({group:'submap-label:'+n.id})}return}if(event.target.matches('[data-craft-title]')){const n=byId(selectedNode);if(n?.kind==='craft'){n.text=event.target.value.slice(0,46);const title=nodeLayer.querySelector('.craft-node.selected .craft-head span');if(title)title.textContent=n.text;save({group:'craft-title:'+n.id})}return}if(event.target.matches('[data-craft-count]')){const n=byId(selectedNode),k=chosenSlot?.key;if(n?.kind==='craft'&&chosenSlot?.id===n.id){const slot=k==='out'?n.result:n.recipe[Number(k)];if(slot){slot.count=clamp(Number(event.target.value)||1,1,64);save({group:'count:'+n.id+':'+k});refreshCraftSlots()}}return}const el=event.target,prop=el.dataset.set;if(!prop)return;if(el.type==='color'||el.type==='number')applyProp(prop,el.value)});
-$('inspector').addEventListener('change',event=>{const el=event.target;if(el.matches('[data-submap-toggle]')){const n=byId(selectedNode);if(n)ensureSubmap(n,el.checked);return}const prop=el.dataset.set;if(!prop)return;applyProp(prop,el.type==='checkbox'?el.checked:el.value);if(el.type==='checkbox'||el.tagName==='SELECT')renderInspector()});
-$('inspector').addEventListener('click',event=>{if(event.target.closest('[data-md-mob]')){mdOpen(selectedNode);return}if(event.target.closest('[data-combat-mob]')){openCombatSimulator(selectedNode);return}if(event.target.closest('[data-combat-item]')){const n=byId(chosenSlot?.id),slot=getCraftSlot(n,chosenSlot?.key);if(slot)openCombatSimulator(null,slot.id);return}if(event.target.closest('[data-sb-plan]')){sbEdit(selectedNode);return}if(event.target.closest('[data-sb-gui]')){sbGuiEdit(selectedNode);return}if(event.target.closest('[data-sb-preview]')){sbPreview(selectedNode);return}if(event.target.closest('[data-shape-text]')){openShapeTextEditor(selectedNode);return}if(event.target.closest('[data-open-submap]')){openSubmap(selectedNode);return}if(event.target.closest('[data-craft-pick]')){openCatalog();return}if(event.target.closest('[data-craft-edit]')){const n=byId(chosenSlot?.id);const slot=getCraftSlot(n,chosenSlot?.key);if(slot)openItemEditor(slot.id,true);return}if(event.target.closest('[data-craft-clear]')){const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);return}if(event.target.closest('[data-close]')){selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();return}if(event.target.closest('[data-delete]')){removeSelected();return}if(event.target.closest('[data-duplicate]')){duplicateSelected();return}const b=event.target.closest('button[data-set]');if(!b)return;applyProp(b.dataset.set,b.dataset.value);renderInspector()});
+function applyProp(prop,val){const item=byId(selectedNode)||edgeById(selectedEdge);if(!item)return;if(objectEditLocked(item)){lockNotice();return}const num=['borderWidth','fontSize','width'];if(num.includes(prop)){const parsed=Number(val);if(!Number.isFinite(parsed))return;val=clamp(parsed,prop==='fontSize'?10:1,prop==='fontSize'?52:10)}if(prop==='shape'&&!types.includes(val))return;if(['color','borderColor','textColor','fillColor'].includes(prop))val=validColor(val,item[prop]);if(prop==='filled')val=Boolean(val);item[prop]=val;if(item.shape){paintNode(item);if(prop==='shape'||prop==='filled')renderInspector()}else drawEdges();save()}
+$('inspector').addEventListener('input',event=>{if(event.target.matches('[data-object-lock]'))return;if(objectEditLocked(byId(selectedNode)||edgeById(selectedEdge)))return;if(event.target.matches('[data-submap-text]')){const n=byId(selectedNode);if(n?.kind==='shape'){n.text=event.target.value.slice(0,90);const ta=nodeLayer.querySelector('.node.selected .node-text');if(ta){ta.value=n.text;layoutTextarea(ta,n)}save({group:'submap-label:'+n.id})}return}if(event.target.matches('[data-craft-title]')){const n=byId(selectedNode);if(n?.kind==='craft'){n.text=event.target.value.slice(0,46);const title=nodeLayer.querySelector('.craft-node.selected .craft-head span');if(title)title.textContent=n.text;save({group:'craft-title:'+n.id})}return}if(event.target.matches('[data-craft-count]')){const n=byId(selectedNode),k=chosenSlot?.key;if(n?.kind==='craft'&&chosenSlot?.id===n.id){const slot=k==='out'?n.result:n.recipe[Number(k)];if(slot){slot.count=clamp(Number(event.target.value)||1,1,64);save({group:'count:'+n.id+':'+k});refreshCraftSlots()}}return}const el=event.target,prop=el.dataset.set;if(!prop)return;if(el.type==='color'||el.type==='number')applyProp(prop,el.value)});
+$('inspector').addEventListener('change',event=>{const el=event.target;
+ if(el.matches('[data-object-lock]')){
+  const item=byId(selectedNode)||edgeById(selectedEdge),key=el.dataset.objectLock;
+  if(!item||!['positionLocked','editLocked'].includes(key))return;
+  if(key==='positionLocked'&&item.editLocked)return;
+  exitTextEditing();item[key]=el.checked;
+  if(item.editLocked){chosenSlot=null;closeCatalog()}
+  syncObjectLockVisuals();refreshSelection();save();return;
+ }
+ if(objectEditLocked(byId(selectedNode)||edgeById(selectedEdge)))return;
+ if(el.matches('[data-submap-toggle]')){const n=byId(selectedNode);if(n)ensureSubmap(n,el.checked);return}const prop=el.dataset.set;if(!prop)return;applyProp(prop,el.type==='checkbox'?el.checked:el.value);if(el.type==='checkbox'||el.tagName==='SELECT')renderInspector()});
+$('inspector').addEventListener('click',event=>{if(objectEditLocked(byId(selectedNode)||edgeById(selectedEdge))&&!event.target.closest('.object-lock-settings,[data-close],[data-open-submap],[data-sb-preview]'))return;if(event.target.closest('[data-md-mob]')){mdOpen(selectedNode);return}if(event.target.closest('[data-combat-mob]')){openCombatSimulator(selectedNode);return}if(event.target.closest('[data-combat-item]')){const n=byId(chosenSlot?.id),slot=getCraftSlot(n,chosenSlot?.key);if(slot)openCombatSimulator(null,slot.id);return}if(event.target.closest('[data-sb-plan]')){sbEdit(selectedNode);return}if(event.target.closest('[data-sb-gui]')){sbGuiEdit(selectedNode);return}if(event.target.closest('[data-sb-preview]')){sbPreview(selectedNode);return}if(event.target.closest('[data-shape-text]')){openShapeTextEditor(selectedNode);return}if(event.target.closest('[data-open-submap]')){openSubmap(selectedNode);return}if(event.target.closest('[data-craft-pick]')){openCatalog();return}if(event.target.closest('[data-craft-edit]')){const n=byId(chosenSlot?.id);const slot=getCraftSlot(n,chosenSlot?.key);if(slot)openItemEditor(slot.id,true);return}if(event.target.closest('[data-craft-clear]')){const n=byId(chosenSlot?.id);if(n)setCraftSlot(n,chosenSlot.key,null);return}if(event.target.closest('[data-close]')){selectedNode=null;selectedEdge=null;chosenSlot=null;refreshSelection();return}if(event.target.closest('[data-delete]')){removeSelected();return}if(event.target.closest('[data-duplicate]')){duplicateSelected();return}const b=event.target.closest('button[data-set]');if(!b)return;applyProp(b.dataset.set,b.dataset.value);renderInspector()});
 let suppressSubmapClickUntil=0;
 nodeLayer.addEventListener('click',event=>{
  const slot=event.target.closest('.craft-slot');
@@ -1560,15 +1626,17 @@ nodeLayer.addEventListener('click',event=>{
  const el=event.target.closest('.node');
  if(!el||event.target.closest('.port,.node-handle')||performance.now()<suppressSubmapClickUntil)return;
  const n=byId(el.dataset.id);
+ if(objectEditLocked(n)){event.preventDefault();return}
  if(n?.plan&&!linkMode&&event.target.closest('.node-text')){event.preventDefault();sbEdit(n.id);return}if(n?.submapEnabled){event.preventDefault();event.stopPropagation();openSubmap(n.id);return}
  if(n?.kind==='shape'&&!linkMode&&!shapeTextId&&event.target.closest('.node-text')&&(event.pointerType==='touch'||event.pointerType==='pen'||event.sourceCapabilities?.firesTouchEvents)){event.preventDefault();openShapeTextEditor(n.id)}
 
 });
-nodeLayer.addEventListener('input',event=>{if(!event.target.matches('textarea'))return;const n=byId(event.target.closest('.node')?.dataset.id);if(n){n.text=event.target.value;layoutTextarea(event.target,n);save({group:'text:'+n.id})}});
+nodeLayer.addEventListener('input',event=>{if(!event.target.matches('textarea'))return;const n=byId(event.target.closest('.node')?.dataset.id);if(n&&objectEditLocked(n)){event.target.value=n.text;return}if(n){n.text=event.target.value;layoutTextarea(event.target,n);save({group:'text:'+n.id})}});
 nodeLayer.addEventListener('focusin',event=>{const n=event.target.closest('.node');if(n&&!linkMode)selectNode(n.dataset.id)});
 nodeLayer.addEventListener('pointerdown',event=>{
  if(event.button!==0&&event.pointerType!=='touch')return;const el=event.target.closest('.node');if(!el)return;
  event.stopPropagation();const id=el.dataset.id,port=event.target.closest('.port');
+ if(objectEditLocked(byId(id))){event.preventDefault();selectNode(id);return}
  if(port){
   exitTextEditing();event.preventDefault();
   linkDrag={id,side:port.dataset.side,pointer:event.pointerId,startX:event.clientX,startY:event.clientY,moved:false};
@@ -1586,10 +1654,10 @@ nodeLayer.addEventListener('pointerdown',event=>{
    }
    return;
   }
- exitTextEditing();const n=byId(id);if(!n)return;event.preventDefault();const mode=event.target.closest('.resize-handle')?'resize':'drag';
+ exitTextEditing();const n=byId(id);if(!n)return;event.preventDefault();if(objectPositionLocked(n)){if(n.plan?.type==='equipment'&&!linkMode)sbEdit(id);else if(n.submapEnabled&&!linkMode)openSubmap(id);return}const mode=event.target.closest('.resize-handle')?'resize':'drag';
  move={pointer:event.pointerId,id,mode,handle:!!event.target.closest('.node-handle'),clientX:event.clientX,clientY:event.clientY,x:n.x,y:n.y,w:n.w,h:n.h};try{nodeLayer.setPointerCapture(event.pointerId)}catch{}
 });
-nodeLayer.addEventListener('pointermove',event=>{if(!move||move.pointer!==event.pointerId)return;const n=byId(move.id);if(!n)return;const dx=(event.clientX-move.clientX)/view.scale,dy=(event.clientY-move.clientY)/view.scale;if(move.mode==='drag'){
+nodeLayer.addEventListener('pointermove',event=>{if(!move||move.pointer!==event.pointerId)return;const n=byId(move.id);if(!n||objectPositionLocked(n))return;const dx=(event.clientX-move.clientX)/view.scale,dy=(event.clientY-move.clientY)/view.scale;if(move.mode==='drag'){
  const pos=alignSnap(n,move.x+dx,move.y+dy,event.altKey);
  n.x=pos.x;n.y=pos.y;
 }else if(n.shape==='circle'){clearSnapGuides();const size=clamp(Math.max(move.w+dx,move.h+dy),100,800);n.w=Math.round(size);n.h=Math.round(size)}else{clearSnapGuides();n.w=Math.round(clamp(move.w+dx,110,1000));n.h=Math.round(clamp(move.h+dy,95,800))}paintNode(n);drawEdges()});
@@ -1631,6 +1699,7 @@ window.addEventListener('pointerdown',event=>{if(!event.target.closest('.node-te
 function beginSlotItemDrag(event,slotEl){
  if(slotItemDrag||!slotEl||event.button>0)return;
  const nodeId=slotEl.closest('.node')?.dataset.id,key=slotEl.dataset.slot;
+ if(objectEditLocked(byId(nodeId)))return;
  const data=getCraftSlot(byId(nodeId),key);
  if(!data)return; // Leere Felder bleiben normale Buttons.
  const touch=event.pointerType==='touch';
@@ -1658,7 +1727,7 @@ function endSlotItemDrag(event){
  if(drag.moved){
   ignoreSlotClickUntil=performance.now()+220;
   const source=byId(drag.nodeId),targetNode=byId(target?.closest('.node')?.dataset.id),targetKey=target?.dataset.slot;
-  if(source){
+  if(source&&!objectEditLocked(source)&&!objectEditLocked(targetNode)){
    if(targetNode&&targetKey!==undefined&&!(source.id===targetNode.id&&drag.key===targetKey)){
     const targetItem=getCraftSlot(targetNode,targetKey);
     assignCraftSlot(targetNode,targetKey,drag.slot);
@@ -1749,14 +1818,14 @@ $('sbClose').onclick=()=>{if(sbState?.mode==='equipment'&&!equipmentCanLeave())r
 function sbChoices(){const m=new Map([...board.customItems.map(i=>[i.id,i.name]),...catalog.map(i=>[i.id,i.name])]);return '<datalist id="sbChoices">'+[...m].slice(0,4000).map(([id,name])=>'<option value="'+escapeHTML(id)+'">'+escapeHTML(name)+'</option>').join('')+'</datalist>'}
 function sbMenu(){exitTextEditing();closeCatalog();$('moreMenu').classList.remove('show');sbState={mode:'menu'};sbShow('Skyblock-Planer','<p class="tiny-note">Erstelle Planungsmodule auf deiner Mindmap. Sie lassen sich wie Formen verbinden und verschieben.</p><div class="sb-grid">'+Object.entries(SB_DEFS).map(([k,d])=>'<button class="sb-tile" data-add-sb="'+k+'">'+d.icon+' '+d.name+'</button>').join('')+'<button class="sb-tile" data-sb-command="calc">∑ Crafting-Kalkulator</button><button class="sb-tile" data-sb-command="items">▦ Custom Items</button><button class="sb-tile" data-sb-command="compare">⇄ Item-Vergleich</button><button class="sb-tile" data-sb-command="search">⌕ Mindmap-Suche</button></div>')}
 function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;if(type==='equipment'){equipmentOpen();return}if(type==='mob_drop'){mdOpen();return}if(type==='custom_item'){sbItems();return}if(type==='mob'){combatMobEditor();return}const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
-function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(n.plan.type==='equipment'){equipmentOpen(id);return}if(n.plan.type==='mob'){combatMobEditor(id);return}if(n.plan.type==='mob_drop'){mdOpen(n.plan.fields.mob,n.plan.fields.drop);return}if(n.plan.type==='custom_item'){const item=customItem(n.plan.fields.item);if(!item){notify('Das verknüpfte Custom Item fehlt.');return}closeCatalog();openItemEditor(item.id,false);if(editorState)$('sbItemDetails').open=true;return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
+function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(objectEditLocked(n)){lockNotice();return}if(n.plan.type==='equipment'){equipmentOpen(id);return}if(n.plan.type==='mob'){combatMobEditor(id);return}if(n.plan.type==='mob_drop'){mdOpen(n.plan.fields.mob,n.plan.fields.drop);return}if(n.plan.type==='custom_item'){const item=customItem(n.plan.fields.item);if(!item){notify('Das verknüpfte Custom Item fehlt.');return}closeCatalog();openItemEditor(item.id,false);if(editorState)$('sbItemDetails').open=true;return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
 function sbSummary(p){if(p.type==='skill')return 'Gesamt-XP: '+p.rows.reduce((a,r)=>a+(Number(r.xp)||0),0).toLocaleString('de-DE');if(['mob','loot'].includes(p.type))return 'Erwartete Items / Kill: '+p.rows.reduce((a,r)=>a+(Number(r.chance)||0)/100*((Number(r.min)||0)+(Number(r.max)||0))/2,0).toLocaleString('de-DE',{maximumFractionDigits:5})+' · unabhängige Drops, ohne Magic Find';return ''}
 function sbRenderPlan(){const p=sbState.draft,d=SB_DEFS[p.type];sbShow(d.icon+' '+d.name,'<div class="sb-grid">'+sbField('Name','sbName',p.name)+sbSelect('Status','sbStatus',[['planned','Geplant'],['doing','In Entwicklung'],['done','Fertig']],p.status)+'</div><div class="sb-grid">'+d.fields.map(([k,l,t])=>sbField(l,'sb_f_'+k,p.fields[k],t,'data-sb-field="'+k+'"')).join('')+'</div>'+sbField('Notizen','sbNotes',p.notes,'a')+(d.rows.length?'<hr><div class="sb-head"><strong>Tabelle</strong><button class="btn" data-sb-command="addRow">+ Eintrag</button></div>'+p.rows.map((row,i)=>'<div class="sb-row"><div class="sb-head"><strong>#'+(i+1)+(row.item?' · '+escapeHTML(displayItemName(row.item)):'')+'</strong><button class="iconbtn" data-remove-row="'+i+'" aria-label="Eintrag löschen">✕</button></div><div class="sb-grid">'+d.rows.map(([k,l,t])=>sbField(l,'sb_r_'+i+'_'+k,row[k],t,'data-sb-field="'+k+'" data-sb-row="'+i+'"')).join('')+'</div></div>').join(''):'')+'<p class="tiny-note" id="sbSummary">'+sbSummary(p)+'</p><label>Bildreferenz (optional)<input type="file" class="editor-input" id="sbImageFile" accept="image/png,image/jpeg,image/webp"></label>'+(p.image?'<img class="sb-art" src="'+p.image+'" alt="Referenz"><button class="btn" data-sb-command="clearImage">Bild entfernen</button>':'')+'<div class="sb-actions"><button class="btn primary" data-sb-command="savePlan">Speichern</button><button class="btn" data-sb-command="close">Abbrechen</button></div>'+sbChoices())}
 function sbSyncPlan(){if(sbState?.mode!=='plan')return;const p=sbState.draft;p.name=$('sbName').value;p.status=$('sbStatus').value;p.notes=$('sbNotes').value;for(const el of $('sbContent').querySelectorAll('[data-sb-field]')){const k=el.dataset.sbField;if(el.dataset.sbRow===undefined)p.fields[k]=el.value;else if(p.rows[Number(el.dataset.sbRow)])p.rows[Number(el.dataset.sbRow)][k]=el.value}$('sbSummary').textContent=sbSummary(p)}
-function sbSavePlan(){sbSyncPlan();const n=byId(sbState.id),p=sbPlan(sbState.draft);if(!n||!p)return;if(p.rows.some(r=>r.min!==undefined&&r.max!==undefined&&r.min!==''&&r.max!==''&&r.min>r.max)){notify('Maximale Drop-Anzahl muss mindestens Min. sein.');return}n.plan=p;n.text=sbLabel(p);sbClose();renderNodes();save();notify('Planung gespeichert.')}
+function sbSavePlan(){sbSyncPlan();const n=byId(sbState.id),p=sbPlan(sbState.draft);if(!n||!p)return;if(objectEditLocked(n)){lockNotice();return}if(p.rows.some(r=>r.min!==undefined&&r.max!==undefined&&r.min!==''&&r.max!==''&&r.min>r.max)){notify('Maximale Drop-Anzahl muss mindestens Min. sein.');return}n.plan=p;n.text=sbLabel(p);sbClose();renderNodes();save();notify('Planung gespeichert.')}
 async function sbLoadImage(file){if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>15e6)throw Error('Bitte PNG, JPG oder WebP bis 15 MB auswählen.');const url=URL.createObjectURL(file);try{const img=new Image();img.src=url;await img.decode();let scale=Math.min(1,800/Math.max(img.width,img.height));const c=document.createElement('canvas');for(let i=0;i<7;i++){c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);for(const mime of ['image/png','image/webp']){const data=c.toDataURL(mime,.83);if(sbImage(data))return data}scale*=.75}throw Error('Bild zu groß.')}finally{URL.revokeObjectURL(url)}}
 function sbGuiGrid(n,g,preview){return '<div class="sb-gui-grid">'+(g.background?'<img class="sb-gui-bg" src="'+g.background+'" alt="">':'')+n.recipe.map((slot,i)=>{const m=g.slots[i]||{};return '<button type="button" class="'+(g.hideGrid||m.hidden?'sb-hidden':'')+'" '+(preview?'data-target="'+escapeHTML(m.target||'')+'"':'data-slot-gui="'+i+'"')+' title="'+escapeHTML(m.label||(slot?displayItemName(slot.id):'Slot '+(i+1)))+'" aria-label="'+escapeHTML(m.label||'Slot '+(i+1))+'" '+(!preview&&String(i)===sbState.key?'style="outline:2px solid #a3b8ff"':'')+'>'+(slot?itemImg(slot.id):g.hideGrid||m.hidden?'':i+1)+(m.target?'<span class="sb-link">↗</span>':'')+'</button>'}).join('')+'</div>'}
-function sbGuiEdit(id){const n=byId(id);if(!n||n.kind!=='craft'||n.inventoryType==='crafting')return;sbState={mode:'gui',id,draft:structuredClone(sbGui(n.gui,n.recipe.length)),key:chosenSlot?.id===id&&chosenSlot.key!=='out'?chosenSlot.key:'0'};sbRenderGui()}
+function sbGuiEdit(id){const n=byId(id);if(!n||n.kind!=='craft'||n.inventoryType==='crafting')return;if(objectEditLocked(n)){lockNotice();return}sbState={mode:'gui',id,draft:structuredClone(sbGui(n.gui,n.recipe.length)),key:chosenSlot?.id===id&&chosenSlot.key!=='out'?chosenSlot.key:'0'};sbRenderGui()}
 function sbRenderGui(){const n=byId(sbState.id),g=sbState.draft,m=g.slots[sbState.key]||{};sbShow('GUI Designer · '+n.text,'<p class="tiny-note">Items legst du weiterhin in der Truhe ab. Wähle hier einen Slot und verknüpfe ihn mit einem Element dieser Mindmap.</p>'+sbGuiGrid(n,g,false)+'<div class="sb-grid"><label>Hintergrundbild<input class="editor-input" id="sbGuiImage" type="file" accept="image/png,image/jpeg,image/webp"></label><label><input id="sbHideGrid" type="checkbox" '+(g.hideGrid?'checked':'')+'> Slot-Rahmen ausblenden</label></div>'+(g.background?'<button class="btn" data-sb-command="clearBg">Hintergrund entfernen</button>':'')+'<hr><strong>Slot '+(Number(sbState.key)+1)+'</strong><div class="sb-grid">'+sbField('Button-Name','sbSlotName',m.label)+sbSelect('Verlinktes Element','sbSlotTarget',[['','Keine Aktion'],...board.nodes.filter(x=>x.id!==n.id).map(x=>[x.id,(x.plan?.name||x.text||'Form').split('\n')[0]])],m.target||'')+'</div><label><input type="checkbox" id="sbSlotHide" '+(m.hidden?'checked':'')+'> Einzelnen Rahmen ausblenden</label><div class="sb-actions"><button class="btn primary" data-sb-command="saveGui">Speichern</button><button class="btn" data-sb-command="testGui">Speichern &amp; Vorschau</button><button class="btn" data-sb-command="close">Abbrechen</button></div>')}
 function sbSyncGui(){if(sbState?.mode!=='gui')return;const g=sbState.draft;g.hideGrid=$('sbHideGrid').checked;g.slots[sbState.key]={label:$('sbSlotName').value,target:$('sbSlotTarget').value,hidden:$('sbSlotHide').checked}}
 function sbPreview(id){const n=byId(id);if(!n||n.kind!=='craft')return;sbState={mode:'preview',id};sbShow('GUI Vorschau · '+n.text,sbGuiGrid(n,sbGui(n.gui,n.recipe.length),true)+'<p class="tiny-note">Verlinkte Slots antippen, um die Navigation zu testen.</p><button class="btn" data-sb-command="close">Schließen</button>')}
@@ -1805,7 +1874,7 @@ function ciRefreshMapItems(i){
  for(const n of board.nodes){
   if(n.plan?.type!=='custom_item'||n.plan.fields.item!==i.id)continue;
   n.plan.name=i.name;n.text=i.name;
-  n.h=Math.max(n.h,ciMapHeight(i,n.w,n.fontSize));
+  if(!objectPositionLocked(n))n.h=Math.max(n.h,ciMapHeight(i,n.w,n.fontSize));
  }
 }
 function ciAddMapItem(id){
@@ -1877,7 +1946,7 @@ $('sbContent').addEventListener('input',e=>{if(sbState?.mode==='plan'&&e.target.
 $('sbContent').addEventListener('change',async e=>{if(!sbState)return;if(['sbA','sbB'].includes(e.target.id))sbCompareRender();if(['sbImageFile','sbGuiImage'].includes(e.target.id)){const st=sbState;try{const data=await sbLoadImage(e.target.files?.[0]);if(sbState!==st)return;if(st.mode==='plan'){sbSyncPlan();st.draft.image=data;sbRenderPlan()}else if(st.mode==='gui'){sbSyncGui();st.draft.background=data;sbRenderGui()}}catch(err){notify(err.message)}}});
 $('sbContent').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!sbState)return;const d=b.dataset,c=d.sbCommand;if(ciAction(b))return;if(d.addSb){sbAdd(d.addSb);return}if(c==='close'){sbClose();return}if(c==='calc'){sbCalcOpen();return}if(c==='items'){sbItems();return}if(c==='compare'){sbCompare();return}if(c==='search'){sbSearch();return}if(c==='runCalc'){sbRunCalc();return}if(d.focus){sbFocus(d.focus);return}if(d.itemEdit){sbClose();openItemEditor(d.itemEdit,false);return}if(c==='newItem'){sbClose();chosenSlot=null;openCatalog();notify('Tippe beim gewünschten Basis-Item auf ✎.');return}
  if(sbState.mode==='plan'){sbSyncPlan();if(c==='addRow'){if(sbState.draft.rows.length<200)sbState.draft.rows.push({});sbRenderPlan()}else if(d.removeRow!==undefined){sbState.draft.rows.splice(Number(d.removeRow),1);sbRenderPlan()}else if(c==='clearImage'){sbState.draft.image='';sbRenderPlan()}else if(c==='savePlan')sbSavePlan();return}
- if(sbState.mode==='gui'){sbSyncGui();if(d.slotGui!==undefined){sbState.key=d.slotGui;sbRenderGui()}else if(c==='clearBg'){sbState.draft.background='';sbRenderGui()}else if(c==='saveGui'||c==='testGui'){const n=byId(sbState.id);if(!n)return;n.gui=sbGui(sbState.draft,n.recipe.length);sbClose();refreshCraftCards();renderInspector();save();if(c==='testGui')sbPreview(n.id);else notify('GUI gespeichert.')}return}
+ if(sbState.mode==='gui'){sbSyncGui();if(d.slotGui!==undefined){sbState.key=d.slotGui;sbRenderGui()}else if(c==='clearBg'){sbState.draft.background='';sbRenderGui()}else if(c==='saveGui'||c==='testGui'){const n=byId(sbState.id);if(!n)return;if(objectEditLocked(n)){lockNotice();return}n.gui=sbGui(sbState.draft,n.recipe.length);sbClose();refreshCraftCards();renderInspector();save();if(c==='testGui')sbPreview(n.id);else notify('GUI gespeichert.')}return}
  if(sbState.mode==='preview'&&d.target){const n=byId(d.target);if(n?.kind==='craft'&&n.inventoryType!=='crafting')sbPreview(n.id);else sbFocus(d.target)}
 });
 
@@ -1988,12 +2057,13 @@ function mdMapSync(mob,force=false){
  mob.plan.rows.forEach((r,i)=>{
   let n=existing.find(n=>n.plan.fields.drop===r.id);
   if(!n&&board.nodes.length<1500){const col=i%cols,line=Math.floor(i/cols);n=normNode({id:uid(),kind:'shape',plan:{type:'mob_drop',name:mdName(r),fields:{mob:mob.id,drop:r.id}},x:mob.x+mob.w/2-(cols*w+(cols-1)*gap)/2+col*(w+gap),y:mob.y+mob.h+85+line*(h+gap+35),w,h,shape:'round',filled:true,fillColor:'#151a28',borderColor:'#8461b9',fontSize:17});board.nodes.push(n)}
-  if(!n)return;n.plan.name=mdName(r);n.text=mdName(r);
+  if(!n||objectEditLocked(n))return;n.plan.name=mdName(r);n.text=mdName(r);
   if((force||!existing.some(x=>x.id===n.id))&&!board.edges.some(e=>e.from===mob.id&&e.to===n.id)&&board.edges.length<5000)board.edges.push(normEdge({id:uid(),from:mob.id,to:n.id,fromPort:'bottom',toPort:'top',color:'#9776cb',width:2,style:'elbow',arrow:'end'}));
  });
 }
 function mdSave(showMap=false,close=true){
  const st=sbState,n=byId(st.id);if(!n||!mdCheck(st))return false;
+ if(objectEditLocked(n)||board.nodes.some(x=>x.plan?.type==='mob_drop'&&x.plan.fields.mob===n.id&&objectEditLocked(x)&&JSON.stringify(n.plan.rows.find(r=>r.id===x.plan.fields.drop))!==JSON.stringify(st.rows.find(r=>r.id===x.plan.fields.drop)))){lockNotice();return false}
  n.plan=sbPlan({...n.plan,rows:st.rows});n.text=sbLabel(n.plan);st.dirty=false;mdMapSync(n,showMap);
  renderNodes();save();
  if(close){sbClose();selectedNode=n.id;selectedEdge=null;chosenSlot=null;refreshSelection();if(showMap){const cards=board.nodes.filter(x=>x.plan?.type==='mob_drop'&&x.plan.fields.mob===n.id),all=[n,...cards];const left=Math.min(...all.map(x=>x.x)),right=Math.max(...all.map(x=>x.x+x.w)),top=Math.min(...all.map(x=>x.y)),bottom=Math.max(...all.map(x=>x.y+x.h));view.scale=clamp(Math.min(view.scale,(innerWidth-60)/(right-left),(innerHeight-150)/(bottom-top)),.25,3);view.x=innerWidth/2-(left+right)/2*view.scale;view.y=innerHeight/2-(top+bottom)/2*view.scale;renderView()}notify(showMap?'Drops gespeichert und auf Mindmap angezeigt.':'Mob Drops gespeichert.')}
@@ -2038,7 +2108,7 @@ $('sbContent').addEventListener('click',e=>{
 });
 
 function combatMobEditor(id=null,returnToSim=false){
- const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;exitTextEditing();closeCatalog();
+ const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;if(objectEditLocked(n)){lockNotice();return}exitTextEditing();closeCatalog();
  const p=n?structuredClone(n.plan):sbPlan({type:'mob',name:'Zombie',fields:{base:'zombie',hp:1000,defense:100,damage:75,xp:50,speed:.23,variant:'normal',tier:'normal'}});
  sbState={mode:'combatMob',id,returnToSim,draft:p,category:'all',query:'',list:false,base:p.fields.base||'custom'};
  sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats. <span class="mob-hd-version">HD-MODELLE V2</span> 3D-Mob-Ansichten: Owen1212055 / mc-assets (Minecraft Java Edition).</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button><button type="button" class="btn" data-combat-action="saveMobDrops">▤ Speichern &amp; Drops bearbeiten</button></div></div>');
@@ -2084,7 +2154,7 @@ $('sbContent').addEventListener('click',e=>{
  mobRenderGallery();mobRenderDetail();
 });
 
-function combatSaveMob(openDrops=false){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}mobSync();for(const k of ['damage','xp','speed']){if(p.fields[k]!==''&&(!Number.isFinite(Number(p.fields[k]))||Number(p.fields[k])<0||Number(p.fields[k])>1e12)){notify('Bitte gültige, nichtnegative Stats eingeben.');return}}p.name=p.name.trim()||'Mob';p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=140,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(openDrops)mdOpen(n.id);else if(state.returnToSim)state.equipmentId?equipmentCombat(state.equipmentId,n.id):openCombatSimulator(n.id,state.weaponId)}
+function combatSaveMob(openDrops=false){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;if(objectEditLocked(byId(state.id))){lockNotice();return}const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}mobSync();for(const k of ['damage','xp','speed']){if(p.fields[k]!==''&&(!Number.isFinite(Number(p.fields[k]))||Number(p.fields[k])<0||Number(p.fields[k])>1e12)){notify('Bitte gültige, nichtnegative Stats eingeben.');return}}p.name=p.name.trim()||'Mob';p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=140,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(openDrops)mdOpen(n.id);else if(state.returnToSim)state.equipmentId?equipmentCombat(state.equipmentId,n.id):openCombatSimulator(n.id,state.weaponId)}
 
 /* Player Equipment Simulator: builds are ordinary saved Mindmap nodes.
    Items are referenced by ID, never copied, so edits use the current stats. */
@@ -2100,6 +2170,7 @@ function equipmentStats(fields,items=board.customItems){
 function equipmentOpen(id=null){
  exitTextEditing();closeCatalog();
  const n=byId(id),existing=n?.plan?.type==='equipment'?n:null;
+ if(objectEditLocked(existing)){lockNotice();if(sbState?.mode==='equipment'&&$('eqBuild'))$('eqBuild').value=sbState.id||'';return}
  const draft=existing?structuredClone(existing.plan):sbPlan({type:'equipment',name:'New Build'});
  sbState={mode:'equipment',id:existing?.id||null,draft,focus:'weapon',dirty:false};
  equipmentRender();
@@ -2461,6 +2532,7 @@ function equipmentRefresh(updateGallery=true){
 function equipmentCanLeave(){return !sbState?.dirty||window.confirm('Ungespeicherte Build-Änderungen verwerfen?')}
 function equipmentSave(){
  const st=sbState;if(st?.mode!=='equipment')return null;
+ if(objectEditLocked(byId(st.id))){lockNotice();return null}
  equipmentSync();
  if(!st.draft.name){notify('Bitte gib dem Build einen Namen.');return null}
  if(equipmentSlots().some(([k])=>st.draft.fields[k]&&!customItem(st.draft.fields[k]))){notify('Entferne zuerst fehlende Custom Items.');return null}

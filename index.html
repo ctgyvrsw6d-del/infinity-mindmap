@@ -487,30 +487,78 @@
 .md-map-card{position:absolute;inset:9px;display:flex;align-items:center;gap:10px;pointer-events:none;overflow:hidden;z-index:1}.md-map-card>.item-stack-icon{--item-size:54px!important;width:54px;height:54px}.md-map-info{min-width:0;display:grid;gap:3px;overflow-wrap:anywhere;font-size:.82em}.md-map-info strong{font-size:1.05em}.md-map-info small{color:#bfc5d6}.md-map-rate{font-size:1.2em;font-weight:750;color:#9ce990}.node.md-drop-node .node-text{opacity:0!important;inset:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 16px)!important;transform:none!important;z-index:2;cursor:pointer;caret-color:transparent}
 @media(max-width:1050px){.md-layout{grid-template-columns:1fr}.md-nav{display:flex;overflow:auto;max-height:none}.md-mob{flex-shrink:0;max-width:170px}}@media(max-width:700px){#sbOverlay:has(.md-designer) .item-editor{padding:11px}.md-columns{grid-template-columns:1fr}.md-header{flex-wrap:wrap}.md-header .btn{margin-left:0}.md-footer .btn{flex:1}.md-table{max-height:32dvh}}
 
-#sbOverlay:has(.equipment-designer) .item-editor{width:min(1160px,100%);background:#0e1320;border:1px solid #3c586d;color:#edf4fb;padding:18px}
-.equipment-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:14px;align-items:start}
-.eq-panel{background:#151e2b;border:1px solid #37475d;border-radius:11px;padding:13px;min-width:0}
-.eq-panel h3{margin:0 0 10px;color:#cce8f6;font-size:15px}
-.eq-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.eq-slot{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:center;background:#202b39;border:1px solid #3b4b60;border-radius:8px;padding:8px;min-width:0}
-.eq-slot.active{border-color:#8fcbec}
-.eq-icon{display:grid;place-items:center;width:42px;height:42px;background:#101822;border:1px solid #4a5b70;border-radius:7px;color:#758ba0;cursor:pointer;flex-shrink:0}
-.eq-icon .item-stack-icon{--item-size:34px!important;width:34px;height:34px}
-.eq-slot label{font-size:12px;color:#b9c9da;min-width:0}
-.eq-slot select{width:100%;font-size:16px!important;min-height:39px;margin-top:4px;padding:5px!important;min-width:0}
-.eq-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.eq-stat{background:#202b39;border:1px solid #354358;border-radius:7px;padding:9px;min-width:0}
-.eq-stat small{display:block;color:#b7c9d9;font-size:11px}
-.eq-stat strong{display:block;color:#79e1bd;font-size:18px;overflow-wrap:anywhere}
-.eq-stat span{color:#a9b9cc;font-size:10px}
-.eq-preview{margin-top:12px;min-height:90px;padding:12px;border-radius:8px;background:#10131e;border:1px solid #51406e;overflow-wrap:anywhere}
-.eq-base{margin:12px 0}.eq-base summary{cursor:pointer;padding:10px 0;color:#b9c9dc}
-.eq-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end;margin-top:14px}
-.eq-actions .btn{min-height:44px}
-.eq-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-.eq-top .editor-input,.eq-base .editor-input{width:100%;font-size:16px!important}
-@media(max-width:740px){.equipment-layout,.eq-top{grid-template-columns:1fr}.eq-slots{grid-template-columns:repeat(2,minmax(0,1fr))}#sbOverlay:has(.equipment-designer) .item-editor{padding:10px}.eq-actions .btn{flex:1}}
-@media(max-width:410px){.eq-slots{grid-template-columns:1fr}}
+
+#sbOverlay:has(.equipment-designer) .item-editor{width:min(1280px,100%);max-height:calc(100dvh - 24px);background:#10141e;border:1px solid #535b70;color:#edf0f7;padding:16px 19px;box-shadow:0 25px 90px #0009}
+#sbOverlay:has(.equipment-designer) .item-editor-head{position:sticky;top:-16px;z-index:10;background:#10141e;padding:10px 0;border-bottom:1px solid #ffffff15}
+.equipment-designer{--eq-muted:#a1afc3;--eq-gold:#d5ba82;--eq-line:#394253;--eq-bg:#171d29;color:#eef2fa}
+.eq-top{display:grid;grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto;gap:10px;align-items:end;margin:12px 0 16px}
+.eq-top label,.eq-base label{font-size:12px;color:var(--eq-muted)}
+.eq-top .editor-input,.eq-base .editor-input{width:100%;font-size:16px!important;min-height:40px;background:#1a2130;border-color:#3e495d}
+.eq-top-actions{display:flex;gap:7px}.eq-top-actions .btn{min-height:40px;white-space:nowrap}
+.equipment-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,1fr);gap:12px;align-items:start}
+.eq-panel{background:#151b27;border:1px solid #354256;border-radius:12px;padding:12px;min-width:0}
+.eq-panel h3{margin:0;color:#ecedf5;font-size:15px;font-weight:650}
+.eq-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.eq-kicker{font-size:10px;letter-spacing:1.8px;color:var(--eq-gold);font-weight:750;text-transform:uppercase}
+.eq-count{font-size:11px;color:var(--eq-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.eq-stage{position:relative;display:grid;grid-template-columns:minmax(76px,1fr) minmax(96px,1.2fr) minmax(76px,1fr);gap:8px;align-items:center;padding:13px 8px 12px;border:1px solid #40475a;border-radius:10px;background:radial-gradient(ellipse at 50% 45%,#344054 0%,#202738 35%,#141a26 75%);overflow:hidden}
+.eq-stage:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:22px 22px;mask-image:radial-gradient(ellipse,#000 20%,transparent 90%)}
+.eq-rack{display:grid;gap:8px;z-index:1;min-width:0}
+.eq-slot{appearance:none;display:flex;align-items:center;gap:7px;text-align:left;min-width:0;width:100%;min-height:64px;background:linear-gradient(135deg,#242d3a,#181e2b);border:1px solid #455064;border-radius:8px;padding:6px;color:#e6eaf2;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
+.eq-slot:hover,.eq-slot:focus-visible{border-color:#d9bc82;outline:none}
+.eq-slot.active{border-color:#dfc48b;background:linear-gradient(130deg,#3c3540,#222937);box-shadow:0 0 0 1px #bda16d44}
+.eq-slot.filled{border-color:var(--eq-rarity,#637184)}
+.eq-slot.active.filled{border-color:#dfc48b}
+.eq-icon{display:grid;place-items:center;width:43px;height:43px;flex-shrink:0;background:radial-gradient(ellipse,#3b4559,#131923 80%);border:1px solid #525b6d;border-radius:6px}
+.eq-icon .item-stack-icon{--item-size:39px!important;width:39px;height:39px;filter:drop-shadow(0 3px 3px #0007)}
+.eq-slot:not(.filled) .eq-icon .item-stack-icon{opacity:.42;filter:grayscale(.8)}
+.eq-slot-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.eq-slot-copy small{font-size:10px;color:#b8c4d7;white-space:nowrap}
+.eq-slot-copy strong{font-size:11px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--eq-rarity,#c5cbd5)}
+.eq-avatar{position:relative;z-index:0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
+.eq-avatar svg{width:100%;max-width:205px;height:auto;overflow:visible;filter:drop-shadow(0 10px 10px #0007)}
+.eq-avatar-name{font-weight:700;font-size:13px;text-align:center;overflow-wrap:anywhere;max-width:100%;color:#e5d1a7}
+.eq-avatar small{font-size:10px;color:#a3b1c5;text-align:center}
+.eq-accessories{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:10px}
+.eq-accessories .eq-slot{flex-direction:column;align-items:center;justify-content:center;min-height:91px;text-align:center;gap:4px;padding:6px 3px}
+.eq-accessories .eq-slot-copy{align-items:center;width:100%}
+.eq-accessories .eq-slot-copy strong{font-size:10px;max-width:100%}
+.eq-stats-head{margin:18px 0 8px}
+.eq-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 10px}
+.eq-stat{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:7px;align-items:center;min-width:0;min-height:35px;padding:5px 2px;border-bottom:1px solid #ffffff11}
+.eq-stat .item-stack-icon{--item-size:23px!important;width:23px;height:23px}
+.eq-stat small{font-size:11px;color:#b8c5d5;line-height:1.2}
+.eq-stat strong{font-size:14px;color:#edf4fc;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right}
+.eq-stat strong.nonzero{color:#91e2bc}
+.eq-stat strong.negative{color:#f49c9c}
+.eq-picker{display:flex;flex-direction:column;gap:9px}
+.eq-picker-head{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #534d47;background:linear-gradient(125deg,#393440,#202633);border-radius:8px}
+.eq-picker-head .item-stack-icon{--item-size:48px!important;width:48px;height:48px}
+.eq-picker-head div{min-width:0}
+.eq-picker-head small{display:block;font-size:10px;letter-spacing:1.2px;color:#e2c68f}
+.eq-picker-head strong{display:block;font-size:15px;margin-top:3px}
+.eq-picker-head span.eq-sub{display:block;font-size:11px;color:var(--eq-muted);margin-top:3px}
+.eq-picker-search{width:100%;min-height:40px;font-size:16px!important;background:#111824;border:1px solid #455065;border-radius:7px;padding:8px 10px;color:#eee}
+.eq-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:7px;max-height:250px;min-height:90px;overflow:auto;overscroll-behavior:contain;padding:2px;align-content:start}
+.eq-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:91px;padding:8px 4px;border:1px solid #404b5d;border-radius:8px;background:radial-gradient(ellipse at 50% 35%,#30394a,#1a202c 80%);color:#e7e9ef;cursor:pointer;text-align:center;min-width:0}
+.eq-choice.active{border-color:#e2c68f;box-shadow:inset 0 0 0 1px #e2c68f55}
+.eq-choice:hover{border-color:#91a7c0}
+.eq-choice .item-stack-icon{--item-size:43px!important;width:43px;height:43px;filter:drop-shadow(0 3px 3px #0008)}
+.eq-choice strong{font-size:11px;line-height:1.2;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.eq-choice small{font-size:9px;color:var(--eq-muted);overflow-wrap:anywhere}
+.eq-empty{grid-column:1/-1;text-align:center;padding:15px 8px;color:var(--eq-muted);font-size:12px}
+.eq-preview{min-height:100px;padding:12px;border-radius:8px;background:#101019;border:1px solid #584b6c;overflow-wrap:anywhere}
+.eq-preview .ci-map-tooltip{position:static!important;width:auto!important;max-width:none!important;font-size:13px}
+.eq-preview-hero{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.eq-preview-hero .item-stack-icon{--item-size:52px!important;width:52px;height:52px}
+.eq-preview-hero strong{font-size:14px}
+.eq-base{margin:12px 0 2px;border-top:1px solid #ffffff17}.eq-base summary{cursor:pointer;padding:10px 0;color:var(--eq-muted);font-size:12px}
+.eq-actions{position:sticky;bottom:-16px;z-index:5;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px;padding:11px 0;background:#10141e;border-top:1px solid #ffffff16}
+.eq-actions .btn{min-height:43px}.eq-actions .btn.primary{background:#dfc48b;color:#201d21;border-color:#e5cb95}
+.eq-panel .tiny-note{color:var(--eq-muted,#a1afc3)}
+@media(max-width:900px){.equipment-layout{grid-template-columns:minmax(0,1fr) minmax(230px,.8fr)}.eq-stage{grid-template-columns:minmax(66px,1fr) minmax(65px,.9fr) minmax(66px,1fr);gap:5px;padding:8px 5px}.eq-slot{gap:4px;padding:5px;min-height:59px}.eq-icon{width:34px;height:34px}.eq-icon .item-stack-icon{--item-size:30px!important;width:30px;height:30px}.eq-slot-copy small{font-size:9px}.eq-slot-copy strong{font-size:10px}}
+@media(max-width:680px){#sbOverlay:has(.equipment-designer) .item-editor{padding:10px}.equipment-layout{grid-template-columns:1fr}.eq-top{grid-template-columns:1fr 1fr}.eq-top-actions{grid-column:1/-1}.eq-stage{grid-template-columns:minmax(85px,1fr) minmax(75px,1fr) minmax(85px,1fr)}.eq-actions{bottom:-10px}.eq-actions .btn{flex:1}.eq-gallery{max-height:220px}}
+@media(max-width:370px){.eq-slot{flex-direction:column;text-align:center;min-height:73px}.eq-slot-copy{align-items:center}.eq-accessories{gap:4px}.eq-stat-grid{grid-template-columns:1fr}.eq-top{grid-template-columns:1fr}.eq-top-actions{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -2012,32 +2060,61 @@ function equipmentOpen(id=null){
  sbState={mode:'equipment',id:existing?.id||null,draft,focus:'weapon',dirty:false};
  equipmentRender();
 }
+
+const EQ_PLACEHOLDERS={weapon:'diamond_sword',helmet:'diamond_helmet',chestplate:'diamond_chestplate',leggings:'diamond_leggings',boots:'diamond_boots',necklace:'emerald',cloak:'elytra',belt:'leather',gloves:'leather',accessory1:'amethyst_shard',accessory2:'gold_ingot',accessory3:'ender_eye',accessory4:'nether_star',pet:'player_head'};
+const EQ_STAT_ICONS={'Damage':'diamond_sword','Strength':'blaze_powder','Crit Chance':'flint','Crit Damage':'redstone','Health':'golden_apple','Defense':'shield','Intelligence':'enchanted_book','Speed':'feather','Magic Find':'ender_eye','Attack Speed':'clock','Ferocity':'fire_charge'};
+function equipmentSlotMarkup(k){
+ const st=sbState,id=st.draft.fields[k],i=customItem(id),label=equipmentSlots().find(x=>x[0]===k)[1],e=escapeHTML;
+ return '<button type="button" class="eq-slot'+(st.focus===k?' active':'')+(i?' filled':'')+'" data-eq-preview="'+k+'" aria-pressed="'+(st.focus===k)+'" aria-label="'+e(label+': '+(i?.name||'Leer'))+'" style="--eq-rarity:'+(i?SB_RARITY[sbDetails(i.details).rarity]:'#c5cbd5')+'"><span class="eq-icon">'+itemImg(i?.id||EQ_PLACEHOLDERS[k])+'</span><span class="eq-slot-copy"><small>'+e(label)+'</small><strong>'+e(i?.name||(id?'Fehlendes Item':'+ Ausrüsten'))+'</strong></span></button>';
+}
+function equipmentAvatar(fields){
+ // Original block-style equipment mannequin. Armor is a visual indication, not a rendered skin.
+ const shades={netherite:['#63616c','#403e49','#8a8793'],diamond:['#6bc8cc','#307c86','#a1e4e1'],iron:['#b1bbc9','#707e94','#d6dce5'],golden:['#d5b36d','#94703d','#f0d695'],leather:['#916d54','#503b30','#c19a74'],chainmail:['#8d9bad','#596678','#bcc4d0'],turtle:['#69a56b','#376f4b','#a2c18b']};
+ const tone=(k,normal)=>{
+  const i=customItem(fields[k]);if(!i)return normal;
+  if(i.baseId.startsWith('leather_')&&i.dyeRecipe?.length){const c=armorDyeColor(i.dyeRecipe);if(typeof c==='string'&&/^#[a-f0-9]{6}$/i.test(c))return [c,'#313746','#c0b3c7']}
+  return shades[i.baseId.split('_')[0]]||['#9189b7','#554e72','#c2b8e2'];
+ };
+ const skin=['#ad876f','#725448','#d4aa8e'],hair=['#4b3732','#322927','#6b5040'],shirt=['#3c6171','#294450','#598195'],pants=['#46516b','#30384d','#64718a'],boot=['#3d4654','#252c36','#64707d'];
+ const box=(x,y,w,h,d,c)=>'<path d="M'+x+' '+y+'l'+d+' -'+Math.round(d*.48)+'h'+w+'l-'+d+' '+Math.round(d*.48)+'Z" fill="'+c[2]+'"/><path d="M'+(x+w)+' '+y+'l'+d+' -'+Math.round(d*.48)+'v'+h+'l-'+d+' '+Math.round(d*.48)+'Z" fill="'+c[1]+'"/><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c[0]+'"/>';
+ let a='<svg viewBox="0 0 168 270" role="img" aria-label="Schematische Minecraft-Spielerfigur"><ellipse cx="82" cy="251" rx="70" ry="15" fill="#090c14" opacity=".8"/><ellipse cx="82" cy="247" rx="64" ry="11" fill="none" stroke="#bda674" stroke-width="1.2" opacity=".6"/><ellipse cx="82" cy="247" rx="49" ry="7" fill="none" stroke="#8595b2" opacity=".3"/>';
+ a+=box(50,170,30,66,9,tone('leggings',pants))+box(83,170,30,66,9,tone('leggings',pants));
+ a+=box(48,222,32,17,9,tone('boots',boot))+box(83,222,32,17,9,tone('boots',boot));
+ a+=box(109,99,24,67,10,tone('chestplate',shirt))+box(49,93,64,79,12,tone('chestplate',shirt))+box(24,100,25,67,10,tone('chestplate',shirt));
+ a+=box(24,151,25,18,10,skin)+box(109,151,24,18,10,skin);
+ a+=box(53,28,55,57,13,skin);
+ a+='<path d="M53 28 66 22h55l-13 6v14H53Z" fill="'+hair[0]+'"/><path d="M108 28 121 22v24l-13 6Z" fill="'+hair[1]+'"/><rect x="61" y="50" width="13" height="6" fill="#d9d6ca"/><rect x="86" y="50" width="13" height="6" fill="#d9d6ca"/><rect x="68" y="50" width="6" height="6" fill="#4b7198"/><rect x="86" y="50" width="6" height="6" fill="#4b7198"/><rect x="76" y="64" width="10" height="4" fill="#75544b"/>';
+ if(customItem(fields.helmet)){const c=tone('helmet',shirt);a+=box(49,23,63,22,13,c)+'<rect x="49" y="44" width="10" height="20" fill="'+c[0]+'"/><rect x="102" y="44" width="10" height="20" fill="'+c[1]+'"/>'}
+ if(customItem(fields.chestplate))a+='<path d="M59 102h42v45H59z" fill="none" stroke="#ffffff3b" stroke-width="2"/><path d="M68 109h24v14H68z" fill="#ffffff12"/>';
+ return a+'</svg>';
+}
 function equipmentRender(){
- const st=sbState;if(st?.mode!=='equipment')return;const e=escapeHTML,p=st.draft;
- const builds=board.nodes.filter(n=>n.plan?.type==='equipment');
- const items=board.customItems.slice().sort((a,b)=>a.name.localeCompare(b.name));
- sbShow('♜ Player Equipment Simulator','<div class="equipment-designer"><p class="tiny-note">Stelle einen Build aus deinen Custom Items zusammen. Alle gespeicherten Werte werden addiert. Jeder Build ist eine eigene, verschiebbare Karte auf deiner Mindmap.</p><div class="eq-top">'+sbSelect('Gespeicherte Builds','eqBuild',[['','＋ Neuer Build'],...builds.map(n=>[n.id,n.plan.name])],st.id||'')+sbField('Build-Name','eqName',p.name)+'</div><div class="eq-actions" style="justify-content:flex-start;margin:0 0 12px"><button class="btn" data-eq-action="new">＋ Neuer Build</button><button class="btn" data-eq-action="copy">Build duplizieren</button></div><div class="equipment-layout"><section class="eq-panel"><h3>Equipment Slots</h3>'+(!items.length?'<p class="tiny-note">Noch keine Custom Items in dieser Mindmap. Lege zuerst ein Item mit Stats an.</p><button class="btn" data-eq-action="items">Custom Items öffnen</button>':'')+'<div class="eq-slots">'+equipmentSlots().map(([k,label])=>{
- const id=p.fields[k],i=customItem(id);
- const options=[['','— Leer —'],...(id&&!i?[[id,'Fehlendes Item']]:[]),...items.map(x=>[x.id,x.name])];
- return '<div class="eq-slot" data-eq-slot="'+k+'"><button type="button" class="eq-icon" data-eq-preview="'+k+'" aria-label="'+e(label)+' Vorschau">'+(i?itemImg(i.id):'◇')+'</button>'+sbSelect(label,'eq_'+k,options,id)+'</div>'
- }).join('')+'</div><details class="eq-base"><summary>Basiswerte des Spielers (optional)</summary><div class="combat-fields">'+SB_STATS.map((k,i)=>sbField(k,'eq_base'+i,p.fields['base'+i]||0,'n','min="0"')).join('')+'</div><p class="tiny-note">Basiswerte werden zusätzlich zu den Item-Stats gerechnet.</p></details></section><section class="eq-panel"><h3>Total Stats</h3><div class="eq-stat-grid" id="eqTotals"></div><p class="tiny-note">Crit Chance ist im Combat Simulator auf 0–100 % begrenzt. Set-Boni, Fähigkeiten und Pet-Level-Skalierung werden nicht automatisch berechnet.</p><h3 style="margin-top:14px">Item-Vorschau</h3><div class="eq-preview" id="eqPreview"></div></section></div><div class="eq-actions"><button class="btn" data-eq-action="cancel">Schließen</button><button class="btn" data-eq-action="test">⚔ Speichern &amp; im Combat Simulator testen</button><button class="btn primary" data-eq-action="save">Auf Mindmap speichern</button></div></div>');
+ const st=sbState;if(st?.mode!=='equipment')return;const p=st.draft,builds=board.nodes.filter(n=>n.plan?.type==='equipment');
+ sbShow('Player Equipment Simulator','<div class="equipment-designer"><div class="eq-kicker">ETERNAL SKYBLOCK / BUILD PLANNER</div><div class="eq-top">'+sbSelect('Gespeicherte Builds','eqBuild',[['','＋ Neuer Build'],...builds.map(n=>[n.id,n.plan.name])],st.id||'')+sbField('Build-Name','eqName',p.name)+'<div class="eq-top-actions"><button class="btn" data-eq-action="new">＋ Neu</button><button class="btn" data-eq-action="copy">Duplizieren</button></div></div><div class="equipment-layout"><section class="eq-panel"><div class="eq-heading"><div><div class="eq-kicker">01 / LOADOUT</div><h3>Equipment</h3></div><span class="eq-count" id="eqCount"></span></div><div class="eq-stage"><div class="eq-rack" id="eqLeft"></div><div class="eq-avatar" id="eqAvatar"></div><div class="eq-rack" id="eqRight"></div></div><div class="eq-accessories" id="eqAccessories"></div><div class="eq-heading eq-stats-head"><div><div class="eq-kicker">02 / ATTRIBUTES</div><h3>Total Stats</h3></div><span class="eq-count">Basis + Gear</span></div><div class="eq-stat-grid" id="eqTotals"></div><details class="eq-base"><summary>Basiswerte bearbeiten</summary><div class="combat-fields">'+SB_STATS.map((k,i)=>sbField(k,'eq_base'+i,p.fields['base'+i]||0,'n','min="0"')).join('')+'</div><p class="tiny-note">Basiswerte werden zusätzlich zu den Item-Stats gerechnet.</p></details></section><section class="eq-panel eq-picker"><div class="eq-heading"><div><div class="eq-kicker">03 / ITEM COLLECTION</div><h3>Custom Items</h3></div><button class="btn" data-eq-action="items">＋ Items</button></div><div class="eq-picker-head" id="eqPickerHead"></div><input class="eq-picker-search" id="eqSearch" placeholder="Items suchen …" aria-label="Custom Items suchen" autocomplete="off"><div id="eqGallery" class="eq-gallery"></div><div class="eq-heading" style="margin:6px 0 0"><div><div class="eq-kicker">04 / ITEM DETAILS</div><h3>Ingame-Vorschau</h3></div><button class="btn" data-eq-action="clear">Entfernen</button></div><div class="eq-preview" id="eqPreview"></div><p class="tiny-note">Tippe links auf einen Ausrüstungsslot und wähle hier ein Custom Item. Alle Stats aktualisieren sich sofort. Set-Boni und Fähigkeiten werden noch nicht berechnet.</p></section></div><div class="eq-actions"><button class="btn" data-eq-action="cancel">Schließen</button><button class="btn" data-eq-action="test">⚔ Im Combat Simulator testen</button><button class="btn primary" data-eq-action="save">Build speichern</button></div></div>');
  equipmentRefresh();
 }
 function equipmentSync(){
  const st=sbState;if(st?.mode!=='equipment')return;
  st.draft.name=$('eqName').value.trim().slice(0,100);
- for(const [k] of equipmentSlots())st.draft.fields[k]=$('eq_'+k).value;
- SB_STATS.forEach((k,i)=>{st.draft.fields['base'+i]=Math.max(0,Number($('eq_base'+i).value)||0)});
+ SB_STATS.forEach((k,i)=>{st.draft.fields['base'+i]=Math.min(1e12,Math.max(0,Number($('eq_base'+i).value)||0))});
 }
-function equipmentRefresh(){
- const st=sbState;if(st?.mode!=='equipment')return;
- const totals=equipmentStats(st.draft.fields),pct=new Set(['Crit Chance','Crit Damage','Attack Speed']);
- $('eqTotals').innerHTML=SB_STATS.map(k=>{const a=totals[k],u=pct.has(k)?'%':'';return '<div class="eq-stat"><small>'+escapeHTML(k)+'</small><strong>'+combatFmt(a.total)+u+'</strong><span>Basis '+combatFmt(a.base)+' · Gear '+combatFmt(a.gear)+'</span></div>'}).join('');
- for(const el of $('sbContent').querySelectorAll('[data-eq-slot]')){
- const k=el.dataset.eqSlot,i=customItem(st.draft.fields[k]);el.classList.toggle('active',k===st.focus);el.querySelector('.eq-icon').innerHTML=i?itemImg(i.id):'◇';
- }
- const i=customItem(st.draft.fields[st.focus]);
- $('eqPreview').innerHTML=i?ciGameTooltip(i):'<span class="tiny-note">Wähle ein Item oder tippe auf sein Symbol, um die Ingame-Lore zu sehen.</span>';
+function equipmentGallery(){
+ const st=sbState;if(st?.mode!=='equipment')return;const e=escapeHTML,q=$('eqSearch').value.trim().toLowerCase();
+ const items=board.customItems.slice().sort((a,b)=>a.name.localeCompare(b.name)).filter(i=>(i.name+' '+i.baseId+' '+i.details?.type+' '+i.details?.rarity).toLowerCase().includes(q));
+ $('eqGallery').innerHTML=items.length?items.map(i=>'<button type="button" class="eq-choice'+(st.draft.fields[st.focus]===i.id?' active':'')+'" data-eq-pick="'+e(i.id)+'" aria-label="'+e(i.name)+'">'+itemImg(i.id)+'<strong style="color:'+SB_RARITY[sbDetails(i.details).rarity]+'">'+e(i.name)+'</strong><small>'+e(sbDetails(i.details).rarity.replaceAll('_',' '))+'</small></button>').join(''):'<div class="eq-empty">'+(board.customItems.length?'Keine passenden Items gefunden.':'Noch keine Custom Items in dieser Mindmap. Erstelle eigene Items über „＋ Items“.')+'</div>';
+}
+function equipmentRefresh(updateGallery=true){
+ const st=sbState;if(st?.mode!=='equipment')return;const f=st.draft.fields,e=escapeHTML,totals=equipmentStats(f),pct=new Set(['Crit Chance','Crit Damage','Attack Speed']);
+ $('eqLeft').innerHTML=['helmet','chestplate','leggings','boots'].map(equipmentSlotMarkup).join('');
+ $('eqRight').innerHTML=['weapon','necklace','cloak','belt','gloves'].map(equipmentSlotMarkup).join('');
+ $('eqAccessories').innerHTML=['accessory1','accessory2','accessory3','accessory4','pet'].map(equipmentSlotMarkup).join('');
+ $('eqCount').textContent=equipmentSlots().filter(([k])=>customItem(f[k])).length+' / 14 equipped';
+ $('eqAvatar').innerHTML=equipmentAvatar(f)+'<div class="eq-avatar-name">'+e(st.draft.name||'New Build')+'</div><small>PLAYER LOADOUT</small>';
+ $('eqTotals').innerHTML=SB_STATS.map(k=>{const a=totals[k],u=pct.has(k)?'%':'',tip='Basis '+combatFmt(a.base)+' · Gear '+combatFmt(a.gear);return '<div class="eq-stat" title="'+e(tip)+'">'+itemImg(EQ_STAT_ICONS[k])+'<small>'+e(k)+'</small><strong class="'+(a.total<0?'negative':a.total>0?'nonzero':'')+'">'+combatFmt(a.total)+u+'</strong></div>'}).join('');
+ const i=customItem(f[st.focus]),label=equipmentSlots().find(x=>x[0]===st.focus)[1];
+ $('eqPickerHead').innerHTML=itemImg(i?.id||EQ_PLACEHOLDERS[st.focus])+'<div><small>ACTIVE SLOT</small><strong>'+e(label)+'</strong><span class="eq-sub">'+e(i?.name||'Item auswählen')+'</span></div>';
+ $('eqPreview').innerHTML=i?'<div class="eq-preview-hero">'+itemImg(i.id)+'<strong style="color:'+SB_RARITY[sbDetails(i.details).rarity]+'">'+e(i.name)+'</strong></div>'+ciGameTooltip(i):'<span class="tiny-note">Hier erscheint die Ingame-Lore des ausgewählten Items.</span>';
+ if(updateGallery)equipmentGallery();
 }
 function equipmentCanLeave(){return !sbState?.dirty||window.confirm('Ungespeicherte Build-Änderungen verwerfen?')}
 function equipmentSave(){
@@ -2071,19 +2148,21 @@ function equipmentCombat(id,mobId=null){
 }
 $('sbContent').addEventListener('input',e=>{
  const st=sbState;if(st?.mode!=='equipment')return;
- if(e.target.id==='eqName'||e.target.id.startsWith('eq_base')){equipmentSync();st.dirty=true;equipmentRefresh()}
+ if(e.target.id==='eqSearch'){equipmentGallery();return}if(e.target.id==='eqName'||e.target.id.startsWith('eq_base')){equipmentSync();st.dirty=true;equipmentRefresh(false)}
 });
 $('sbContent').addEventListener('change',e=>{
  const st=sbState;if(st?.mode!=='equipment')return;
  if(e.target.id==='eqBuild'){if(equipmentCanLeave())equipmentOpen(e.target.value||null);else e.target.value=st.id||'';return}
- if(e.target.id.startsWith('eq_')&&!e.target.id.startsWith('eq_base')){equipmentSync();st.focus=e.target.id.slice(3);st.dirty=true;equipmentRefresh()}
+ 
 });
 $('sbContent').addEventListener('click',e=>{
- const b=e.target.closest('[data-eq-action],[data-eq-preview]');if(!b)return;
+ const b=e.target.closest('[data-eq-action],[data-eq-preview],[data-eq-pick]');if(!b)return;
  const a=b.dataset.eqAction,st=sbState;
  if(a==='back'&&st?.mode==='combat'&&st.equipmentId){equipmentOpen(st.equipmentId);return}
  if(st?.mode!=='equipment')return;
- if(b.dataset.eqPreview){st.focus=b.dataset.eqPreview;equipmentRefresh();return}
+ if(b.dataset.eqPreview){st.focus=b.dataset.eqPreview;$('eqSearch').value='';equipmentRefresh();if(window.matchMedia('(max-width:680px)').matches)$('eqPickerHead').scrollIntoView({block:'nearest',behavior:'smooth'});return}
+ if(b.dataset.eqPick){if(customItem(b.dataset.eqPick)){st.draft.fields[st.focus]=b.dataset.eqPick;st.dirty=true;equipmentRefresh()}return}
+ if(a==='clear'){st.draft.fields[st.focus]='';st.dirty=true;equipmentRefresh();return}
  if(a==='cancel'){if(equipmentCanLeave())sbClose();return}
  if(a==='new'){if(equipmentCanLeave())equipmentOpen();return}
  if(a==='items'){if(equipmentCanLeave())sbItems();return}

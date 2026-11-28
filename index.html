@@ -526,6 +526,9 @@
 .eq-map-preview .eq-3d-floor,.eq-map-preview .eq-3d-help{display:none!important}
 .eq-map-preview .eq-map-snapshot{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;pointer-events:none}
 .eq-map-preview.has-snapshot .eq-3d-view{visibility:hidden}
+.node.equipment-map-node{background:transparent!important;border:0!important;box-shadow:none!important}
+.eq-map-preview{isolation:isolate}
+.eq-map-preview .eq-3d-view{display:block!important}
 .node.equipment-map-node.selected .eq-map-preview{filter:drop-shadow(0 0 4px #a3b8ff44)}
 
 .eq-depth-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;image-rendering:auto}
@@ -1375,8 +1378,8 @@ function alignSnap(n,x,y,disable=false){
  $('snapGuides').innerHTML=lines;
  return {x:Math.round(x),y:Math.round(y)};
 }
-function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n);const mc=el.querySelector('.mob-node-card');if(mc){mc.style.fontSize=n.fontSize+'px';mc.style.color=n.textColor}const ic=el.querySelector('.ci-map-card');if(ic)ic.style.fontSize=n.fontSize+'px';const dc=el.querySelector('.md-map-card');if(dc)dc.style.fontSize=n.fontSize+'px'}
-function renderNodes(){for(const n of board.nodes)if(n.plan?.type==='equipment'&&n.w===340&&n.h===145){const cx=n.x+n.w/2,cy=n.y+n.h/2;n.w=180;n.h=260;n.x=Math.round(cx-90);n.y=Math.round(cy-130)}nodeLayer.innerHTML=board.nodes.map(n=>n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''} ${n.plan?.type==='mob'?'mob-node':''} ${n.plan?.type==='custom_item'?'ci-item-node':''} ${n.plan?.type==='mob_drop'?'md-drop-node':''} ${n.plan?.type==='equipment'?'equipment-map-node':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.plan?.type==='mob'?mobNodeCard(n):n.plan?.type==='custom_item'?ciMapCard(n):n.plan?.type==='mob_drop'?mdMapCard(n):n.plan?.type==='equipment'?equipmentMapCard(n):''}${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges();equipmentMapPreviews()}
+function paintNode(n){const el=[...nodeLayer.children].find(x=>x.dataset.id===n.id);if(!el)return;if(n.kind==='craft'){el.style.left=n.x+'px';el.style.top=n.y+'px';return;}el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.height=n.h+'px';el.dataset.shape=n.shape;if(n.plan?.type==='equipment'){return}el.querySelector('.shape-svg').outerHTML=shapeSvg(n);const ta=el.querySelector('textarea');ta.style.color=n.textColor;ta.style.fontFamily=fonts[n.font];ta.style.fontSize=n.fontSize+'px';ta.style.fontWeight=n.fontWeight;ta.style.textAlign=n.align;layoutTextarea(ta,n);const mc=el.querySelector('.mob-node-card');if(mc){mc.style.fontSize=n.fontSize+'px';mc.style.color=n.textColor}const ic=el.querySelector('.ci-map-card');if(ic)ic.style.fontSize=n.fontSize+'px';const dc=el.querySelector('.md-map-card');if(dc)dc.style.fontSize=n.fontSize+'px'}
+function renderNodes(){for(const n of board.nodes)if(n.plan?.type==='equipment'&&n.w>=n.h*1.65){const cx=n.x+n.w/2,cy=n.y+n.h/2;n.w=180;n.h=260;n.x=Math.round(cx-90);n.y=Math.round(cy-130)}nodeLayer.innerHTML=board.nodes.map(n=>n.plan?.type==='equipment'?equipmentMapNode(n):n.kind==='craft'?`<div class="node craft-node" data-id="${escapeHTML(n.id)}" data-kind="craft" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${craftInnerHTML(n)}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${side} verbinden" tabindex="-1"></button>`).join('')}</div>`:`<div class="node ${n.submapEnabled?'has-submap':''} ${n.plan?'sb-plan':''} ${n.plan?.type==='mob'?'mob-node':''} ${n.plan?.type==='custom_item'?'ci-item-node':''} ${n.plan?.type==='mob_drop'?'md-drop-node':''} ${n.plan?.type==='equipment'?'equipment-map-node':''}" data-id="${escapeHTML(n.id)}" data-shape="${n.shape}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${shapeSvg(n)}<textarea class="node-text" maxlength="5000" placeholder="Text eingeben …" aria-label="Text in Form" ${n.submapEnabled?'readonly title="Unter-Mindmap öffnen"':n.plan?'readonly title="Planung bearbeiten"':''}>${escapeHTML(n.text)}</textarea>${n.plan?.type==='mob'?mobNodeCard(n):n.plan?.type==='custom_item'?ciMapCard(n):n.plan?.type==='mob_drop'?mdMapCard(n):n.plan?.type==='equipment'?equipmentMapCard(n):''}${n.submapEnabled?'<span class="submap-mark" aria-hidden="true">↗</span>':''}${sides.map(side=>`<button type="button" class="port port-${side}" data-side="${side}" title="${{top:'Oben',right:'Rechts',bottom:'Unten',left:'Links'}[side]} verbinden" aria-label="${side} verbinden" tabindex="-1"></button>`).join('')}<button class="node-handle move-handle" title="Form verschieben" aria-label="Form verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>`).join('');for(const n of board.nodes)paintNode(n);$('empty').classList.toggle('hidden',board.nodes.length>0);refreshSelection();drawEdges();equipmentMapPreviews()}
 function pickEdgePoint(n,target){const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=target.x-cx,dy=target.y-cy;const w=n.w/2,h=n.h/2;
  if(n.shape==='circle'||n.shape==='ellipse'){const den=Math.sqrt((dx/w)**2+(dy/h)**2)||1;return {x:cx+dx/den,y:cy+dy/den}}
  let poly;if(n.shape==='triangle')poly=[[0,-h],[w,h],[-w,h]];else if(n.shape==='diamond')poly=[[0,-h],[w,0],[0,h],[-w,0]];else poly=[[-w,-h],[w,-h],[w,h],[-w,h]];
@@ -2173,7 +2176,7 @@ function equipmentAvatar(fields){
 let eqAvatarCleanup=null;
 function equipmentDepthRenderer(view,model,options={}){
  const canvas=document.createElement('canvas');canvas.className='eq-depth-canvas';canvas.setAttribute('aria-hidden','true');
- const gl=canvas.getContext('webgl',{alpha:true,depth:true,antialias:false,premultipliedAlpha:false});
+ const gl=canvas.getContext('webgl',{alpha:true,depth:true,antialias:false,premultipliedAlpha:false,preserveDrawingBuffer:!!options.snapshot});
  if(!gl)return null;
  const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){const msg=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(msg)}return sh};
  const vert=compile(gl.VERTEX_SHADER,'attribute vec3 p;attribute vec2 uv;uniform vec2 angle;uniform vec2 scale;varying vec2 t;void main(){float cy=cos(angle.x),sy=sin(angle.x),cx=cos(angle.y),sx=sin(angle.y);vec3 q=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);q=vec3(q.x,cx*q.y-sx*q.z,sx*q.y+cx*q.z);gl_Position=vec4(q.x*scale.x,-q.y*scale.y,-q.z/90.0,1.0-q.z/125.0);t=uv;}');
@@ -2250,15 +2253,15 @@ function equipmentDepthRenderer(view,model,options={}){
  };
  canvas.style.visibility='hidden';view.append(canvas);
  const show=()=>{if(disposed)return;ready=true;if(!options.snapshot){canvas.style.visibility='visible';model.style.display='none'}redraw()};
- let pending=atlases.size+(held?1:0);
- const settled=()=>{pending--;if(options.snapshot&&pending===0&&!disposed){if(!ready){options.snapshot(null);return}render(1200);let url=null;try{url=canvas.toDataURL('image/png')}catch{}options.snapshot(url)}};
+ let pending=atlases.size+(held?1:0),snapshotFailed=false;
+ const settled=(ok=true)=>{if(!ok)snapshotFailed=true;pending--;if(options.snapshot&&pending===0&&!disposed){if(!ready||snapshotFailed){options.snapshot(null);return}render(1200);let url=null;try{url=canvas.toDataURL('image/png')}catch{}options.snapshot(url)}};
  for(const [url,entry] of atlases){
   const fallback=url.replace('https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/','https://assets.mcasset.cloud/');
-  load([url,fallback],entry.texture,ok=>{entry.ready=ok;if(ok&&url===skinUrl)show();else if(ok)redraw();settled()});
+  load([url,fallback],entry.texture,ok=>{entry.ready=ok;if(ok&&url===skinUrl)show();else if(ok)redraw();settled(ok)});
  }
  if(held){
   const im=held.querySelector('img.item-icon'),urls=im?[im.getAttribute('src'),...Array.from({length:7},(_,i)=>im.getAttribute('data-src'+i))].filter(Boolean):[];
-  if(urls.length)load([...new Set(urls)],heldTex,ok=>{heldReady=ok;if(ok)redraw();settled()});else settled();
+  if(urls.length)load([...new Set(urls)],heldTex,ok=>{heldReady=ok;if(ok)redraw();settled(ok)});else settled(false);
  }
  const restore=()=>{if(!disposed){ready=false;canvas.style.visibility='hidden';model.style.display=''}};
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();restore()});
@@ -2267,13 +2270,17 @@ function equipmentDepthRenderer(view,model,options={}){
  if(typeof MutationObserver!=='undefined'){observer=new MutationObserver(()=>{if(!view.isConnected)cleanup()});observer.observe(document.body,{childList:true,subtree:true})}
  return {redraw,cleanup};
 }
+function equipmentMapNode(n){
+ const ports=sides.map(side=>'<button type="button" class="port port-'+side+'" data-side="'+side+'" title="Verbinden" tabindex="-1"></button>').join('');
+ return '<div class="node equipment-map-node sb-plan" data-id="'+escapeHTML(n.id)+'" data-shape="rect" style="left:'+n.x+'px;top:'+n.y+'px;width:'+n.w+'px;height:'+n.h+'px;background:transparent;border:0" aria-label="'+escapeHTML(n.plan.name||'Player Equipment')+'">'+equipmentMapCard(n)+ports+'<button class="node-handle move-handle" title="Figur verschieben" aria-label="Figur verschieben" tabindex="-1">⠿</button><button class="node-handle resize-handle" title="Größe verändern" aria-label="Größe verändern" tabindex="-1"><svg viewBox="0 0 16 16"><path d="M5 12h7V5M9 8l3-3"/></svg></button></div>';
+}
 function equipmentMapCard(n){
  return '<div class="eq-map-preview" aria-label="'+escapeHTML(n.plan.name||'Player Equipment')+'">'+equipmentAvatar(n.plan.fields)+'</div>';
 }
 function equipmentMapPreviews(){
  const state=equipmentMapPreviews.state||(equipmentMapPreviews.state={queue:[],active:false,cache:new Map()});
  state.queue=[...nodeLayer.querySelectorAll('.eq-map-preview')];
- const show=(target,url)=>{if(!target.isConnected||!url)return;const image=document.createElement('img');image.className='eq-map-snapshot';image.alt='';image.draggable=false;image.src=url;target.append(image);target.classList.add('has-snapshot')};
+ const show=(target,url)=>{if(!target.isConnected||!url)return;const image=document.createElement('img');image.className='eq-map-snapshot';image.alt='';image.draggable=false;image.onload=()=>{if(target.isConnected)target.classList.add('has-snapshot')};image.onerror=()=>image.remove();target.append(image);image.src=url};
  const next=()=>{
   if(state.active)return;
   let target;

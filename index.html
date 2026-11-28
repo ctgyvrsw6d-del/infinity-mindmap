@@ -523,6 +523,8 @@
 .eq-3d-model{--u:4px;--u:min(6.1px,4cqw);position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--pitch,-12deg)) rotateY(var(--yaw,-28deg));pointer-events:none}
 .eq-3d-box{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;transform:translate3d(calc(var(--u)*var(--x)),calc(var(--u)*var(--y)),calc(var(--u)*var(--z)))}
 .eq-3d-face{position:absolute;left:0;top:0;display:block;width:calc(var(--u)*var(--fw));height:calc(var(--u)*var(--fh));background-color:var(--fc);background-image:var(--ft);background-size:100% 100%;image-rendering:pixelated;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translate(-50%,-50%) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateZ(calc(var(--u)*var(--fd)));box-shadow:inset 0 0 0 .35px #0002}
+.eq-3d-face.eq-3d-skin{background-size:var(--skin-size);background-position:var(--skin-pos);background-repeat:no-repeat;background-color:transparent;box-shadow:none;image-rendering:-webkit-optimize-contrast;image-rendering:pixelated}
+.eq-3d-skin-overlay{pointer-events:none}
 .eq-3d-face.glint::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(125deg,transparent 0 22%,#b08bff88 27%,#e0bbffb0 32%,#89b7ff60 38%,transparent 44%);background-size:220% 220%;mix-blend-mode:screen;animation:eq3dShine 3.1s linear infinite;pointer-events:none}
 @keyframes eq3dShine{0%{background-position:160% 100%}100%{background-position:-60% -20%}}
 .eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*11);height:calc(var(--u)*11);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*8.3),calc(var(--u)*.7),calc(var(--u)*3.4)) translate(-50%,-50%) rotateZ(-10deg)}
@@ -2090,33 +2092,40 @@ function equipmentAvatar(fields){
  const shade=(c,f)=>'#'+[1,3,5].map(p=>Math.max(0,Math.min(255,Math.round(parseInt(c.slice(p,p+2),16)*f))).toString(16).padStart(2,'0')).join('');
  const palette=i=>{let c=materials[(i?.baseId||'').split('_')[0]]||'#9b8ab8';if(i?.baseId?.startsWith('leather_')&&i.dyeRecipe?.length){const d=armorDyeColor(i.dyeRecipe);if(typeof d==='string'&&/^#[a-f0-9]{6}$/i.test(d))c=d}return c};
  const faces=[['front',0,0,1],['back',180,0,.72],['right',90,0,.75],['left',-90,0,.88],['top',0,90,1.19],['bottom',0,-90,.59]];
+ // The original 64x64 Java Edition wide Steve atlas, sampled face by face.
+ const skinAtlas='https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png';
+ const uv=(u,v,w,h,d,face)=>{
+  switch(face){
+   case 'front':return [u+d,v+d,w,h];
+   case 'back':return [u+2*d+w,v+d,w,h];
+   case 'left':return [u,v+d,d,h];
+   case 'right':return [u+d+w,v+d,d,h];
+   case 'top':return [u+d,v,w,d];
+   case 'bottom':return [u+d+w,v,w,d];
+  }
+ };
+ const skinBox=(x,y,z,w,h,d,u,v,inflate=0,overlay=false)=>{
+  let html='<div class="eq-3d-box" style="--x:'+x+';--y:'+y+';--z:'+z+'">';
+  for(const [face,ry,rx] of faces){
+   const side=face==='left'||face==='right',flat=face==='top'||face==='bottom';
+   const fw=(side?d:w)+2*inflate,fh=(flat?d:h)+2*inflate,fd=(flat?h:side?w:d)/2+inflate;
+   const [tx,ty,tw,th]=uv(u,v,w,h,d,face);
+   const bs=(64/tw*100)+'% '+(64/th*100)+'%';
+   const bp=(tx/(64-tw)*100)+'% '+(ty/(64-th)*100)+'%';
+   html+='<i class="eq-3d-face eq-3d-skin'+(overlay?' eq-3d-skin-overlay':'')+'" style="--fw:'+fw+';--fh:'+fh+';--fd:'+fd+';--ry:'+ry+'deg;--rx:'+rx+'deg;--fc:transparent;--ft:url(&quot;'+skinAtlas+'&quot;);--skin-size:'+bs+';--skin-pos:'+bp+'"></i>';
+  }
+  return html+'</div>';
+ };
  const art=(kind,face,w,h,c)=>{
   const W=Math.max(1,Math.round(w)),H=Math.max(1,Math.round(h));
+  const light={front:1,back:.72,right:.75,left:.88,top:1.19,bottom:.59}[face];
   let pixels='';
-  const pixel=(x,y,color)=>{pixels+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+color+'"/>'};
-  const faceColors={front:1,back:.72,right:.75,left:.88,top:1.19,bottom:.59};
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    let v=c;
-   if(kind==='head'){
-    v='#bd8968';
-    if(face==='top'||face==='back'&&y<6||face!=='front'&&face!=='bottom'&&(y<3||x>=W-2)||face==='front'&&(y<2||y<4&&(x===0||x===W-1)))v='#4b3026';
-    if(face==='front'){
-     if(y===3&&[1,2,5,6].includes(x))v=[2,5].includes(x)?'#4e588e':'#eee4d6';
-     if(y===4&&[3,4].includes(x))v='#d29a75';
-     if(y===5&&x>=2&&x<=5)v=x===3||x===4?'#9c624d':'#674536';
-     if(y===6&&x>=2&&x<=5)v=x===3||x===4?'#c78d6d':'#674536';
-    }
-   }else if(kind==='arm'){v=y<4||face==='top'?'#289b9d':'#bd8968'}
-   else if(kind==='torso'){v='#289b9d';if(face==='front'&&y===0&&x>=2&&x<=5)v='#b78060';if(face==='front'&&y>=10&&x===3)v='#21888f'}
-   else if(kind==='leg'){v=y>=H-2||face==='bottom'?'#454650':'#414f91'}
-   else if(kind==='armor'){
-    if((x===0||x===W-1)&&W>2)v=shade(c,.83);
-    else if(y===0&&H>2)v=shade(c,1.23);
-    else if(y===H-1&&H>2)v=shade(c,.75);
-    else if((x+y)%7===0)v=shade(c,1.13);
-   }
-   const noise=1+(((x*17+y*23+kind.length*7+face.length*13)%9)-4)*.023;
-   pixel(x,y,shade(v,faceColors[face]*noise));
+   if((x===0||x===W-1)&&W>2)v=shade(c,.83);
+   else if(y===0&&H>2)v=shade(c,1.23);
+   else if(y===H-1&&H>2)v=shade(c,.75);
+   pixels+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+shade(v,light)+'"/>';
   }
   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" shape-rendering="crispEdges">'+pixels+'</svg>';
   return 'url(&quot;data:image/svg+xml,'+encodeURIComponent(svg).replace(/'/g,'%27')+'&quot;)';
@@ -2132,11 +2141,20 @@ function equipmentAvatar(fields){
  };
  const armor=(k,parts)=>{const i=gear(k);return i?parts.map(p=>cube(...p,'armor',palette(i),Boolean(i.enchanted))).join(''):''};
  let model='';
- // Six independently textured, truly volumetric body parts; 8:12:12 Minecraft proportions.
- model+=cube(0,-12,0,8,8,8,'head','#bd8968');
- model+=cube(0,-2,0,8,12,4,'torso','#289b9d');
- model+=cube(-6,-2,0,4,12,4,'arm','#bd8968')+cube(6,-2,0,4,12,4,'arm','#bd8968');
- model+=cube(-2,10,0,4,12,4,'leg','#414f91')+cube(2,10,0,4,12,4,'leg','#414f91');
+ // Base and second skin layers use the exact UV rectangles of the wide player model.
+ // Right-side limbs are at negative X when facing the viewer.
+ const bodyParts=[
+  [0,-12,0,8,8,8,0,0,32,0,.5],
+  [0,-2,0,8,12,4,16,16,16,32,.25],
+  [-6,-2,0,4,12,4,40,16,40,32,.25],
+  [6,-2,0,4,12,4,32,48,48,48,.25],
+  [-2,10,0,4,12,4,0,16,0,32,.25],
+  [2,10,0,4,12,4,16,48,0,48,.25]
+ ];
+ for(const [x,y,z,w,h,d,u,v,ou,ov,inflate] of bodyParts){
+  model+=skinBox(x,y,z,w,h,d,u,v);
+  model+=skinBox(x,y,z,w,h,d,ou,ov,inflate,true);
+ }
  // Helmet has a crown, side panels and back rather than hiding the face.
  model+=armor('helmet',[[0,-15.35,0,9.1,2.5,9.1],[-4.1,-12.2,0,1.1,4.1,8.7],[4.1,-12.2,0,1.1,4.1,8.7],[0,-12.2,-4.15,7.3,4.1,1]]);
  model+=armor('chestplate',[[0,-2.05,0,8.65,12.15,4.65],[-6,-5.7,0,4.65,5.1,4.65],[6,-5.7,0,4.65,5.1,4.65]]);

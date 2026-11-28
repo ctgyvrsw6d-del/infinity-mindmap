@@ -519,6 +519,8 @@
 .eq-avatar svg{width:100%;max-width:205px;height:auto;overflow:visible;filter:drop-shadow(0 10px 10px #0007)}
 .eq-3d-view{position:relative;width:100%;max-width:215px;aspect-ratio: .77;min-height:125px;container-type:inline-size;perspective:650px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;outline-offset:3px}
 .eq-3d-view:active{cursor:grabbing}
+.eq-depth-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;image-rendering:auto}
+
 .eq-3d-floor{position:absolute;left:9%;right:9%;bottom:8%;height:10%;border-radius:50%;background:radial-gradient(ellipse,#070a11c9 12%,#090c1599 55%,transparent 73%);border:1px solid #bda67444;box-shadow:0 0 14px #d7b47813;pointer-events:none}
 .eq-3d-model{--u:4px;--u:min(6.1px,4cqw);position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--pitch,-12deg)) rotateY(var(--yaw,-28deg));pointer-events:none}
 .eq-3d-box{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;transform:translate3d(calc(var(--u)*var(--x)),calc(var(--u)*var(--y)),calc(var(--u)*var(--z)))}
@@ -2164,10 +2166,100 @@ function equipmentAvatar(fields){
  if(weapon){const icon=itemImg(weapon.id);model+='<div class="eq-3d-held"><span class="eq-3d-held-side">'+icon+'</span><span class="eq-3d-held-side back">'+itemImg(weapon.id)+'</span></div>'}
  return '<div class="eq-3d-view" tabindex="0" role="img" aria-label="Drehbarer 3D-Spieler mit Ausrüstung. Ziehen oder Pfeiltasten zum Drehen, Doppelklick zum Zurücksetzen."><div class="eq-3d-floor"></div><div class="eq-3d-model" style="--yaw:'+eqAvatarAngles.yaw+'deg;--pitch:'+eqAvatarAngles.pitch+'deg">'+model+'</div></div><span class="eq-3d-help">↔ Ziehen zum Drehen</span>';
 }
+let eqAvatarCleanup=null;
+function equipmentDepthRenderer(view,model){
+ const canvas=document.createElement('canvas');canvas.className='eq-depth-canvas';canvas.setAttribute('aria-hidden','true');
+ const gl=canvas.getContext('webgl',{alpha:true,depth:true,antialias:false,premultipliedAlpha:false});
+ if(!gl)return null;
+ const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){const msg=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(msg)}return sh};
+ const vert=compile(gl.VERTEX_SHADER,'attribute vec3 p;attribute vec2 uv;uniform vec2 angle;uniform vec2 scale;varying vec2 t;void main(){float cy=cos(angle.x),sy=sin(angle.x),cx=cos(angle.y),sx=sin(angle.y);vec3 q=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);q=vec3(q.x,cx*q.y-sx*q.z,sx*q.y+cx*q.z);gl_Position=vec4(q.x*scale.x,-q.y*scale.y,-q.z/90.0,1.0-q.z/125.0);t=uv;}');
+ const frag=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 t;uniform sampler2D tex;uniform vec4 color;uniform float mode;uniform float shine;uniform float clock;void main(){vec4 c=color;if(mode>0.5)c=texture2D(tex,t);if(c.a<0.5)discard;if(mode<0.5){vec2 v=fract(t*8.0);float edge=step(0.125,t.x)*step(t.x,0.875)*step(0.125,t.y)*step(t.y,0.875);c.rgb*=mix(0.87,1.0,edge);}if(shine>0.5){float g=smoothstep(0.75,0.98,fract(t.x+t.y-clock*0.26));c.rgb=mix(c.rgb,vec3(0.75,0.58,1.0),g*0.46);}gl_FragColor=vec4(c.rgb,1.0);}');
+ const program=gl.createProgram();gl.attachShader(program,vert);gl.attachShader(program,frag);gl.linkProgram(program);gl.deleteShader(vert);gl.deleteShader(frag);
+ if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+ gl.useProgram(program);
+ const loc={};for(const k of ['angle','scale','tex','color','mode','shine','clock'])loc[k]=gl.getUniformLocation(program,k);
+ const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+ for(const [k,n,off] of [['p',3,0],['uv',2,12]]){const i=gl.getAttribLocation(program,k);gl.enableVertexAttribArray(i);gl.vertexAttribPointer(i,n,gl.FLOAT,false,20,off)}
+ gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.enable(gl.POLYGON_OFFSET_FILL);
+ gl.clearColor(0,0,0,0);gl.uniform1i(loc.tex,0);
+ const num=(el,k)=>parseFloat(el.style.getPropertyValue(k))||0;
+ const degrees=Math.PI/180;
+ const parseColor=hex=>{const h=/^#[0-9a-f]{6}$/i.test(hex)?hex:'#a8a8a8';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).concat(1)};
+ const data=[],batches=[];
+ const quad=(x,y,z,w,h,d,ry,rx,uv)=>{
+  const cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx);
+  const corners=[[-w/2,-h/2,uv[0],uv[1]],[w/2,-h/2,uv[2],uv[1]],[w/2,h/2,uv[2],uv[3]],[-w/2,h/2,uv[0],uv[3]]];
+  for(const i of [0,1,2,0,2,3]){const [a,b,u,v]=corners[i],Y=b*cx-d*sx,Z=b*sx+d*cx;data.push(x+a*cy+Z*sy,y+Y,z-a*sy+Z*cy,u,v)}
+ };
+ const boxes=[...model.querySelectorAll('.eq-3d-box')];
+ for(const [bi,box] of boxes.entries()){
+  const x=num(box,'--x'),y=num(box,'--y'),z=num(box,'--z');
+  for(const face of box.querySelectorAll('.eq-3d-face')){
+   const skin=face.classList.contains('eq-3d-skin'),overlay=face.classList.contains('eq-3d-skin-overlay');
+   let uv=[0,0,1,1];
+   if(skin){
+    const [sw,sh]=face.style.getPropertyValue('--skin-size').trim().split(/\s+/).map(parseFloat);
+    const [px,py]=face.style.getPropertyValue('--skin-pos').trim().split(/\s+/).map(parseFloat);
+    const tw=Math.round(6400/sw),th=Math.round(6400/sh),tx=Math.round(px*(64-tw)/100),ty=Math.round(py*(64-th)/100);
+    // Exact atlas boundaries; NEAREST and fragment alpha discard prevent bleeding.
+    uv=[tx/64,ty/64,(tx+tw)/64,(ty+th)/64];
+   }
+   const first=data.length/5;
+   quad(x,y,z,num(face,'--fw'),num(face,'--fh'),num(face,'--fd'),num(face,'--ry')*degrees,num(face,'--rx')*degrees,uv);
+   batches.push({first,mode:skin?1:0,color:parseColor(face.style.getPropertyValue('--fc').trim()),shine:face.classList.contains('glint'),bias:overlay?-(bi+1)*.5:skin?bi*.08:-(bi+1)*.5});
+  }
+ }
+ const held=model.querySelector('.eq-3d-held');
+ let heldBatch=null;
+ if(held){const first=data.length/5;const rot=-10*degrees;const c=Math.cos(rot),si=Math.sin(rot);
+  for(const i of [0,1,2,0,2,3]){const [x,y,u,v]=[[-5.5,-5.5,0,0],[5.5,-5.5,1,0],[5.5,5.5,1,1],[-5.5,5.5,0,1]][i];data.push(8.3+x*c-y*si,.7+x*si+y*c,3.4,u,v)}
+  heldBatch={first,mode:2,color:[1,1,1,1],shine:false,bias:-12};
+ }
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+ const makeTexture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));return t};
+ const skinTex=makeTexture(),heldTex=makeTexture();
+ let ready=false,heldReady=false,disposed=false,raf=0,observer=null,resizeObserver=null;
+ const animated=batches.some(b=>b.shine)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const render=(time=0)=>{
+  if(disposed||!ready||!canvas.isConnected)return;
+  const w=view.clientWidth,h=view.clientHeight;if(!w||!h)return;
+  const ratio=Math.min(3,window.devicePixelRatio||1),width=Math.round(w*ratio),height=Math.round(h*ratio);
+  if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
+  gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  const unit=Math.min(6.1,w*.04,h*.029);
+  gl.uniform2f(loc.scale,2*unit/w,2*unit/h);gl.uniform2f(loc.angle,eqAvatarAngles.yaw*degrees,eqAvatarAngles.pitch*degrees);
+  gl.uniform1f(loc.clock,time/1000);
+  gl.bindTexture(gl.TEXTURE_2D,skinTex);
+  const draw=b=>{gl.uniform1f(loc.mode,b.mode);gl.uniform4fv(loc.color,b.color);gl.uniform1f(loc.shine,b.shine?1:0);gl.polygonOffset(0,b.bias);gl.drawArrays(gl.TRIANGLES,b.first,6)};
+  for(const b of batches)draw(b);
+  if(heldBatch&&heldReady){gl.bindTexture(gl.TEXTURE_2D,heldTex);draw(heldBatch)}
+ };
+ const frame=time=>{raf=0;if(disposed||!view.isConnected)return;render(time);if(animated)raf=requestAnimationFrame(frame)};
+ const redraw=()=>{if(!raf&&!disposed)raf=requestAnimationFrame(frame)};
+ const load=(urls,texture,done)=>{
+  const next=()=>{if(disposed||!urls.length)return;const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{if(disposed)return;try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);done()}catch{next()}};img.onerror=next;img.src=urls.shift()};next();
+ };
+ canvas.style.visibility='hidden';view.append(canvas);
+ const show=()=>{if(disposed)return;ready=true;canvas.style.visibility='visible';model.style.display='none';redraw()};
+ load(['https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png','https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png'],skinTex,show);
+ if(held){
+  const im=held.querySelector('img.item-icon'),urls=im?[im.getAttribute('src'),...Array.from({length:7},(_,i)=>im.getAttribute('data-src'+i))].filter(Boolean):[];
+  if(urls.length)load([...new Set(urls)],heldTex,()=>{heldReady=true;redraw()});
+ }
+ const restore=()=>{if(!disposed){ready=false;canvas.style.visibility='hidden';model.style.display=''}};
+ canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();restore()});
+ const cleanup=()=>{if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer?.disconnect();resizeObserver?.disconnect();gl.deleteBuffer(buffer);gl.deleteTexture(skinTex);gl.deleteTexture(heldTex);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();canvas.remove();model.style.display=''};
+ if(typeof ResizeObserver!=='undefined'){resizeObserver=new ResizeObserver(redraw);resizeObserver.observe(view)}
+ if(typeof MutationObserver!=='undefined'){observer=new MutationObserver(()=>{if(!view.isConnected)cleanup()});observer.observe(document.body,{childList:true,subtree:true})}
+ return {redraw,cleanup};
+}
 function equipmentBindAvatar(){
+ if(eqAvatarCleanup){eqAvatarCleanup();eqAvatarCleanup=null}
  const view=$('eqAvatar')?.querySelector('.eq-3d-view'),model=view?.querySelector('.eq-3d-model');if(!view||!model)return;
+ let renderer=null;try{renderer=equipmentDepthRenderer(view,model)}catch(error){console.warn('Equipment 3D fallback',error)}
+ if(renderer)eqAvatarCleanup=renderer.cleanup;
  let drag=null;
- const rotate=(dx,dy)=>{eqAvatarAngles.yaw=(eqAvatarAngles.yaw+dx)%360;eqAvatarAngles.pitch=Math.max(-50,Math.min(50,eqAvatarAngles.pitch+dy));model.style.setProperty('--yaw',eqAvatarAngles.yaw+'deg');model.style.setProperty('--pitch',eqAvatarAngles.pitch+'deg')};
+ const rotate=(dx,dy)=>{eqAvatarAngles.yaw=(eqAvatarAngles.yaw+dx)%360;eqAvatarAngles.pitch=Math.max(-50,Math.min(50,eqAvatarAngles.pitch+dy));model.style.setProperty('--yaw',eqAvatarAngles.yaw+'deg');model.style.setProperty('--pitch',eqAvatarAngles.pitch+'deg');renderer?.redraw()};
  view.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();e.stopPropagation();drag={id:e.pointerId,x:e.clientX,y:e.clientY};view.setPointerCapture(e.pointerId)});
  view.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;e.preventDefault();e.stopPropagation();rotate((e.clientX-drag.x)*1.15,(drag.y-e.clientY)*.55);drag.x=e.clientX;drag.y=e.clientY});
  const release=e=>{if(drag?.id===e.pointerId)drag=null};view.addEventListener('pointerup',release);view.addEventListener('pointercancel',release);view.addEventListener('lostpointercapture',release);

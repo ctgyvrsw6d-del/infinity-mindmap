@@ -397,6 +397,14 @@
 .mob-render-fallback>.mob-art{width:100%!important;height:100%!important;margin:0!important}
 .mob-grid.list-mode .mob-tile>.mob-art{width:50px;height:50px}
 .mob-node-card>.mob-render{max-width:none}
+/* HD gallery v2: native model proportions and larger artwork, no fake models on image errors. */
+.mob-picker .mob-grid:not(.list-mode) .mob-tile>.mob-render{width:100%;max-width:110px;height:96px}
+.mob-picker .mob-grid:not(.list-mode) .mob-tile{min-height:150px}
+.mob-hero>.mob-render{width:112px;height:124px}
+.mob-render-fallback{display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;color:#a8b1c9;padding:5px;line-height:1.3}
+.mob-hd-version{display:inline-block;font-size:11px;letter-spacing:.04em;color:#9dd6be;font-weight:700;margin-right:8px}
+@media(max-width:650px){.mob-picker .mob-grid:not(.list-mode) .mob-tile>.mob-render{height:72px;max-width:82px}.mob-picker .mob-grid:not(.list-mode) .mob-tile{min-height:122px}.mob-hero>.mob-render{width:78px;height:80px}}
+
 
 .mob-detail{display:grid;gap:9px}
 .mob-hero{display:flex;align-items:center;gap:10px;min-height:135px;padding:10px;background:radial-gradient(ellipse at 25% 50%,#263452,#101624 72%);border:1px solid #30384d;border-radius:12px}
@@ -656,7 +664,8 @@ function mobArt(id){
  const key=mobFind(id)[0];
  if(!MOB_RENDER_IDS.has(key))return mobArtFallback(key);
  const file=key.toUpperCase()+'.png';
- return '<span class="mob-art mob-render" aria-hidden="true"><img class="mob-render-img" src="'+MOB_RENDER_ROOT+file+'" data-backup="'+MOB_RENDER_CDN+file+'" alt="" decoding="async" referrerpolicy="no-referrer" draggable="false" onerror="if(this.dataset.backup){this.src=this.dataset.backup;delete this.dataset.backup;}else{this.hidden=true;this.nextElementSibling.hidden=false;}"><span class="mob-render-fallback" hidden>'+mobArtFallback(key)+'</span></span>';
+ const mirror='https://raw.githubusercontent.com/Owen1212055/mc-assets/main/entity-assets/isometric/'+file;
+ return '<span class="mob-art mob-render" aria-hidden="true"><img class="mob-render-img" src="'+MOB_RENDER_CDN+file+'" data-backup="'+MOB_RENDER_ROOT+file+'" data-mirror="'+mirror+'" alt="" decoding="async" referrerpolicy="no-referrer" draggable="false" onerror="if(this.dataset.backup){this.src=this.dataset.backup;delete this.dataset.backup;}else if(this.dataset.mirror){this.src=this.dataset.mirror;delete this.dataset.mirror;}else{this.hidden=true;this.nextElementSibling.hidden=false;}"><span class="mob-render-fallback" hidden>HD-Grafik nicht geladen</span></span>';
 }
 function mobArtFallback(id){
  const m=mobFind(id),[,,cat,form,head,body,legs,face]=m;
@@ -1596,7 +1605,7 @@ function combatMobEditor(id=null,returnToSim=false){
  const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;exitTextEditing();closeCatalog();
  const p=n?structuredClone(n.plan):sbPlan({type:'mob',name:'Zombie',fields:{base:'zombie',hp:1000,defense:100,damage:75,xp:50,speed:.23,variant:'normal',tier:'normal'}});
  sbState={mode:'combatMob',id,returnToSim,draft:p,category:'all',query:'',list:false,base:p.fields.base||'custom'};
- sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats. 3D-Mob-Ansichten: Owen1212055 / mc-assets (Minecraft Java Edition).</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button></div></div>');
+ sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats. <span class="mob-hd-version">HD-MODELLE V2</span> 3D-Mob-Ansichten: Owen1212055 / mc-assets (Minecraft Java Edition).</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button></div></div>');
  mobRenderGallery();mobRenderDetail();
 }
 function mobEntries(){

@@ -321,19 +321,27 @@
 .sb-plan .node-text{cursor:pointer;caret-color:transparent}
 @media(max-width:500px){.sb-grid{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}#sbOpen span{display:none}}
 
+
 .mc-head-cube .mc-head-probe{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-.mc-head-faces{position:absolute;inset:1%;visibility:hidden;pointer-events:none;filter:drop-shadow(0 1px 1px #0007)}
+.mc-head-faces{position:absolute;inset:0;visibility:hidden;pointer-events:none;filter:drop-shadow(0 1.5px 1.2px #0008)}
 .mc-head-cube.mc-head-ready .mc-head-faces{visibility:visible}
 .mc-head-cube.mc-head-ready .item-emoji{display:none!important}
-.mc-head-face{position:absolute;display:block;width:56%;height:56%;transform-origin:0 0;image-rendering:pixelated;background-image:var(--skin);background-repeat:no-repeat;background-size:800% 800%;background-position:var(--bx) var(--by)}
-.mc-head-face::after{content:"";position:absolute;inset:0;image-rendering:pixelated;background-image:var(--skin);background-repeat:no-repeat;background-size:800% 800%;background-position:var(--hx) var(--hy)}
-.mc-head-top{left:50%;top:2%;transform:matrix(.857142,.482143,-.857142,.482143,0,0);filter:brightness(1.08)}
-.mc-head-front{left:2%;top:29%;transform:matrix(.857142,.482143,0,.75,0,0);filter:brightness(.96)}
-.mc-head-side{left:50%;top:56%;transform:matrix(.857142,-.482143,0,.75,0,0);filter:brightness(.77)}
+/* An actual six-sided 3D model. Inner and outer skin layers are independent cubes. */
+.mc-head-model{--cube-size:calc(var(--item-size)*.66);--half:calc(var(--item-size)*.33);--outer-size:calc(var(--item-size)*.70);--outer-half:calc(var(--item-size)*.35);position:absolute;width:var(--cube-size);height:var(--cube-size);left:50%;top:50%;transform:translate(-50%,-50%) rotateX(-22deg) rotateY(-45deg);transform-style:preserve-3d;transform-origin:center}
+.mc-head-face{position:absolute;left:0;top:0;width:var(--cube-size);height:var(--cube-size);display:block;image-rendering:pixelated;background-image:var(--skin);background-repeat:no-repeat;background-size:800% 800%;background-position:var(--bx) var(--by);backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:var(--orientation) translateZ(var(--half))}
+.mc-head-face.mc-head-outer{left:calc((var(--cube-size) - var(--outer-size))/2);top:calc((var(--cube-size) - var(--outer-size))/2);width:var(--outer-size);height:var(--outer-size);background-position:var(--hx) var(--hy);transform:var(--orientation) translateZ(var(--outer-half))}
+.mc-head-top{--orientation:rotateX(90deg);filter:brightness(1.07)}
+.mc-head-front{--orientation:rotateY(0deg);filter:brightness(.98)}
+.mc-head-side{--orientation:rotateY(90deg);filter:brightness(.81)}
+.mc-head-left{--orientation:rotateY(-90deg);filter:brightness(.88)}
+.mc-head-back{--orientation:rotateY(180deg);filter:brightness(.88)}
+.mc-head-bottom{--orientation:rotateX(-90deg);filter:brightness(.65)}
 .mc-head-legacy .mc-head-face{background-size:800% 400%;background-position:var(--bx) var(--bl)}
-.mc-head-legacy .mc-head-face::after{background-size:800% 400%;background-position:var(--hx) var(--hl)}
+.mc-head-legacy .mc-head-face.mc-head-outer{background-position:var(--hx) var(--hl)}
+.craft-slot .mc-head-cube .mc-head-faces{transform:scale(1.12)}
+.catalog-item .mc-head-cube .mc-head-faces{transform:scale(1.06)}
 .mc-head-cube.enchanted.loaded::after{display:none}
-.mc-head-cube.enchanted .mc-head-faces{filter:drop-shadow(0 1px 1px #0007) drop-shadow(0 0 2px #b88cff)}
+.mc-head-cube.enchanted .mc-head-faces{filter:drop-shadow(0 1.5px 1.2px #0008) drop-shadow(0 0 2px #b88cff)}
 .mc-head-cube.mc-head-fallback .mc-head-faces{display:none}
 #sbHeadTexture,#sbHeadName{font-size:16px;user-select:text;-webkit-user-select:text}
 </style>
@@ -479,19 +487,21 @@ function playerHeadRenderUrl(details){
  const id=hash||(/^[a-z0-9_]{1,16}$/i.test(name)?name:'');
  return id?'https://mc-heads.net/head/'+encodeURIComponent(id)+'/96.png':'';
 }
+
 function playerHeadArt(details,enchanted,label){
  const hash=normalizeHeadTexture(details?.headTexture),rendered=playerHeadRenderUrl(details);
  if(!rendered)return '';
  const esc=escapeHTML,classes='item-stack-icon '+(enchanted?'enchanted ':'');
  if(hash){
- const skin='https://textures.minecraft.net/texture/'+hash;
- const pos=(x,y)=>[x/56*100+'%',y/56*100+'%',y/24*100+'%'];
- const face=(cls,x,y,ox,oy)=>{const [bx,by,bl]=pos(x,y),[hx,hy,hl]=pos(ox,oy);return '<span class="mc-head-face '+cls+'" style="--bx:'+bx+';--by:'+by+';--bl:'+bl+';--hx:'+hx+';--hy:'+hy+';--hl:'+hl+'"></span>'};
- return '<span class="'+classes+'mc-head-cube" style="--skin:url('+skin+')" role="img" aria-label="'+esc(label)+'"><span class="item-emoji">HEAD</span><span class="mc-head-faces" aria-hidden="true">'+face('mc-head-top',8,0,40,0)+face('mc-head-front',8,8,40,8)+face('mc-head-side',16,8,48,8)+'</span><img class="mc-head-probe" src="'+skin+'" data-render="'+rendered+'" alt="" aria-hidden="true" draggable="false" decoding="async"></span>';
+  const skin='https://textures.minecraft.net/texture/'+hash;
+  const tiles=[['mc-head-top',8,0,40,0],['mc-head-front',8,8,40,8],['mc-head-side',16,8,48,8],['mc-head-left',0,8,32,8],['mc-head-back',24,8,56,8],['mc-head-bottom',16,0,48,0]];
+  const pos=(x,y)=>[x/56*100+'%',y/56*100+'%',y/24*100+'%'];
+  const face=([cls,x,y,ox,oy],outer)=>{const [bx,by,bl]=pos(x,y),[hx,hy,hl]=pos(ox,oy);return '<span class="mc-head-face '+cls+(outer?' mc-head-outer':'')+'" style="--bx:'+bx+';--by:'+by+';--bl:'+bl+';--hx:'+hx+';--hy:'+hy+';--hl:'+hl+'"></span>'};
+  const geometry=tiles.map(tile=>face(tile,false)).join('')+tiles.map(tile=>face(tile,true)).join('');
+  return '<span class="'+classes+'mc-head-cube" style="--skin:url('+skin+')" role="img" aria-label="'+esc(label)+'"><span class="item-emoji">HEAD</span><span class="mc-head-faces" aria-hidden="true"><span class="mc-head-model">'+geometry+'</span></span><img class="mc-head-probe" src="'+skin+'" data-render="'+rendered+'" alt="" aria-hidden="true" draggable="false" decoding="async"></span>';
  }
  return '<span class="'+classes+'"><span class="item-emoji">HEAD</span><img class="item-icon" src="'+rendered+'" alt="'+esc(label)+'" draggable="false" loading="lazy" decoding="async"></span>';
 }
-
 function sbDetails(x){x=x||{};const stats={};for(const k of SB_STATS){const v=sbNum(x.stats?.[k],-1e9,1e9);if(v!=='')stats[k]=v}return {rarity:Object.hasOwn(SB_RARITY,x.rarity)?x.rarity:'COMMON',type:sbText(x.type,40),stats,ability:sbText(x.ability,80),abilityText:sbText(x.abilityText,600),mana:sbNum(x.mana),cooldown:sbNum(x.cooldown),headName:/^[a-z0-9_]{1,16}$/i.test(x.headName||'')?x.headName:'',headTexture:normalizeHeadTexture(x.headTexture)}}
 const SB_DEFS={
  mob:{name:'Mob / Boss',icon:'☠',fields:[['base','Minecraft-Mob'],['hp','Health','n'],['damage','Damage','n'],['defense','Defense','n'],['xp','Combat XP','n'],['spawn','Spawn-Bedingungen','a'],['abilities','Fähigkeiten','a']],rows:[['item','Drop','i'],['chance','Chance %','p'],['min','Min.','n'],['max','Max.','n'],['req','Voraussetzung']]},

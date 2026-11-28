@@ -541,7 +541,7 @@
 .eq-3d-skin-overlay{pointer-events:none}
 .eq-3d-face.glint::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(125deg,transparent 0 22%,#b08bff88 27%,#e0bbffb0 32%,#89b7ff60 38%,transparent 44%);background-size:220% 220%;mix-blend-mode:screen;animation:eq3dShine 3.1s linear infinite;pointer-events:none}
 @keyframes eq3dShine{0%{background-position:160% 100%}100%{background-position:-60% -20%}}
-.eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*11);height:calc(var(--u)*11);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*8.3),calc(var(--u)*.7),calc(var(--u)*3.4)) translate(-50%,-50%) rotateZ(-10deg)}
+.eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*14.4);height:calc(var(--u)*14.4);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*-8.916),calc(var(--u)*-1.05),calc(var(--u)*4.795)) translate(-50%,-50%) rotateY(-136deg)}
 .eq-3d-held-side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(.6px);display:grid;place-items:center}
 .eq-3d-held-side.back{transform:rotateY(180deg) translateZ(.6px)}
 .eq-3d-held .item-stack-icon{--item-size:100%!important;width:100%;height:100%}
@@ -2170,7 +2170,7 @@ function equipmentAvatar(fields){
  model+=armor('leggings',[[0,-2,0,8,12,4,16,16,.5],[-2,10,0,4,12,4,0,16,.5],[2,10,0,4,12,4,0,16,.5,true]]);
  model+=armor('boots',[[-2,10,0,4,12,4,0,16,1],[2,10,0,4,12,4,0,16,1,true]]);
  const weapon=gear('weapon');
- if(weapon){const icon=itemImg(weapon.id);model+='<div class="eq-3d-held"><span class="eq-3d-held-side">'+icon+'</span><span class="eq-3d-held-side back">'+itemImg(weapon.id)+'</span></div>'}
+ if(weapon){const icon=itemImg(weapon.id),base=escapeHTML(weapon.baseId||'');model+='<div class="eq-3d-held" data-base="'+base+'" data-enchanted="'+(weapon.enchanted?'1':'0')+'"><span class="eq-3d-held-side">'+icon+'</span><span class="eq-3d-held-side back">'+itemImg(weapon.id)+'</span></div>'}
  return '<div class="eq-3d-view" tabindex="0" role="img" aria-label="Drehbarer 3D-Spieler mit Ausrüstung. Ziehen oder Pfeiltasten zum Drehen, Doppelklick zum Zurücksetzen."><div class="eq-3d-floor"></div><div class="eq-3d-model" style="--yaw:'+eqAvatarAngles.yaw+'deg;--pitch:'+eqAvatarAngles.pitch+'deg">'+model+'</div></div><span class="eq-3d-help">↔ Ziehen zum Drehen</span>';
 }
 let eqAvatarCleanup=null;
@@ -2218,18 +2218,47 @@ function equipmentDepthRenderer(view,model,options={}){
  }
  const held=model.querySelector('.eq-3d-held');
  let heldBatch=null;
- if(held){const first=data.length/5;const rot=-10*degrees;const c=Math.cos(rot),si=Math.sin(rot);
-  for(const i of [0,1,2,0,2,3]){const [x,y,u,v]=[[-5.5,-5.5,0,0],[5.5,-5.5,1,0],[5.5,5.5,1,1],[-5.5,5.5,0,1]][i];data.push(8.3+x*c-y*si,.7+x*si+y*c,3.4,u,v)}
-  heldBatch={first,mode:2,color:[1,1,1,1],shine:false,bias:-12};
- }
- gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+ const heldStart=data.length;
+ // The vanilla right hand is at x=-6, the handle enters the front of the hand.
+ // Model-local anchor keeps the grip fixed for every camera angle.
+ const grip=[-6,3,2],uAxis=[-.72,0,.694],normal=[.694,0,.72],itemSize=14.4;
+ const itemPoint=(u,v,depth)=>[grip[0]+(u-3.5/16)*itemSize*uAxis[0]+depth*normal[0],grip[1]+(v-12.5/16)*itemSize,grip[2]+(u-3.5/16)*itemSize*uAxis[2]+depth*normal[2]];
+ const addItemFace=(corners,uvs)=>{
+  for(const i of [0,1,2,0,2,3])data.push(...itemPoint(...corners[i]),...uvs[i]);
+ };
+ const buildHeldMesh=img=>{
+  data.length=heldStart;
+  const thickness=.43,front=thickness,back=-thickness;
+  const uv=[[0,0],[1,0],[1,1],[0,1]];
+  addItemFace([[0,0,front],[1,0,front],[1,1,front],[0,1,front]],uv);
+  addItemFace([[0,0,back],[1,0,back],[1,1,back],[0,1,back]],uv);
+  // Extrude the opaque pixel outline rather than using a flat icon billboard.
+  if(img&&img.naturalWidth<=64&&img.naturalHeight<=64){
+   try{
+    const w=img.naturalWidth,h=img.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+    const px=ctx.getImageData(0,0,w,h).data,opaque=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&px[(y*w+x)*4+3]>=128;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(opaque(x,y)){
+     const l=x/w,r=(x+1)/w,t=y/h,b=(y+1)/h,at=[(x+.5)/w,(y+.5)/h],solid=[at,at,at,at];
+     if(!opaque(x-1,y))addItemFace([[l,t,front],[l,t,back],[l,b,back],[l,b,front]],solid);
+     if(!opaque(x+1,y))addItemFace([[r,t,back],[r,t,front],[r,b,front],[r,b,back]],solid);
+     if(!opaque(x,y-1))addItemFace([[l,t,back],[r,t,back],[r,t,front],[l,t,front]],solid);
+     if(!opaque(x,y+1))addItemFace([[l,b,front],[r,b,front],[r,b,back],[l,b,back]],solid);
+    }
+   }catch(error){console.warn('Held item edge texture unavailable',error)}
+  }
+  heldBatch={first:heldStart/5,count:(data.length-heldStart)/5,mode:2,color:[1,1,1,1],shine:held?.dataset.enchanted==='1',bias:0};
+  gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+ };
+ if(held)buildHeldMesh(null);
+ else gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
  const makeTexture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));return t};
  const skinTex=makeTexture(),heldTex=makeTexture();
  const skinUrl='https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png';
  const atlases=new Map([[skinUrl,{texture:skinTex,ready:false}]]);
  for(const b of batches)if(b.atlas&&!atlases.has(b.atlas))atlases.set(b.atlas,{texture:makeTexture(),ready:false});
  let ready=false,heldReady=false,disposed=false,raf=0,observer=null,resizeObserver=null;
- const animated=!options.snapshot&&batches.some(b=>b.shine)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const animated=!options.snapshot&&(batches.some(b=>b.shine)||heldBatch?.shine)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
  const render=(time=0)=>{
   if(disposed||!ready||!canvas.isConnected)return;
   const w=view.clientWidth,h=view.clientHeight;if(!w||!h)return;
@@ -2239,7 +2268,7 @@ function equipmentDepthRenderer(view,model,options={}){
   const unit=Math.min(options.snapshot?Infinity:6.1,w*.04,h*.029);
   gl.uniform2f(loc.scale,2*unit/w,2*unit/h);const angle=options.angles||eqAvatarAngles;gl.uniform2f(loc.angle,angle.yaw*degrees,angle.pitch*degrees);
   gl.uniform1f(loc.clock,time/1000);
-  const draw=b=>{gl.uniform1f(loc.mode,b.mode);gl.uniform4fv(loc.color,b.color);gl.uniform1f(loc.shine,b.shine?1:0);gl.polygonOffset(0,b.bias);gl.drawArrays(gl.TRIANGLES,b.first,6)};
+  const draw=b=>{gl.uniform1f(loc.mode,b.mode);gl.uniform4fv(loc.color,b.color);gl.uniform1f(loc.shine,b.shine?1:0);gl.polygonOffset(0,b.bias);gl.drawArrays(gl.TRIANGLES,b.first,b.count||6)};
   for(const b of batches){
    if(b.atlas){const entry=atlases.get(b.atlas);if(!entry?.ready)continue;gl.bindTexture(gl.TEXTURE_2D,entry.texture)}
    draw(b);
@@ -2249,7 +2278,7 @@ function equipmentDepthRenderer(view,model,options={}){
  const frame=time=>{raf=0;if(disposed||!view.isConnected)return;render(time);if(animated)raf=requestAnimationFrame(frame)};
  const redraw=()=>{if(!raf&&!disposed)raf=requestAnimationFrame(frame)};
  const load=(urls,texture,done)=>{
-  const next=()=>{if(disposed)return;if(!urls.length){done(false);return}const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{if(disposed)return;try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);done(true)}catch{next()}};img.onerror=next;img.src=urls.shift()};next();
+  const next=()=>{if(disposed)return;if(!urls.length){done(false);return}const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{if(disposed)return;try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);done(true,img)}catch{next()}};img.onerror=next;img.src=urls.shift()};next();
  };
  canvas.style.visibility='hidden';view.append(canvas);
  const show=()=>{if(disposed)return;ready=true;if(!options.snapshot){canvas.style.visibility='visible';model.style.display='none'}redraw()};
@@ -2261,7 +2290,9 @@ function equipmentDepthRenderer(view,model,options={}){
  }
  if(held){
   const im=held.querySelector('img.item-icon'),urls=im?[im.getAttribute('src'),...Array.from({length:7},(_,i)=>im.getAttribute('data-src'+i))].filter(Boolean):[];
-  if(urls.length)load([...new Set(urls)],heldTex,ok=>{heldReady=ok;if(ok)redraw();settled(ok)});else settled(false);
+  const base=held.dataset.base;
+  if(/^[a-z0-9_]+$/.test(base||'')&&/(?:_sword|_axe|_pickaxe|_shovel|_hoe|_rod|_stick|bow|trident|mace)$/.test(base))urls.unshift(ARMOR_TEXTURES+base+'.png');
+  if(urls.length)load([...new Set(urls)],heldTex,(ok,img)=>{heldReady=ok;if(ok){buildHeldMesh(img);redraw()}settled(ok)});else settled(false);
  }
  const restore=()=>{if(!disposed){ready=false;canvas.style.visibility='hidden';model.style.display=''}};
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();restore()});

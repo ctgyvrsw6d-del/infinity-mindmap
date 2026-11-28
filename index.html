@@ -517,15 +517,22 @@
 .eq-slot-copy strong{font-size:11px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--eq-rarity,#c5cbd5)}
 .eq-avatar{position:relative;z-index:0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
 .eq-avatar svg{width:100%;max-width:205px;height:auto;overflow:visible;filter:drop-shadow(0 10px 10px #0007)}
-.eq-steve-scene{position:relative;width:100%;max-width:205px;aspect-ratio:40/48;isolation:isolate}
-.eq-avatar .eq-steve-art{display:block;width:100%;height:100%;max-width:none;overflow:visible}
-.eq-worn-glint{opacity:.27;animation:eqWornShimmer 2.8s ease-in-out infinite;pointer-events:none}
-@keyframes eqWornShimmer{0%,100%{opacity:.18}50%{opacity:.53}}
-.eq-held-item{position:absolute;left:68%;top:50%;width:41%;aspect-ratio:1;display:grid;place-items:center;transform:translate(-16%,-37%) rotate(-12deg);pointer-events:none;z-index:2}
-.eq-held-item .item-stack-icon{--item-size:100%!important;width:100%;height:100%;filter:drop-shadow(0 3px 3px #0008)}
-.eq-held-item svg{width:100%;height:100%;max-width:none;filter:none}
-@media(prefers-reduced-motion:reduce){.eq-worn-glint{animation:none;opacity:.3}}
-
+.eq-3d-view{position:relative;width:100%;max-width:215px;aspect-ratio: .77;min-height:125px;container-type:inline-size;perspective:650px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;outline-offset:3px}
+.eq-3d-view:active{cursor:grabbing}
+.eq-3d-floor{position:absolute;left:9%;right:9%;bottom:8%;height:10%;border-radius:50%;background:radial-gradient(ellipse,#070a11c9 12%,#090c1599 55%,transparent 73%);border:1px solid #bda67444;box-shadow:0 0 14px #d7b47813;pointer-events:none}
+.eq-3d-model{--u:4px;--u:min(6.1px,4cqw);position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--pitch,-12deg)) rotateY(var(--yaw,-28deg));pointer-events:none}
+.eq-3d-box{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;transform:translate3d(calc(var(--u)*var(--x)),calc(var(--u)*var(--y)),calc(var(--u)*var(--z)))}
+.eq-3d-face{position:absolute;left:0;top:0;display:block;width:calc(var(--u)*var(--fw));height:calc(var(--u)*var(--fh));background-color:var(--fc);background-image:var(--ft);background-size:100% 100%;image-rendering:pixelated;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translate(-50%,-50%) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateZ(calc(var(--u)*var(--fd)));box-shadow:inset 0 0 0 .35px #0002}
+.eq-3d-face.glint::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(125deg,transparent 0 22%,#b08bff88 27%,#e0bbffb0 32%,#89b7ff60 38%,transparent 44%);background-size:220% 220%;mix-blend-mode:screen;animation:eq3dShine 3.1s linear infinite;pointer-events:none}
+@keyframes eq3dShine{0%{background-position:160% 100%}100%{background-position:-60% -20%}}
+.eq-3d-held{position:absolute;left:0;top:0;width:calc(var(--u)*11);height:calc(var(--u)*11);transform-style:preserve-3d;transform:translate3d(calc(var(--u)*8.3),calc(var(--u)*.7),calc(var(--u)*3.4)) translate(-50%,-50%) rotateZ(-10deg)}
+.eq-3d-held-side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(.6px);display:grid;place-items:center}
+.eq-3d-held-side.back{transform:rotateY(180deg) translateZ(.6px)}
+.eq-3d-held .item-stack-icon{--item-size:100%!important;width:100%;height:100%}
+.eq-3d-held .item-icon{image-rendering:pixelated}
+.eq-3d-held svg{width:100%;height:100%;max-width:none;filter:none}
+.eq-3d-help{display:block;font-size:9px;color:#9caac0;text-align:center;line-height:1.3;white-space:normal}
+@media(prefers-reduced-motion:reduce){.eq-3d-face.glint::after{animation:none}}
 .eq-avatar-name{font-weight:700;font-size:13px;text-align:center;overflow-wrap:anywhere;max-width:100%;color:#e5d1a7}
 .eq-avatar small{font-size:10px;color:#a3b1c5;text-align:center}
 .eq-accessories{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:10px}
@@ -2076,38 +2083,78 @@ function equipmentSlotMarkup(k){
  const st=sbState,id=st.draft.fields[k],i=customItem(id),label=equipmentSlots().find(x=>x[0]===k)[1],e=escapeHTML;
  return '<button type="button" class="eq-slot'+(st.focus===k?' active':'')+(i?' filled':'')+'" data-eq-preview="'+k+'" aria-pressed="'+(st.focus===k)+'" aria-label="'+e(label+': '+(i?.name||'Leer'))+'" style="--eq-rarity:'+(i?SB_RARITY[sbDetails(i.details).rarity]:'#c5cbd5')+'"><span class="eq-icon">'+itemImg(i?.id||EQ_PLACEHOLDERS[k])+'</span><span class="eq-slot-copy"><small>'+e(label)+'</small><strong>'+e(i?.name||(id?'Fehlendes Item':'+ Ausrüsten'))+'</strong></span></button>';
 }
+const eqAvatarAngles={yaw:-28,pitch:-12};
 function equipmentAvatar(fields){
- // Pixel-proportioned Steve preview; layered armor and the equipped item's actual icon.
  const gear=k=>customItem(fields[k]);
- const materials={netherite:'#66616e',diamond:'#52d9d1',iron:'#c5cbd2',golden:'#efc755',leather:'#95633f',chainmail:'#9ba6b0',turtle:'#65a74e'};
+ const materials={netherite:'#625b6a',diamond:'#54d9d1',iron:'#c4cbd3',golden:'#efc653',leather:'#95633f',chainmail:'#9ba6b0',turtle:'#69a853'};
  const shade=(c,f)=>'#'+[1,3,5].map(p=>Math.max(0,Math.min(255,Math.round(parseInt(c.slice(p,p+2),16)*f))).toString(16).padStart(2,'0')).join('');
- const palette=i=>{
-  let c=materials[(i?.baseId||'').split('_')[0]]||'#9b8ab8';
-  if(i?.baseId?.startsWith('leather_')&&i.dyeRecipe?.length){
-   const d=armorDyeColor(i.dyeRecipe);if(typeof d==='string'&&/^#[a-f0-9]{6}$/i.test(d))c=d;
+ const palette=i=>{let c=materials[(i?.baseId||'').split('_')[0]]||'#9b8ab8';if(i?.baseId?.startsWith('leather_')&&i.dyeRecipe?.length){const d=armorDyeColor(i.dyeRecipe);if(typeof d==='string'&&/^#[a-f0-9]{6}$/i.test(d))c=d}return c};
+ const faces=[['front',0,0,1],['back',180,0,.72],['right',90,0,.75],['left',-90,0,.88],['top',0,90,1.19],['bottom',0,-90,.59]];
+ const art=(kind,face,w,h,c)=>{
+  const W=Math.max(1,Math.round(w)),H=Math.max(1,Math.round(h));
+  let pixels='';
+  const pixel=(x,y,color)=>{pixels+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+color+'"/>'};
+  const faceColors={front:1,back:.72,right:.75,left:.88,top:1.19,bottom:.59};
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+   let v=c;
+   if(kind==='head'){
+    v='#bd8968';
+    if(face==='top'||face==='back'&&y<6||face!=='front'&&face!=='bottom'&&(y<3||x>=W-2)||face==='front'&&(y<2||y<4&&(x===0||x===W-1)))v='#4b3026';
+    if(face==='front'){
+     if(y===3&&[1,2,5,6].includes(x))v=[2,5].includes(x)?'#4e588e':'#eee4d6';
+     if(y===4&&[3,4].includes(x))v='#d29a75';
+     if(y===5&&x>=2&&x<=5)v=x===3||x===4?'#9c624d':'#674536';
+     if(y===6&&x>=2&&x<=5)v=x===3||x===4?'#c78d6d':'#674536';
+    }
+   }else if(kind==='arm'){v=y<4||face==='top'?'#289b9d':'#bd8968'}
+   else if(kind==='torso'){v='#289b9d';if(face==='front'&&y===0&&x>=2&&x<=5)v='#b78060';if(face==='front'&&y>=10&&x===3)v='#21888f'}
+   else if(kind==='leg'){v=y>=H-2||face==='bottom'?'#454650':'#414f91'}
+   else if(kind==='armor'){
+    if((x===0||x===W-1)&&W>2)v=shade(c,.83);
+    else if(y===0&&H>2)v=shade(c,1.23);
+    else if(y===H-1&&H>2)v=shade(c,.75);
+    else if((x+y)%7===0)v=shade(c,1.13);
+   }
+   const noise=1+(((x*17+y*23+kind.length*7+face.length*13)%9)-4)*.023;
+   pixel(x,y,shade(v,faceColors[face]*noise));
   }
-  return c;
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" shape-rendering="crispEdges">'+pixels+'</svg>';
+  return 'url(&quot;data:image/svg+xml,'+encodeURIComponent(svg).replace(/'/g,'%27')+'&quot;)';
  };
- const rect=(x,y,w,h,c)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c+'"/>';
- const armor=(k,boxes)=>{
-  const i=gear(k);if(!i)return '';
-  const c=palette(i);
-  return boxes.map(([x,y,w,h])=>rect(x,y,w,h,c)+rect(x,y,1,h,shade(c,.73))+rect(x+w-1,y,1,h,shade(c,.82))+rect(x+1,y,w-2,1,shade(c,1.22))+(h>3?rect(x+1,y+h-1,w-2,1,shade(c,.64)):'')+(i.enchanted?'<rect class="eq-worn-glint" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="url(#eqWornGlint)"/>':'')).join('');
+ const cube=(x,y,z,w,h,d,kind,c,glint=false)=>{
+  let html='<div class="eq-3d-box" style="--x:'+x+';--y:'+y+';--z:'+z+'">';
+  for(const [face,ry,rx,light] of faces){
+   const side=face==='left'||face==='right',flat=face==='top'||face==='bottom';
+   const fw=side?d:w,fh=flat?d:h,fd=(flat?h:side?w:d)/2;
+   html+='<i class="eq-3d-face'+(glint?' glint':'')+'" style="--fw:'+fw+';--fh:'+fh+';--fd:'+fd+';--ry:'+ry+'deg;--rx:'+rx+'deg;--fc:'+shade(c,light)+';--ft:'+art(kind,face,fw,fh,c)+'"></i>';
+  }
+  return html+'</div>';
  };
- let a='<svg class="eq-steve-art" viewBox="0 0 40 48" role="img" aria-label="Minecraft Steve mit ausgewählter Ausrüstung"><defs><pattern id="eqWornGlint" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2" height="7" fill="#d7a0ff"/><rect x="2" width="1" height="7" fill="#8cbfff"/></pattern></defs><ellipse cx="20" cy="43" rx="16" ry="3.4" fill="#090c14" opacity=".8"/><ellipse cx="20" cy="43" rx="15" ry="3" fill="none" stroke="#bda674" stroke-width=".25" opacity=".6"/><g shape-rendering="crispEdges">';
- // True 8:12:12 head/body/leg proportions, with touching 4-unit arms.
- a+=rect(16,28,4,12,'#374987')+rect(20,28,4,12,'#414f90')+rect(16,28,1,10,'#2c3973')+rect(20,28,1,10,'#303d79')+rect(19,29,1,8,'#4b5b9d')+rect(23,29,1,8,'#5261a0');
- a+=rect(16,38,4,2,'#4a4a4d')+rect(20,38,4,2,'#555358')+rect(16,39,8,1,'#31343c');
- a+=armor('leggings',[[16,28,4,9],[20,28,4,9]])+armor('boots',[[16,36,4,4],[20,36,4,4]]);
- a+=rect(12,16,4,12,'#b77f60')+rect(24,16,4,12,'#bd8868')+rect(12,20,1,8,'#966548')+rect(27,20,1,8,'#98674d')+rect(13,23,2,2,'#cc9774')+rect(25,22,2,2,'#d2a07e');
- a+=rect(16,16,8,12,'#299b9e')+rect(16,17,1,10,'#207a80')+rect(23,17,1,10,'#20858a')+rect(17,17,2,1,'#45b5b4')+rect(21,21,2,1,'#35aaaa')+rect(18,24,2,3,'#218e93')+rect(12,16,4,4,'#299b9e')+rect(24,16,4,4,'#299b9e')+rect(12,19,4,1,'#207e85')+rect(24,19,4,1,'#207e85');
- a+=armor('chestplate',[[16,16,8,12],[12,16,4,5],[24,16,4,5]]);
- if(gear('chestplate'))a+=rect(18,18,4,1,shade(palette(gear('chestplate')),1.3));
- a+=rect(16,8,8,8,'#bd8766')+rect(16,8,8,2,'#4b3024')+rect(16,10,1,3,'#53392c')+rect(23,10,1,3,'#53392c')+rect(17,9,3,1,'#644334')+rect(21,8,2,1,'#684635')+rect(17,11,2,1,'#f1e6d8')+rect(21,11,2,1,'#f1e6d8')+rect(18,11,1,1,'#4b5591')+rect(21,11,1,1,'#4b5591')+rect(19,12,2,1,'#d19a75')+rect(18,13,4,2,'#664333')+rect(19,13,2,1,'#9b624b')+rect(19,14,2,1,'#c78e70')+rect(16,15,8,1,'#a36d51');
- a+=armor('helmet',[[15,7,10,3],[15,10,2,3],[23,10,2,3]]);
- a+='</g></svg>';
+ const armor=(k,parts)=>{const i=gear(k);return i?parts.map(p=>cube(...p,'armor',palette(i),Boolean(i.enchanted))).join(''):''};
+ let model='';
+ // Six independently textured, truly volumetric body parts; 8:12:12 Minecraft proportions.
+ model+=cube(0,-12,0,8,8,8,'head','#bd8968');
+ model+=cube(0,-2,0,8,12,4,'torso','#289b9d');
+ model+=cube(-6,-2,0,4,12,4,'arm','#bd8968')+cube(6,-2,0,4,12,4,'arm','#bd8968');
+ model+=cube(-2,10,0,4,12,4,'leg','#414f91')+cube(2,10,0,4,12,4,'leg','#414f91');
+ // Helmet has a crown, side panels and back rather than hiding the face.
+ model+=armor('helmet',[[0,-15.35,0,9.1,2.5,9.1],[-4.1,-12.2,0,1.1,4.1,8.7],[4.1,-12.2,0,1.1,4.1,8.7],[0,-12.2,-4.15,7.3,4.1,1]]);
+ model+=armor('chestplate',[[0,-2.05,0,8.65,12.15,4.65],[-6,-5.7,0,4.65,5.1,4.65],[6,-5.7,0,4.65,5.1,4.65]]);
+ model+=armor('leggings',[[-2,8.4,0,4.35,8.8,4.35],[2,8.4,0,4.35,8.8,4.35]]);
+ model+=armor('boots',[[-2,14,0,4.65,4.3,4.9],[2,14,0,4.65,4.3,4.9]]);
  const weapon=gear('weapon');
- return '<div class="eq-steve-scene">'+a+(weapon?'<span class="eq-held-item" title="'+escapeHTML(weapon.name||'Weapon')+'">'+itemImg(weapon.id)+'</span>':'')+'</div>';
+ if(weapon){const icon=itemImg(weapon.id);model+='<div class="eq-3d-held"><span class="eq-3d-held-side">'+icon+'</span><span class="eq-3d-held-side back">'+itemImg(weapon.id)+'</span></div>'}
+ return '<div class="eq-3d-view" tabindex="0" role="img" aria-label="Drehbarer 3D-Spieler mit Ausrüstung. Ziehen oder Pfeiltasten zum Drehen, Doppelklick zum Zurücksetzen."><div class="eq-3d-floor"></div><div class="eq-3d-model" style="--yaw:'+eqAvatarAngles.yaw+'deg;--pitch:'+eqAvatarAngles.pitch+'deg">'+model+'</div></div><span class="eq-3d-help">↔ Ziehen zum Drehen</span>';
+}
+function equipmentBindAvatar(){
+ const view=$('eqAvatar')?.querySelector('.eq-3d-view'),model=view?.querySelector('.eq-3d-model');if(!view||!model)return;
+ let drag=null;
+ const rotate=(dx,dy)=>{eqAvatarAngles.yaw=(eqAvatarAngles.yaw+dx)%360;eqAvatarAngles.pitch=Math.max(-50,Math.min(50,eqAvatarAngles.pitch+dy));model.style.setProperty('--yaw',eqAvatarAngles.yaw+'deg');model.style.setProperty('--pitch',eqAvatarAngles.pitch+'deg')};
+ view.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();e.stopPropagation();drag={id:e.pointerId,x:e.clientX,y:e.clientY};view.setPointerCapture(e.pointerId)});
+ view.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;e.preventDefault();e.stopPropagation();rotate((e.clientX-drag.x)*1.15,(drag.y-e.clientY)*.55);drag.x=e.clientX;drag.y=e.clientY});
+ const release=e=>{if(drag?.id===e.pointerId)drag=null};view.addEventListener('pointerup',release);view.addEventListener('pointercancel',release);view.addEventListener('lostpointercapture',release);
+ view.addEventListener('dblclick',e=>{e.preventDefault();eqAvatarAngles.yaw=-28;eqAvatarAngles.pitch=-12;rotate(0,0)});
+ view.addEventListener('keydown',e=>{const dirs={ArrowLeft:[-12,0],ArrowRight:[12,0],ArrowUp:[0,-8],ArrowDown:[0,8]};if(dirs[e.key]){e.preventDefault();e.stopPropagation();rotate(...dirs[e.key])}});
 }
 function equipmentRender(){
  const st=sbState;if(st?.mode!=='equipment')return;const p=st.draft,builds=board.nodes.filter(n=>n.plan?.type==='equipment');
@@ -2131,6 +2178,7 @@ function equipmentRefresh(updateGallery=true){
  $('eqAccessories').innerHTML=['accessory1','accessory2','accessory3','accessory4','pet'].map(equipmentSlotMarkup).join('');
  $('eqCount').textContent=equipmentSlots().filter(([k])=>customItem(f[k])).length+' / 14 equipped';
  $('eqAvatar').innerHTML=equipmentAvatar(f)+'<div class="eq-avatar-name">'+e(st.draft.name||'New Build')+'</div><small>PLAYER LOADOUT</small>';
+ equipmentBindAvatar();
  $('eqTotals').innerHTML=SB_STATS.map(k=>{const a=totals[k],u=pct.has(k)?'%':'',tip='Basis '+combatFmt(a.base)+' · Gear '+combatFmt(a.gear);return '<div class="eq-stat" title="'+e(tip)+'">'+itemImg(EQ_STAT_ICONS[k])+'<small>'+e(k)+'</small><strong class="'+(a.total<0?'negative':a.total>0?'nonzero':'')+'">'+combatFmt(a.total)+u+'</strong></div>'}).join('');
  const i=customItem(f[st.focus]),label=equipmentSlots().find(x=>x[0]===st.focus)[1];
  $('eqPickerHead').innerHTML=itemImg(i?.id||EQ_PLACEHOLDERS[st.focus])+'<div><small>ACTIVE SLOT</small><strong>'+e(label)+'</strong><span class="eq-sub">'+e(i?.name||'Item auswählen')+'</span></div>';

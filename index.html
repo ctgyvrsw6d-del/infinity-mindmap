@@ -2106,42 +2106,36 @@ function equipmentAvatar(fields){
    case 'bottom':return [u+d+w,v,w,d];
   }
  };
- const skinBox=(x,y,z,w,h,d,u,v,inflate=0,overlay=false)=>{
+ const skinBox=(x,y,z,w,h,d,u,v,inflate=0,overlay=false,options={})=>{
+  const atlas=options.atlas||skinAtlas,atlasH=options.atlasH||64;
   let html='<div class="eq-3d-box" style="--x:'+x+';--y:'+y+';--z:'+z+'">';
   for(const [face,ry,rx] of faces){
    const side=face==='left'||face==='right',flat=face==='top'||face==='bottom';
    const fw=(side?d:w)+2*inflate,fh=(flat?d:h)+2*inflate,fd=(flat?h:side?w:d)/2+inflate;
-   const [tx,ty,tw,th]=uv(u,v,w,h,d,face);
-   const bs=(64/tw*100)+'% '+(64/th*100)+'%';
-   const bp=(tx/(64-tw)*100)+'% '+(ty/(64-th)*100)+'%';
-   html+='<i class="eq-3d-face eq-3d-skin'+(overlay?' eq-3d-skin-overlay':'')+'" style="--fw:'+fw+';--fh:'+fh+';--fd:'+fd+';--ry:'+ry+'deg;--rx:'+rx+'deg;--fc:transparent;--ft:url(&quot;'+skinAtlas+'&quot;);--skin-size:'+bs+';--skin-pos:'+bp+'"></i>';
+   const textureFace=options.mirror?(face==='left'?'right':face==='right'?'left':face):face;
+   const [tx,ty,tw,th]=uv(u,v,w,h,d,textureFace);
+   const bs=(64/tw*100)+'% '+(atlasH/th*100)+'%';
+   const bp=(tx/(64-tw)*100)+'% '+(ty/(atlasH-th)*100)+'%';
+   html+='<i class="eq-3d-face eq-3d-skin'+(overlay?' eq-3d-skin-overlay':'')+(options.armor?' eq-3d-armor':'')+(options.glint?' glint':'')+'" data-atlas="'+atlas+'" data-uv="'+[tx,ty,tw,th,atlasH].join(',')+'" data-mirror="'+(options.mirror?'1':'0')+'" data-tint="'+(options.tint||'#ffffff')+'" style="--fw:'+fw+';--fh:'+fh+';--fd:'+fd+';--ry:'+ry+'deg;--rx:'+rx+'deg;--fc:transparent;--ft:url(&quot;'+atlas+'&quot;);--skin-size:'+bs+';--skin-pos:'+bp+'"></i>';
   }
   return html+'</div>';
  };
- const art=(kind,face,w,h,c)=>{
-  const W=Math.max(1,Math.round(w)),H=Math.max(1,Math.round(h));
-  const light={front:1,back:.72,right:.75,left:.88,top:1.19,bottom:.59}[face];
-  let pixels='';
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-   let v=c;
-   if((x===0||x===W-1)&&W>2)v=shade(c,.83);
-   else if(y===0&&H>2)v=shade(c,1.23);
-   else if(y===H-1&&H>2)v=shade(c,.75);
-   pixels+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+shade(v,light)+'"/>';
+ // Java's humanoid armor UVs: 64x32 atlas and mirrored opposite limbs.
+ const armorMaterials={diamond:'diamond',golden:'gold',iron:'iron',chainmail:'chainmail',netherite:'netherite',leather:'leather',turtle:'turtle_scute'};
+ const armor=(k,parts)=>{
+  const i=gear(k);if(!i)return '';
+  const material=armorMaterials[(i.baseId||'').split('_')[0]];
+  if(!material||material==='turtle_scute'&&k!=='helmet')return '';
+  const root='https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/equipment/'+(k==='leggings'?'humanoid_leggings':'humanoid')+'/';
+  const leather=material==='leather',baseTint=leather?(i.dyeRecipe?.length?palette(i):'#a06540'):'#ffffff';
+  let result='';
+  for(const [x,y,z,w,h,d,u,v,inflate,mirror=false] of parts){
+   result+=skinBox(x,y,z,w,h,d,u,v,inflate,false,{atlas:root+material+'.png',atlasH:32,armor:true,mirror,tint:baseTint,glint:Boolean(i.enchanted)});
+   // Vanilla leather has undyed trim drawn above the dyed layer, at a small depth offset.
+   if(leather)result+=skinBox(x,y,z,w,h,d,u,v,inflate+.018,true,{atlas:root+'leather_overlay.png',atlasH:32,armor:true,mirror,glint:Boolean(i.enchanted)});
   }
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" shape-rendering="crispEdges">'+pixels+'</svg>';
-  return 'url(&quot;data:image/svg+xml,'+encodeURIComponent(svg).replace(/'/g,'%27')+'&quot;)';
+  return result;
  };
- const cube=(x,y,z,w,h,d,kind,c,glint=false)=>{
-  let html='<div class="eq-3d-box" style="--x:'+x+';--y:'+y+';--z:'+z+'">';
-  for(const [face,ry,rx,light] of faces){
-   const side=face==='left'||face==='right',flat=face==='top'||face==='bottom';
-   const fw=side?d:w,fh=flat?d:h,fd=(flat?h:side?w:d)/2;
-   html+='<i class="eq-3d-face'+(glint?' glint':'')+'" style="--fw:'+fw+';--fh:'+fh+';--fd:'+fd+';--ry:'+ry+'deg;--rx:'+rx+'deg;--fc:'+shade(c,light)+';--ft:'+art(kind,face,fw,fh,c)+'"></i>';
-  }
-  return html+'</div>';
- };
- const armor=(k,parts)=>{const i=gear(k);return i?parts.map(p=>cube(...p,'armor',palette(i),Boolean(i.enchanted))).join(''):''};
  let model='';
  // Base and second skin layers use the exact UV rectangles of the wide player model.
  // Right-side limbs are at negative X when facing the viewer.
@@ -2157,11 +2151,12 @@ function equipmentAvatar(fields){
   model+=skinBox(x,y,z,w,h,d,u,v);
   model+=skinBox(x,y,z,w,h,d,ou,ov,inflate,true);
  }
- // Helmet has a crown, side panels and back rather than hiding the face.
- model+=armor('helmet',[[0,-15.35,0,9.1,2.5,9.1],[-4.1,-12.2,0,1.1,4.1,8.7],[4.1,-12.2,0,1.1,4.1,8.7],[0,-12.2,-4.15,7.3,4.1,1]]);
- model+=armor('chestplate',[[0,-2.05,0,8.65,12.15,4.65],[-6,-5.7,0,4.65,5.1,4.65],[6,-5.7,0,4.65,5.1,4.65]]);
- model+=armor('leggings',[[-2,8.4,0,4.35,8.8,4.35],[2,8.4,0,4.35,8.8,4.35]]);
- model+=armor('boots',[[-2,14,0,4.65,4.3,4.9],[2,14,0,4.65,4.3,4.9]]);
+ // Vanilla armor model: full cuboids, with the actual texture alpha defining openings.
+ // Outer armor uses a 1px dilation; inner leggings use 0.5px.
+ model+=armor('helmet',[[0,-12,0,8,8,8,0,0,1]]);
+ model+=armor('chestplate',[[0,-2,0,8,12,4,16,16,1],[-6,-2,0,4,12,4,40,16,1],[6,-2,0,4,12,4,40,16,1,true]]);
+ model+=armor('leggings',[[0,-2,0,8,12,4,16,16,.5],[-2,10,0,4,12,4,0,16,.5],[2,10,0,4,12,4,0,16,.5,true]]);
+ model+=armor('boots',[[-2,10,0,4,12,4,0,16,1],[2,10,0,4,12,4,0,16,1,true]]);
  const weapon=gear('weapon');
  if(weapon){const icon=itemImg(weapon.id);model+='<div class="eq-3d-held"><span class="eq-3d-held-side">'+icon+'</span><span class="eq-3d-held-side back">'+itemImg(weapon.id)+'</span></div>'}
  return '<div class="eq-3d-view" tabindex="0" role="img" aria-label="Drehbarer 3D-Spieler mit Ausrüstung. Ziehen oder Pfeiltasten zum Drehen, Doppelklick zum Zurücksetzen."><div class="eq-3d-floor"></div><div class="eq-3d-model" style="--yaw:'+eqAvatarAngles.yaw+'deg;--pitch:'+eqAvatarAngles.pitch+'deg">'+model+'</div></div><span class="eq-3d-help">↔ Ziehen zum Drehen</span>';
@@ -2173,7 +2168,7 @@ function equipmentDepthRenderer(view,model){
  if(!gl)return null;
  const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){const msg=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(msg)}return sh};
  const vert=compile(gl.VERTEX_SHADER,'attribute vec3 p;attribute vec2 uv;uniform vec2 angle;uniform vec2 scale;varying vec2 t;void main(){float cy=cos(angle.x),sy=sin(angle.x),cx=cos(angle.y),sx=sin(angle.y);vec3 q=vec3(cy*p.x+sy*p.z,p.y,-sy*p.x+cy*p.z);q=vec3(q.x,cx*q.y-sx*q.z,sx*q.y+cx*q.z);gl_Position=vec4(q.x*scale.x,-q.y*scale.y,-q.z/90.0,1.0-q.z/125.0);t=uv;}');
- const frag=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 t;uniform sampler2D tex;uniform vec4 color;uniform float mode;uniform float shine;uniform float clock;void main(){vec4 c=color;if(mode>0.5)c=texture2D(tex,t);if(c.a<0.5)discard;if(mode<0.5){vec2 v=fract(t*8.0);float edge=step(0.125,t.x)*step(t.x,0.875)*step(0.125,t.y)*step(t.y,0.875);c.rgb*=mix(0.87,1.0,edge);}if(shine>0.5){float g=smoothstep(0.75,0.98,fract(t.x+t.y-clock*0.26));c.rgb=mix(c.rgb,vec3(0.75,0.58,1.0),g*0.46);}gl_FragColor=vec4(c.rgb,1.0);}');
+ const frag=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 t;uniform sampler2D tex;uniform vec4 color;uniform float mode;uniform float shine;uniform float clock;void main(){vec4 c=color;if(mode>0.5)c=texture2D(tex,t)*color;if(c.a<0.5)discard;if(mode<0.5){vec2 v=fract(t*8.0);float edge=step(0.125,t.x)*step(t.x,0.875)*step(0.125,t.y)*step(t.y,0.875);c.rgb*=mix(0.87,1.0,edge);}if(shine>0.5){float g=smoothstep(0.75,0.98,fract(t.x+t.y-clock*0.26));c.rgb=mix(c.rgb,vec3(0.75,0.58,1.0),g*0.46);}gl_FragColor=vec4(c.rgb,1.0);}');
  const program=gl.createProgram();gl.attachShader(program,vert);gl.attachShader(program,frag);gl.linkProgram(program);gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
  gl.useProgram(program);
@@ -2198,15 +2193,15 @@ function equipmentDepthRenderer(view,model){
    const skin=face.classList.contains('eq-3d-skin'),overlay=face.classList.contains('eq-3d-skin-overlay');
    let uv=[0,0,1,1];
    if(skin){
-    const [sw,sh]=face.style.getPropertyValue('--skin-size').trim().split(/\s+/).map(parseFloat);
-    const [px,py]=face.style.getPropertyValue('--skin-pos').trim().split(/\s+/).map(parseFloat);
-    const tw=Math.round(6400/sw),th=Math.round(6400/sh),tx=Math.round(px*(64-tw)/100),ty=Math.round(py*(64-th)/100);
-    // Exact atlas boundaries; NEAREST and fragment alpha discard prevent bleeding.
-    uv=[tx/64,ty/64,(tx+tw)/64,(ty+th)/64];
+    const [tx,ty,tw,th,atlasH]=face.dataset.uv.split(',').map(Number);
+    if(![tx,ty,tw,th,atlasH].every(Number.isFinite)||!atlasH)throw Error('Invalid armor UV');
+    // Nearest filtering, correct 64x32/64x64 dimensions, mirrored opposite limbs.
+    const left=tx/64,right=(tx+tw)/64;
+    uv=[face.dataset.mirror==='1'?right:left,ty/atlasH,face.dataset.mirror==='1'?left:right,(ty+th)/atlasH];
    }
    const first=data.length/5;
    quad(x,y,z,num(face,'--fw'),num(face,'--fh'),num(face,'--fd'),num(face,'--ry')*degrees,num(face,'--rx')*degrees,uv);
-   batches.push({first,mode:skin?1:0,color:parseColor(face.style.getPropertyValue('--fc').trim()),shine:face.classList.contains('glint'),bias:overlay?-(bi+1)*.5:skin?bi*.08:-(bi+1)*.5});
+   batches.push({first,mode:skin?1:0,atlas:skin?face.dataset.atlas:null,color:skin?parseColor(face.dataset.tint||'#ffffff'):parseColor(face.style.getPropertyValue('--fc').trim()),shine:face.classList.contains('glint'),bias:overlay?-(bi+1)*.15:skin?bi*.015:0});
   }
  }
  const held=model.querySelector('.eq-3d-held');
@@ -2218,6 +2213,9 @@ function equipmentDepthRenderer(view,model){
  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
  const makeTexture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));return t};
  const skinTex=makeTexture(),heldTex=makeTexture();
+ const skinUrl='https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png';
+ const atlases=new Map([[skinUrl,{texture:skinTex,ready:false}]]);
+ for(const b of batches)if(b.atlas&&!atlases.has(b.atlas))atlases.set(b.atlas,{texture:makeTexture(),ready:false});
  let ready=false,heldReady=false,disposed=false,raf=0,observer=null,resizeObserver=null;
  const animated=batches.some(b=>b.shine)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
  const render=(time=0)=>{
@@ -2229,9 +2227,11 @@ function equipmentDepthRenderer(view,model){
   const unit=Math.min(6.1,w*.04,h*.029);
   gl.uniform2f(loc.scale,2*unit/w,2*unit/h);gl.uniform2f(loc.angle,eqAvatarAngles.yaw*degrees,eqAvatarAngles.pitch*degrees);
   gl.uniform1f(loc.clock,time/1000);
-  gl.bindTexture(gl.TEXTURE_2D,skinTex);
   const draw=b=>{gl.uniform1f(loc.mode,b.mode);gl.uniform4fv(loc.color,b.color);gl.uniform1f(loc.shine,b.shine?1:0);gl.polygonOffset(0,b.bias);gl.drawArrays(gl.TRIANGLES,b.first,6)};
-  for(const b of batches)draw(b);
+  for(const b of batches){
+   if(b.atlas){const entry=atlases.get(b.atlas);if(!entry?.ready)continue;gl.bindTexture(gl.TEXTURE_2D,entry.texture)}
+   draw(b);
+  }
   if(heldBatch&&heldReady){gl.bindTexture(gl.TEXTURE_2D,heldTex);draw(heldBatch)}
  };
  const frame=time=>{raf=0;if(disposed||!view.isConnected)return;render(time);if(animated)raf=requestAnimationFrame(frame)};
@@ -2241,14 +2241,17 @@ function equipmentDepthRenderer(view,model){
  };
  canvas.style.visibility='hidden';view.append(canvas);
  const show=()=>{if(disposed)return;ready=true;canvas.style.visibility='visible';model.style.display='none';redraw()};
- load(['https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png','https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/entity/player/wide/steve.png'],skinTex,show);
+ for(const [url,entry] of atlases){
+  const fallback=url.replace('https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/','https://assets.mcasset.cloud/');
+  load([url,fallback],entry.texture,()=>{entry.ready=true;if(url===skinUrl)show();else redraw()});
+ }
  if(held){
   const im=held.querySelector('img.item-icon'),urls=im?[im.getAttribute('src'),...Array.from({length:7},(_,i)=>im.getAttribute('data-src'+i))].filter(Boolean):[];
   if(urls.length)load([...new Set(urls)],heldTex,()=>{heldReady=true;redraw()});
  }
  const restore=()=>{if(!disposed){ready=false;canvas.style.visibility='hidden';model.style.display=''}};
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();restore()});
- const cleanup=()=>{if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer?.disconnect();resizeObserver?.disconnect();gl.deleteBuffer(buffer);gl.deleteTexture(skinTex);gl.deleteTexture(heldTex);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();canvas.remove();model.style.display=''};
+ const cleanup=()=>{if(disposed)return;disposed=true;if(raf)cancelAnimationFrame(raf);observer?.disconnect();resizeObserver?.disconnect();gl.deleteBuffer(buffer);for(const entry of atlases.values())gl.deleteTexture(entry.texture);gl.deleteTexture(heldTex);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();canvas.remove();model.style.display=''};
  if(typeof ResizeObserver!=='undefined'){resizeObserver=new ResizeObserver(redraw);resizeObserver.observe(view)}
  if(typeof MutationObserver!=='undefined'){observer=new MutationObserver(()=>{if(!view.isConnected)cleanup()});observer.observe(document.body,{childList:true,subtree:true})}
  return {redraw,cleanup};

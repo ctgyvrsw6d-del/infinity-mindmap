@@ -386,9 +386,18 @@
 .mob-hostile{color:#fb8089!important}.mob-neutral{color:#7eddb3!important}.mob-passive{color:#8bdc83!important}.mob-boss{color:#cfa0ff!important}.mob-custom{color:#efc46d!important}
 .mob-grid.list-mode{grid-template-columns:1fr}
 .mob-grid.list-mode .mob-tile{min-height:66px;flex-direction:row;justify-content:flex-start;padding:7px 12px;text-align:left;gap:12px}
-.mob-grid.list-mode .mob-tile svg{width:50px;height:50px;flex-shrink:0}
+.mob-grid.list-mode .mob-tile > .mob-art{width:50px;height:50px;flex-shrink:0}
 .mob-grid.list-mode .mob-tile small{margin-left:auto}
 .mob-art{display:block;width:82px;height:86px;overflow:visible;filter:drop-shadow(0 7px 5px #0007);flex-shrink:0}
+/* Native rendered models: retain full source resolution, preserve the aspect ratio. */
+.mob-art.mob-render{position:relative;display:flex;align-items:center;justify-content:center;filter:none;overflow:visible}
+.mob-render-img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;image-rendering:auto;filter:none;transform:none;background:transparent;pointer-events:none;user-select:none}
+.mob-render-img[hidden],.mob-render-fallback[hidden]{display:none!important}
+.mob-render-fallback{display:block;width:100%;height:100%}
+.mob-render-fallback>.mob-art{width:100%!important;height:100%!important;margin:0!important}
+.mob-grid.list-mode .mob-tile>.mob-art{width:50px;height:50px}
+.mob-node-card>.mob-render{max-width:none}
+
 .mob-detail{display:grid;gap:9px}
 .mob-hero{display:flex;align-items:center;gap:10px;min-height:135px;padding:10px;background:radial-gradient(ellipse at 25% 50%,#263452,#101624 72%);border:1px solid #30384d;border-radius:12px}
 .mob-hero .mob-art{width:104px;height:112px}
@@ -639,7 +648,17 @@ const MOB_TIER=[['normal','Normal'],['elite','Elite'],['boss','Boss'],['slayer',
 function mobFind(id){return MOB_CATALOG.find(m=>m[0]===String(id).replace(/^minecraft:/,''))||['custom','Eigener Mob','custom','humanoid','#a38bdd','#605094','#4a3d74','custom']}
 function mobCategory(m){return (MOB_CATEGORY.find(c=>c[0]===m[2])||MOB_CATEGORY[5])[1]}
 function mobVariants(id){return [['normal','Standard'],...(id==='zombie'?[['armored','Armored Zombie'],['corrupted','Corrupted Zombie'],['revenant','Revenant Zombie']]:[['armored','Armored'],['corrupted','Corrupted']]),['boss','Boss-Variante'],['custom','Eigene Variante']]}
+// Game-native isometric Java Edition renders by Owen1212055/mc-assets.
+const MOB_RENDER_ROOT='https://raw.githubusercontent.com/Owen1212055/mc-assets/271a000189e86e101a1361af6d4266f6201ff726/entity-assets/isometric/';
+const MOB_RENDER_CDN='https://cdn.jsdelivr.net/gh/Owen1212055/mc-assets@271a000189e86e101a1361af6d4266f6201ff726/entity-assets/isometric/';
+const MOB_RENDER_IDS=new Set(["zombie","skeleton","creeper","spider","enderman","blaze","wither_skeleton","piglin","iron_golem","slime","magma_cube","warden","wither","ender_dragon","cave_spider","husk","drowned","stray","witch","pillager","villager","vindicator","evoker","zombified_piglin","cow","pig","sheep","chicken","wolf","cat","fox","bee","snow_golem","phantom","ghast","ravager"]);
 function mobArt(id){
+ const key=mobFind(id)[0];
+ if(!MOB_RENDER_IDS.has(key))return mobArtFallback(key);
+ const file=key.toUpperCase()+'.png';
+ return '<span class="mob-art mob-render" aria-hidden="true"><img class="mob-render-img" src="'+MOB_RENDER_ROOT+file+'" data-backup="'+MOB_RENDER_CDN+file+'" alt="" decoding="async" referrerpolicy="no-referrer" draggable="false" onerror="if(this.dataset.backup){this.src=this.dataset.backup;delete this.dataset.backup;}else{this.hidden=true;this.nextElementSibling.hidden=false;}"><span class="mob-render-fallback" hidden>'+mobArtFallback(key)+'</span></span>';
+}
+function mobArtFallback(id){
  const m=mobFind(id),[,,cat,form,head,body,legs,face]=m;
  const shade=(hex,k)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(hex.slice(i,i+2),16)*k))).toString(16).padStart(2,'0')).join('');
  let a='<svg class="mob-art" viewBox="0 0 112 124" aria-hidden="true" focusable="false"><ellipse cx="55" cy="114" rx="37" ry="5" fill="#05080f" opacity=".55"/>';
@@ -1577,7 +1596,7 @@ function combatMobEditor(id=null,returnToSim=false){
  const n=id?byId(id):null;if(id&&n?.plan?.type!=='mob')return;exitTextEditing();closeCatalog();
  const p=n?structuredClone(n.plan):sbPlan({type:'mob',name:'Zombie',fields:{base:'zombie',hp:1000,defense:100,damage:75,xp:50,speed:.23,variant:'normal',tier:'normal'}});
  sbState={mode:'combatMob',id,returnToSim,draft:p,category:'all',query:'',list:false,base:p.fields.base||'custom'};
- sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats.</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button></div></div>');
+ sbShow(n?'Mob bearbeiten':'Mob auswählen','<div class="mob-picker"><p class="tiny-note">Wähle einen Minecraft-Mob. Alle Werte sind frei bearbeitbare Skyblock-Planungswerte, keine Vanilla-Stats. 3D-Mob-Ansichten: Owen1212055 / mc-assets (Minecraft Java Edition).</p><div class="mob-picker-layout"><nav class="mob-cats" id="mobCategories" aria-label="Mob-Kategorien"></nav><section class="mob-gallery"><div class="mob-searchbar"><input id="mobSearch" type="search" class="editor-input" placeholder="Mob suchen …" aria-label="Mob suchen"><button type="button" class="mob-layout-btn active" data-mob-layout="grid" aria-label="Rasteransicht" aria-pressed="true">▦</button><button type="button" class="mob-layout-btn" data-mob-layout="list" aria-label="Listenansicht" aria-pressed="false">☰</button></div><div class="mob-grid" id="mobGrid"></div></section><section class="mob-detail" id="mobDetail"></section></div><div class="mob-footer"><button type="button" class="btn" data-combat-action="cancelMob">Abbrechen</button><button type="button" class="btn primary" data-combat-action="saveMob">✓ Mob übernehmen</button></div></div>');
  mobRenderGallery();mobRenderDetail();
 }
 function mobEntries(){

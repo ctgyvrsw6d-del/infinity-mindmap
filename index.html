@@ -488,6 +488,31 @@
 .md-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.md-fields label,.md-form label{font-size:12px;color:#c6cde0;min-width:0;display:block}.md-fields .editor-input,.md-form .editor-input{margin-top:4px;background:#202638!important;border-color:#3a4158;min-width:0}.md-form>label{margin:9px 0}.md-form .md-checks{display:flex;flex-wrap:wrap;gap:12px;margin:9px 0}.md-checks label{display:flex;align-items:center;gap:6px}.md-checks input{accent-color:#a98aff;width:17px;height:17px}.md-form details{margin:10px 0}.md-form summary{cursor:pointer;color:#cfbaff}.md-preview{display:flex;gap:10px;align-items:center;margin-top:10px}.md-preview>.item-stack-icon{--item-size:64px!important;width:64px;height:64px}.md-preview>.ci-map-tooltip{flex:1;font-size:12px}.md-chat{background:#090d16;border-radius:6px;padding:8px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.md-sim-results{display:grid;gap:6px;max-height:45dvh;overflow:auto}.md-result{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:8px;border:1px solid #333a4b;border-radius:7px}.md-result small{grid-column:1/-1;color:var(--md-muted)}.md-result b{color:#a5ec9e}.md-muted{color:var(--md-muted);font-size:11px}.md-footer{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.md-footer .btn{min-height:42px}.md-empty{text-align:center;padding:24px;color:var(--md-muted);border:1px dashed #47415c;border-radius:8px}
 .md-map-card{position:absolute;inset:9px;display:flex;align-items:center;gap:10px;pointer-events:none;overflow:hidden;z-index:1}.md-map-card>.item-stack-icon{--item-size:54px!important;width:54px;height:54px}.md-map-info{min-width:0;display:grid;gap:3px;overflow-wrap:anywhere;font-size:.82em}.md-map-info strong{font-size:1.05em}.md-map-info small{color:#bfc5d6}.md-map-rate{font-size:1.2em;font-weight:750;color:#9ce990}.node.md-drop-node .node-text{opacity:0!important;inset:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 16px)!important;transform:none!important;z-index:2;cursor:pointer;caret-color:transparent}
 @media(max-width:1050px){.md-layout{grid-template-columns:1fr}.md-nav{display:flex;overflow:auto;max-height:none}.md-mob{flex-shrink:0;max-width:170px}}@media(max-width:700px){#sbOverlay:has(.md-designer) .item-editor{padding:11px}.md-columns{grid-template-columns:1fr}.md-header{flex-wrap:wrap}.md-header .btn{margin-left:0}.md-footer .btn{flex:1}.md-table{max-height:32dvh}}
+
+#sbOverlay:has(.equipment-designer) .item-editor{width:min(1160px,100%);background:#0e1320;border:1px solid #3c586d;color:#edf4fb;padding:18px}
+.equipment-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:14px;align-items:start}
+.eq-panel{background:#151e2b;border:1px solid #37475d;border-radius:11px;padding:13px;min-width:0}
+.eq-panel h3{margin:0 0 10px;color:#cce8f6;font-size:15px}
+.eq-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eq-slot{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:center;background:#202b39;border:1px solid #3b4b60;border-radius:8px;padding:8px;min-width:0}
+.eq-slot.active{border-color:#8fcbec}
+.eq-icon{display:grid;place-items:center;width:42px;height:42px;background:#101822;border:1px solid #4a5b70;border-radius:7px;color:#758ba0;cursor:pointer;flex-shrink:0}
+.eq-icon .item-stack-icon{--item-size:34px!important;width:34px;height:34px}
+.eq-slot label{font-size:12px;color:#b9c9da;min-width:0}
+.eq-slot select{width:100%;font-size:16px!important;min-height:39px;margin-top:4px;padding:5px!important;min-width:0}
+.eq-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.eq-stat{background:#202b39;border:1px solid #354358;border-radius:7px;padding:9px;min-width:0}
+.eq-stat small{display:block;color:#b7c9d9;font-size:11px}
+.eq-stat strong{display:block;color:#79e1bd;font-size:18px;overflow-wrap:anywhere}
+.eq-stat span{color:#a9b9cc;font-size:10px}
+.eq-preview{margin-top:12px;min-height:90px;padding:12px;border-radius:8px;background:#10131e;border:1px solid #51406e;overflow-wrap:anywhere}
+.eq-base{margin:12px 0}.eq-base summary{cursor:pointer;padding:10px 0;color:#b9c9dc}
+.eq-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end;margin-top:14px}
+.eq-actions .btn{min-height:44px}
+.eq-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.eq-top .editor-input,.eq-base .editor-input{width:100%;font-size:16px!important}
+@media(max-width:740px){.equipment-layout,.eq-top{grid-template-columns:1fr}.eq-slots{grid-template-columns:repeat(2,minmax(0,1fr))}#sbOverlay:has(.equipment-designer) .item-editor{padding:10px}.eq-actions .btn{flex:1}}
+@media(max-width:410px){.eq-slots{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -517,6 +542,7 @@
   </nav>
   <div class="shape-menu" id="shapeMenu" aria-label="Form wählen">
     <div class="menu-label">Minecraft-Planung</div><button type="button" class="shape-item md-menu-shortcut" data-combat-tool="drops"><svg viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7Z M3 7l9 5 9-5M12 12v10"/></svg>Mob Drop Designer</button>
+    <button type="button" class="shape-item md-menu-shortcut" data-combat-tool="equipment" style="background:#264d65;border-color:#73b6cb"><svg viewBox="0 0 24 24"><path d="M8 3 3 6l3 5 2-1v11h8V10l2 1 3-5-5-3-2 3h-4Z"/></svg>Player Equipment Simulator</button>
 
     <div class="menu-label">Form hinzufügen</div>
     <button class="shape-item" data-add="rect"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14"/></svg>Rechteck</button>
@@ -581,7 +607,7 @@
   <div class="empty" id="empty"><div class="empty-icon" aria-hidden="true">◇</div><h1>Deine Ideen. Ohne Grenzen.</h1><p>Erstelle Formen, schreibe hinein und verbinde sie ganz nach deinen Vorstellungen.</p><button class="btn primary" id="emptyAdd">+ Erste Form erstellen</button></div>
   <div class="zoom"><button id="zoomOut" aria-label="Zoom verkleinern">−</button><span id="zoomText">100 %</span><button id="zoomIn" aria-label="Zoom vergrößern">+</button><button id="centerBtn" aria-label="Alles zentrieren" title="Alles anzeigen"><svg viewBox="0 0 24 24"><path d="M3 9V4h5M21 15v5h-5M4 4l5 5M20 20l-5-5"/></svg></button></div>
   <div class="footer-help">Elemente verschieben · automatisch ausrichten · verbinden</div>
-  <div class="more" id="moreMenu"><h3>Minecraft-Planung</h3><button id="openMobDrops">▤ Mob Drop Designer</button><h3>Mindmap</h3><button id="newBoard">＋ Neue Mindmap</button><button id="exportBoard">↓ Als JSON speichern</button><button id="importBoard">↑ JSON importieren</button><button id="centerBoard">◎ Alles anzeigen</button><p id="cloudInfo">Automatisch lokal gespeichert. Für gemeinsame Bearbeitung auf mehreren Geräten ist die optionale Cloud-Einrichtung erforderlich.</p></div>
+  <div class="more" id="moreMenu"><h3>Minecraft-Planung</h3><button id="openMobDrops">▤ Mob Drop Designer</button><button id="openEquipment">♜ Player Equipment Simulator</button><h3>Mindmap</h3><button id="newBoard">＋ Neue Mindmap</button><button id="exportBoard">↓ Als JSON speichern</button><button id="importBoard">↑ JSON importieren</button><button id="centerBoard">◎ Alles anzeigen</button><p id="cloudInfo">Automatisch lokal gespeichert. Für gemeinsame Bearbeitung auf mehreren Geräten ist die optionale Cloud-Einrichtung erforderlich.</p></div>
   <input id="fileInput" class="hidden" type="file" accept=".json,application/json">
   <div class="toast" role="status" aria-live="polite" id="toast"></div>
 </div>
@@ -770,6 +796,7 @@ function mobArtFallback(id){
 function mobNodeCard(n){const p=n.plan,f=p.fields,m=mobFind(f.base),tier=MOB_TIER.find(x=>x[0]===f.tier)||MOB_TIER[0],e=escapeHTML;return '<div class="mob-node-card" style="color:'+e(n.textColor)+';font-size:'+n.fontSize+'px">'+mobArt(f.base)+'<div class="mob-node-copy"><strong>'+e(p.name||m[1])+'</strong><small class="mob-category mob-'+m[2]+'">'+e(tier[1])+' · '+e(mobCategory(m))+'</small><small>HP '+e(f.hp===''?'–':f.hp)+' · DEF '+e(f.defense===''?'–':f.defense)+'</small><small>DMG '+e(f.damage===''?'–':f.damage)+' · XP '+e(f.xp===''?'–':f.xp)+'</small></div></div>'}
 
 const SB_DEFS={
+ equipment:{name:'Player Equipment',icon:'♜',fields:[["weapon","Weapon","i"],["helmet","Helmet","i"],["chestplate","Chestplate","i"],["leggings","Leggings","i"],["boots","Boots","i"],["necklace","Necklace","i"],["cloak","Cloak","i"],["belt","Belt","i"],["gloves","Gloves","i"],["accessory1","Accessory 1","i"],["accessory2","Accessory 2","i"],["accessory3","Accessory 3","i"],["accessory4","Accessory 4","i"],["pet","Pet","i"],["base0","Base Damage","n"],["base1","Base Strength","n"],["base2","Base Crit Chance","n"],["base3","Base Crit Damage","n"],["base4","Base Health","n"],["base5","Base Defense","n"],["base6","Base Intelligence","n"],["base7","Base Speed","n"],["base8","Base Magic Find","n"],["base9","Base Attack Speed","n"],["base10","Base Ferocity","n"]],rows:[]},
  mob_drop:{name:'Mob Drop Designer',icon:'▤',fields:[['mob','Mob-ID'],['drop','Drop-ID']],rows:[]},
  custom_item:{name:'Custom Item',icon:'▦',fields:[['item','Custom Item','i']],rows:[]},
  mob:{name:'Mob / Boss',icon:'☠',fields:[['base','Minecraft-Mob'],['hp','Health','n'],['damage','Damage','n'],['defense','Defense','n'],['xp','Combat XP','n'],['speed','Speed','n'],['variant','Variante'],['tier','Tier'],['spawn','Spawn-Bedingungen','a'],['abilities','Fähigkeiten','a']],rows:[['item','Drop','i'],['chance','Chance %','p'],['min','Min.','n'],['max','Max.','n'],['req','Voraussetzung']]},
@@ -789,7 +816,7 @@ const SB_DEFS={
 function sbImage(v){return typeof v==='string'&&v.length<=500000&&/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v)?v:''}
 function sbVal(v,k){return k==='n'?sbNum(v):k==='p'?sbNum(v,0,100):k==='i'?(/^[a-z0-9_]{1,90}$/.test(v||'')?v:''):sbText(v,k==='a'?2000:240)}
 function sbPlan(p){if(!p||!Object.hasOwn(SB_DEFS,p.type))return undefined;const d=SB_DEFS[p.type];return {type:p.type,name:sbText(p.name,100),status:['planned','doing','done'].includes(p.status)?p.status:'planned',notes:sbText(p.notes,3000),fields:Object.fromEntries(d.fields.map(([k,l,t])=>[k,sbVal(p.fields?.[k],t)])),rows:Array.isArray(p.rows)?p.rows.slice(0,200).map((row,i)=>p.type==='mob'?mdNormalize(row,i):Object.fromEntries(d.rows.map(([k,l,t])=>[k,sbVal(row?.[k],t)]))):[],image:sbImage(p.image)}}
-function sbLabel(p){if(p.type==='mob_drop')return p.name||'Mob Drop';if(p.type==='custom_item')return p.name||'Custom Item';if(p.type==='mob')return '☠ '+(p.name||'Mob')+'\nHP: '+(p.fields.hp===''?'–':p.fields.hp)+'  ·  DEF: '+(p.fields.defense===''?'–':p.fields.defense);return SB_DEFS[p.type].icon+' '+(p.name||SB_DEFS[p.type].name)+'\n'+SB_DEFS[p.type].name+(p.rows.length?' · '+p.rows.length+' Einträge':'')+'\n'+({planned:'Geplant',doing:'In Entwicklung',done:'Fertig'}[p.status])}
+function sbLabel(p){if(p.type==='equipment')return '♜ '+(p.name||'Player Equipment')+'\nPlayer Equipment · '+SB_DEFS.equipment.fields.slice(0,14).filter(([k])=>p.fields[k]).length+'/14 Slots';if(p.type==='mob_drop')return p.name||'Mob Drop';if(p.type==='custom_item')return p.name||'Custom Item';if(p.type==='mob')return '☠ '+(p.name||'Mob')+'\nHP: '+(p.fields.hp===''?'–':p.fields.hp)+'  ·  DEF: '+(p.fields.defense===''?'–':p.fields.defense);return SB_DEFS[p.type].icon+' '+(p.name||SB_DEFS[p.type].name)+'\n'+SB_DEFS[p.type].name+(p.rows.length?' · '+p.rows.length+' Einträge':'')+'\n'+({planned:'Geplant',doing:'In Entwicklung',done:'Fertig'}[p.status])}
 function sbGui(g,size){const slots={};for(const [k,v] of Object.entries(g?.slots||{})){if(!/^(0|[1-9][0-9]*)$/.test(k)||Number(k)>=size||!v||typeof v!=='object')continue;const a={label:sbText(v.label,60),target:sbText(v.target,60),hidden:!!v.hidden};if(a.label||a.target||a.hidden)slots[k]=a}return {background:sbImage(g?.background),hideGrid:!!g?.hideGrid,slots}}
 
 function normCustomItem(item){
@@ -1584,7 +1611,7 @@ window.addEventListener('pointercancel',endCatalogDrag);
 
 $('shapeTool').onclick=()=>{const menu=$('shapeMenu');if(menu.classList.toggle('show'))menu.scrollTop=0;$('moreMenu').classList.remove('show')};
 $('emptyAdd').onclick=()=>{const menu=$('shapeMenu');menu.classList.add('show');menu.scrollTop=0};
-$('shapeMenu').addEventListener('click',event=>{const action=event.target.closest('[data-combat-tool]');if(action){$('shapeMenu').classList.remove('show');if(action.dataset.combatTool==='mob')combatMobEditor();else if(action.dataset.combatTool==='drops')mdOpen();else if(action.dataset.combatTool==='custom_item'){exitTextEditing();closeCatalog();sbItems()}else openCombatSimulator();return}const button=event.target.closest('[data-add]');if(button)addShape(button.dataset.add)});
+$('shapeMenu').addEventListener('click',event=>{const action=event.target.closest('[data-combat-tool]');if(action){$('shapeMenu').classList.remove('show');if(action.dataset.combatTool==='mob')combatMobEditor();else if(action.dataset.combatTool==='drops')mdOpen();else if(action.dataset.combatTool==='equipment')equipmentOpen();else if(action.dataset.combatTool==='custom_item'){exitTextEditing();closeCatalog();sbItems()}else openCombatSimulator();return}const button=event.target.closest('[data-add]');if(button)addShape(button.dataset.add)});
 $('linkTool').onclick=()=>setLinkMode(!linkMode);$('selectTool').onclick=()=>{setLinkMode(false);exitTextEditing()};$('deleteTool').onclick=removeSelected;$('duplicateTool').onclick=duplicateSelected;
 $('undoTool').onclick=()=>restoreHistory(-1);$('redoTool').onclick=()=>restoreHistory(1);
 $('zoomIn').onclick=()=>zoom(1.25);$('zoomOut').onclick=()=>zoom(.8);$('centerBtn').onclick=centerAll;
@@ -1594,13 +1621,14 @@ $('breadcrumbs').addEventListener('click',event=>{const button=event.target.clos
 $('boardTitle').value=board.title;$('boardTitle').addEventListener('input',event=>{board.title=event.target.value;save({group:'board-title'})});
 $('moreBtn').onclick=()=>{$('moreMenu').classList.toggle('show');$('shapeMenu').classList.remove('show')};
 $('openMobDrops').onclick=()=>{$('moreMenu').classList.remove('show');mdOpen()};
+$('openEquipment').onclick=()=>{$('moreMenu').classList.remove('show');equipmentOpen()};
 window.addEventListener('pointerdown',event=>{if(!event.target.closest('#moreMenu')&&!event.target.closest('#moreBtn'))$('moreMenu').classList.remove('show');if(!event.target.closest('#shapeMenu')&&!event.target.closest('#shapeTool')&&!event.target.closest('#emptyAdd'))$('shapeMenu').classList.remove('show')});
 $('newBoard').onclick=()=>{location.hash='b='+uid();location.reload()};$('centerBoard').onclick=()=>{centerAll();$('moreMenu').classList.remove('show')};
 $('exportBoard').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,...board,submapBoards:collectSubmapBoards(board)},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(board.title||'mindmap').replace(/[^a-z0-9äöüß_-]/gi,'-').slice(0,42)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);$('moreMenu').classList.remove('show');notify('Mindmap als JSON gespeichert.')};
 $('importBoard').onclick=()=>$('fileInput').click();$('fileInput').addEventListener('change',async event=>{const f=event.target.files?.[0];if(!f)return;try{if(f.size>16_000_000)throw Error('Datei zu groß');const payload=JSON.parse(await f.text());const imported=validBoard(payload);if(!imported)throw Error('Unbekanntes Format');imported.parent=board.parent;installSubmapBoards(imported,payload);board=imported;selectedNode=null;selectedEdge=null;$('boardTitle').value=board.title;updateMapTrail();renderNodes();centerAll();save();notify('Mindmap und Unter-Mindmaps importiert.')}catch(error){notify('Import fehlgeschlagen: '+error.message)}event.target.value='';$('moreMenu').classList.remove('show')});
 $('shareBtn').onclick=async()=>{const url=new URL(location.href);url.hash='b='+boardId;try{await navigator.clipboard.writeText(url.toString());notify(cloudReady?'Link kopiert! Über diesen Link kann deine Mindmap gemeinsam bearbeitet werden.':'Link kopiert. Cloud noch nicht verbunden – Inhalte sind derzeit nur auf diesem Gerät.')}catch{window.prompt('Mindmap-Link kopieren:',url.toString())}};
 window.addEventListener('keydown',event=>{
- if(sbState){if(event.key==='Escape'){event.preventDefault();sbClose()}return}if(shapeTextId){if(event.key==='Escape'){event.preventDefault();closeShapeTextEditor()}return}
+ if(sbState){if(event.key==='Escape'){event.preventDefault();if(sbState.mode!=='equipment'||equipmentCanLeave())sbClose()}return}if(shapeTextId){if(event.key==='Escape'){event.preventDefault();closeShapeTextEditor()}return}
  const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
  // Der Item-Editor ist ein ungespeichertes Formular: dort bleibt Undo des Textfelds nativ.
  if(mod&&!event.altKey&&!event.target.closest?.('#itemEditorOverlay')){
@@ -1627,11 +1655,11 @@ $('sbItemFields').addEventListener('input',sbHeadPreviewEvent);$('sbItemFields')
 let sbState=null;
 function sbShow(title,html){$('sbTitle').textContent=title;$('sbContent').innerHTML=html;$('sbOverlay').classList.remove('hidden');$('sbOverlay').querySelector('.item-editor').scrollTop=0}
 function sbClose(){sbState=null;$('sbOverlay').classList.add('hidden');$('sbContent').innerHTML=''}
-$('sbClose').onclick=()=>{if(sbState?.mode!=='mobDrops'||mdDiscard())sbClose()};
+$('sbClose').onclick=()=>{if(sbState?.mode==='equipment'&&!equipmentCanLeave())return;if(sbState?.mode!=='mobDrops'||mdDiscard())sbClose()};
 function sbChoices(){const m=new Map([...board.customItems.map(i=>[i.id,i.name]),...catalog.map(i=>[i.id,i.name])]);return '<datalist id="sbChoices">'+[...m].slice(0,4000).map(([id,name])=>'<option value="'+escapeHTML(id)+'">'+escapeHTML(name)+'</option>').join('')+'</datalist>'}
 function sbMenu(){exitTextEditing();closeCatalog();$('moreMenu').classList.remove('show');sbState={mode:'menu'};sbShow('Skyblock-Planer','<p class="tiny-note">Erstelle Planungsmodule auf deiner Mindmap. Sie lassen sich wie Formen verbinden und verschieben.</p><div class="sb-grid">'+Object.entries(SB_DEFS).map(([k,d])=>'<button class="sb-tile" data-add-sb="'+k+'">'+d.icon+' '+d.name+'</button>').join('')+'<button class="sb-tile" data-sb-command="calc">∑ Crafting-Kalkulator</button><button class="sb-tile" data-sb-command="items">▦ Custom Items</button><button class="sb-tile" data-sb-command="compare">⇄ Item-Vergleich</button><button class="sb-tile" data-sb-command="search">⌕ Mindmap-Suche</button></div>')}
-function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;if(type==='mob_drop'){mdOpen();return}if(type==='custom_item'){sbItems();return}if(type==='mob'){combatMobEditor();return}const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
-function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(n.plan.type==='mob'){combatMobEditor(id);return}if(n.plan.type==='mob_drop'){mdOpen(n.plan.fields.mob,n.plan.fields.drop);return}if(n.plan.type==='custom_item'){const item=customItem(n.plan.fields.item);if(!item){notify('Das verknüpfte Custom Item fehlt.');return}closeCatalog();openItemEditor(item.id,false);if(editorState)$('sbItemDetails').open=true;return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
+function sbAdd(type){if(!Object.hasOwn(SB_DEFS,type))return;if(type==='equipment'){equipmentOpen();return}if(type==='mob_drop'){mdOpen();return}if(type==='custom_item'){sbItems();return}if(type==='mob'){combatMobEditor();return}const plan=sbPlan({type,name:SB_DEFS[type].name}),w=330,h=155,p=placeNext(w,h),n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#252c39',borderColor:'#8398d0',fontSize:17});board.nodes.push(n);selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();sbEdit(n.id)}
+function sbEdit(id){const n=byId(id);if(!n?.plan)return;if(n.plan.type==='equipment'){equipmentOpen(id);return}if(n.plan.type==='mob'){combatMobEditor(id);return}if(n.plan.type==='mob_drop'){mdOpen(n.plan.fields.mob,n.plan.fields.drop);return}if(n.plan.type==='custom_item'){const item=customItem(n.plan.fields.item);if(!item){notify('Das verknüpfte Custom Item fehlt.');return}closeCatalog();openItemEditor(item.id,false);if(editorState)$('sbItemDetails').open=true;return}exitTextEditing();closeCatalog();sbState={mode:'plan',id,draft:structuredClone(n.plan)};sbRenderPlan()}
 function sbSummary(p){if(p.type==='skill')return 'Gesamt-XP: '+p.rows.reduce((a,r)=>a+(Number(r.xp)||0),0).toLocaleString('de-DE');if(['mob','loot'].includes(p.type))return 'Erwartete Items / Kill: '+p.rows.reduce((a,r)=>a+(Number(r.chance)||0)/100*((Number(r.min)||0)+(Number(r.max)||0))/2,0).toLocaleString('de-DE',{maximumFractionDigits:5})+' · unabhängige Drops, ohne Magic Find';return ''}
 function sbRenderPlan(){const p=sbState.draft,d=SB_DEFS[p.type];sbShow(d.icon+' '+d.name,'<div class="sb-grid">'+sbField('Name','sbName',p.name)+sbSelect('Status','sbStatus',[['planned','Geplant'],['doing','In Entwicklung'],['done','Fertig']],p.status)+'</div><div class="sb-grid">'+d.fields.map(([k,l,t])=>sbField(l,'sb_f_'+k,p.fields[k],t,'data-sb-field="'+k+'"')).join('')+'</div>'+sbField('Notizen','sbNotes',p.notes,'a')+(d.rows.length?'<hr><div class="sb-head"><strong>Tabelle</strong><button class="btn" data-sb-command="addRow">+ Eintrag</button></div>'+p.rows.map((row,i)=>'<div class="sb-row"><div class="sb-head"><strong>#'+(i+1)+(row.item?' · '+escapeHTML(displayItemName(row.item)):'')+'</strong><button class="iconbtn" data-remove-row="'+i+'" aria-label="Eintrag löschen">✕</button></div><div class="sb-grid">'+d.rows.map(([k,l,t])=>sbField(l,'sb_r_'+i+'_'+k,row[k],t,'data-sb-field="'+k+'" data-sb-row="'+i+'"')).join('')+'</div></div>').join(''):'')+'<p class="tiny-note" id="sbSummary">'+sbSummary(p)+'</p><label>Bildreferenz (optional)<input type="file" class="editor-input" id="sbImageFile" accept="image/png,image/jpeg,image/webp"></label>'+(p.image?'<img class="sb-art" src="'+p.image+'" alt="Referenz"><button class="btn" data-sb-command="clearImage">Bild entfernen</button>':'')+'<div class="sb-actions"><button class="btn primary" data-sb-command="savePlan">Speichern</button><button class="btn" data-sb-command="close">Abbrechen</button></div>'+sbChoices())}
 function sbSyncPlan(){if(sbState?.mode!=='plan')return;const p=sbState.draft;p.name=$('sbName').value;p.status=$('sbStatus').value;p.notes=$('sbNotes').value;for(const el of $('sbContent').querySelectorAll('[data-sb-field]')){const k=el.dataset.sbField;if(el.dataset.sbRow===undefined)p.fields[k]=el.value;else if(p.rows[Number(el.dataset.sbRow)])p.rows[Number(el.dataset.sbRow)][k]=el.value}$('sbSummary').textContent=sbSummary(p)}
@@ -1966,7 +1994,105 @@ $('sbContent').addEventListener('click',e=>{
  mobRenderGallery();mobRenderDetail();
 });
 
-function combatSaveMob(openDrops=false){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}mobSync();for(const k of ['damage','xp','speed']){if(p.fields[k]!==''&&(!Number.isFinite(Number(p.fields[k]))||Number(p.fields[k])<0||Number(p.fields[k])>1e12)){notify('Bitte gültige, nichtnegative Stats eingeben.');return}}p.name=p.name.trim()||'Mob';p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=140,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(openDrops)mdOpen(n.id);else if(state.returnToSim)openCombatSimulator(n.id,state.weaponId)}
+function combatSaveMob(openDrops=false){if(sbState?.mode!=='combatMob')return;const state=sbState,p=state.draft;const hp=Number($('combatMobHp').value),def=Number($('combatMobDef').value);if(!$('combatMobHp').value||!Number.isFinite(hp)||hp<1||hp>1e12||!Number.isFinite(def)||def<0||def>1e9){notify('Health muss zwischen 1 und 1 Billion liegen; Defense zwischen 0 und 1 Milliarde.');return}mobSync();for(const k of ['damage','xp','speed']){if(p.fields[k]!==''&&(!Number.isFinite(Number(p.fields[k]))||Number(p.fields[k])<0||Number(p.fields[k])>1e12)){notify('Bitte gültige, nichtnegative Stats eingeben.');return}}p.name=p.name.trim()||'Mob';p.fields.hp=hp;p.fields.defense=def;const plan=sbPlan(p);let n=byId(state.id);if(!n){const w=310,h=140,pos=placeNext(w,h);n=normNode({id:uid(),kind:'shape',plan,x:Math.round(pos.x-w/2),y:Math.round(pos.y-h/2),w,h,shape:'round',filled:true,fillColor:'#2a3037',borderColor:'#b16c76',fontSize:18});board.nodes.push(n)}else{n.plan=plan;n.text=sbLabel(plan)}selectedNode=n.id;selectedEdge=null;chosenSlot=null;sbClose();setLinkMode(false);renderNodes();save();notify('Mob gespeichert.');if(openDrops)mdOpen(n.id);else if(state.returnToSim)state.equipmentId?equipmentCombat(state.equipmentId,n.id):openCombatSimulator(n.id,state.weaponId)}
+
+/* Player Equipment Simulator: builds are ordinary saved Mindmap nodes.
+   Items are referenced by ID, never copied, so edits use the current stats. */
+function equipmentSlots(){return SB_DEFS.equipment.fields.slice(0,14)}
+function equipmentStats(fields,items=board.customItems){
+ const map=new Map(items.map(i=>[i.id,i]));
+ return Object.fromEntries(SB_STATS.map((k,i)=>{
+   const base=Number(fields['base'+i])||0;
+   const gear=equipmentSlots().reduce((sum,[slot])=>sum+(Number(map.get(fields[slot])?.details?.stats?.[k])||0),0);
+   return [k,{base,gear,total:base+gear}];
+ }));
+}
+function equipmentOpen(id=null){
+ exitTextEditing();closeCatalog();
+ const n=byId(id),existing=n?.plan?.type==='equipment'?n:null;
+ const draft=existing?structuredClone(existing.plan):sbPlan({type:'equipment',name:'New Build'});
+ sbState={mode:'equipment',id:existing?.id||null,draft,focus:'weapon',dirty:false};
+ equipmentRender();
+}
+function equipmentRender(){
+ const st=sbState;if(st?.mode!=='equipment')return;const e=escapeHTML,p=st.draft;
+ const builds=board.nodes.filter(n=>n.plan?.type==='equipment');
+ const items=board.customItems.slice().sort((a,b)=>a.name.localeCompare(b.name));
+ sbShow('♜ Player Equipment Simulator','<div class="equipment-designer"><p class="tiny-note">Stelle einen Build aus deinen Custom Items zusammen. Alle gespeicherten Werte werden addiert. Jeder Build ist eine eigene, verschiebbare Karte auf deiner Mindmap.</p><div class="eq-top">'+sbSelect('Gespeicherte Builds','eqBuild',[['','＋ Neuer Build'],...builds.map(n=>[n.id,n.plan.name])],st.id||'')+sbField('Build-Name','eqName',p.name)+'</div><div class="eq-actions" style="justify-content:flex-start;margin:0 0 12px"><button class="btn" data-eq-action="new">＋ Neuer Build</button><button class="btn" data-eq-action="copy">Build duplizieren</button></div><div class="equipment-layout"><section class="eq-panel"><h3>Equipment Slots</h3>'+(!items.length?'<p class="tiny-note">Noch keine Custom Items in dieser Mindmap. Lege zuerst ein Item mit Stats an.</p><button class="btn" data-eq-action="items">Custom Items öffnen</button>':'')+'<div class="eq-slots">'+equipmentSlots().map(([k,label])=>{
+ const id=p.fields[k],i=customItem(id);
+ const options=[['','— Leer —'],...(id&&!i?[[id,'Fehlendes Item']]:[]),...items.map(x=>[x.id,x.name])];
+ return '<div class="eq-slot" data-eq-slot="'+k+'"><button type="button" class="eq-icon" data-eq-preview="'+k+'" aria-label="'+e(label)+' Vorschau">'+(i?itemImg(i.id):'◇')+'</button>'+sbSelect(label,'eq_'+k,options,id)+'</div>'
+ }).join('')+'</div><details class="eq-base"><summary>Basiswerte des Spielers (optional)</summary><div class="combat-fields">'+SB_STATS.map((k,i)=>sbField(k,'eq_base'+i,p.fields['base'+i]||0,'n','min="0"')).join('')+'</div><p class="tiny-note">Basiswerte werden zusätzlich zu den Item-Stats gerechnet.</p></details></section><section class="eq-panel"><h3>Total Stats</h3><div class="eq-stat-grid" id="eqTotals"></div><p class="tiny-note">Crit Chance ist im Combat Simulator auf 0–100 % begrenzt. Set-Boni, Fähigkeiten und Pet-Level-Skalierung werden nicht automatisch berechnet.</p><h3 style="margin-top:14px">Item-Vorschau</h3><div class="eq-preview" id="eqPreview"></div></section></div><div class="eq-actions"><button class="btn" data-eq-action="cancel">Schließen</button><button class="btn" data-eq-action="test">⚔ Speichern &amp; im Combat Simulator testen</button><button class="btn primary" data-eq-action="save">Auf Mindmap speichern</button></div></div>');
+ equipmentRefresh();
+}
+function equipmentSync(){
+ const st=sbState;if(st?.mode!=='equipment')return;
+ st.draft.name=$('eqName').value.trim().slice(0,100);
+ for(const [k] of equipmentSlots())st.draft.fields[k]=$('eq_'+k).value;
+ SB_STATS.forEach((k,i)=>{st.draft.fields['base'+i]=Math.max(0,Number($('eq_base'+i).value)||0)});
+}
+function equipmentRefresh(){
+ const st=sbState;if(st?.mode!=='equipment')return;
+ const totals=equipmentStats(st.draft.fields),pct=new Set(['Crit Chance','Crit Damage','Attack Speed']);
+ $('eqTotals').innerHTML=SB_STATS.map(k=>{const a=totals[k],u=pct.has(k)?'%':'';return '<div class="eq-stat"><small>'+escapeHTML(k)+'</small><strong>'+combatFmt(a.total)+u+'</strong><span>Basis '+combatFmt(a.base)+' · Gear '+combatFmt(a.gear)+'</span></div>'}).join('');
+ for(const el of $('sbContent').querySelectorAll('[data-eq-slot]')){
+ const k=el.dataset.eqSlot,i=customItem(st.draft.fields[k]);el.classList.toggle('active',k===st.focus);el.querySelector('.eq-icon').innerHTML=i?itemImg(i.id):'◇';
+ }
+ const i=customItem(st.draft.fields[st.focus]);
+ $('eqPreview').innerHTML=i?ciGameTooltip(i):'<span class="tiny-note">Wähle ein Item oder tippe auf sein Symbol, um die Ingame-Lore zu sehen.</span>';
+}
+function equipmentCanLeave(){return !sbState?.dirty||window.confirm('Ungespeicherte Build-Änderungen verwerfen?')}
+function equipmentSave(){
+ const st=sbState;if(st?.mode!=='equipment')return null;
+ equipmentSync();
+ if(!st.draft.name){notify('Bitte gib dem Build einen Namen.');return null}
+ if(equipmentSlots().some(([k])=>st.draft.fields[k]&&!customItem(st.draft.fields[k]))){notify('Entferne zuerst fehlende Custom Items.');return null}
+ const plan=sbPlan(st.draft);
+ let n=byId(st.id);
+ if(!n||n.plan?.type!=='equipment'){
+ if(board.nodes.length>=1500){notify('Maximale Anzahl von Mindmap-Formen erreicht.');return null}
+ const w=340,h=145,p=placeNext(w,h);
+ n=normNode({id:uid(),kind:'shape',plan,x:Math.round(p.x-w/2),y:Math.round(p.y-h/2),w,h,shape:'round',filled:true,fillColor:'#1b2c3d',borderColor:'#79b7cc',fontSize:17});
+ board.nodes.push(n);
+ }else{n.plan=plan;n.text=sbLabel(plan)}
+ selectedNode=n.id;selectedEdge=null;chosenSlot=null;setLinkMode(false);renderNodes();save();
+ st.id=n.id;st.draft=structuredClone(plan);st.dirty=false;notify('Equipment Build gespeichert.');
+ return n;
+}
+function equipmentCombat(id,mobId=null){
+ const n=byId(id);if(n?.plan?.type!=='equipment')return;
+ const f=n.plan.fields,t=equipmentStats(f);
+ openCombatSimulator(mobId,f.weapon||null);
+ sbState.equipmentId=id;
+ // Mob HP and defense remain the target's stats. Player health and defense are separate.
+ for(const [k,field] of [['Damage','combatDamage'],['Strength','combatStrength'],['Crit Chance','combatChance'],['Crit Damage','combatCritDamage']])$(field).value=k==='Crit Chance'?Math.min(100,Math.max(0,t[k].total)):Math.max(0,t[k].total);
+ $('combatWeaponIcon').innerHTML=(f.weapon?itemImg(f.weapon):'')+'<span>'+escapeHTML(n.plan.name)+'<br><small class="tiny-note">Gesamtwerte aus dem Equipment Build</small></span>';
+ const info=document.createElement('div');info.className='eq-panel';info.style.margin='10px 0';
+ info.innerHTML='<strong>Player Equipment: '+escapeHTML(n.plan.name)+'</strong><p class="tiny-note">Player HP: '+combatFmt(t.Health.total)+' · Player DEF: '+combatFmt(t.Defense.total)+' · Attack Speed: '+combatFmt(t['Attack Speed'].total)+'%</p><p class="tiny-note">Die aktuelle Combat-Formel verwendet Damage, Strength und Crit-Stats. Die übrigen Spielerwerte werden zur Übersicht angezeigt. Health und Defense in den Testfeldern gehören zum Mob.</p><button class="btn" data-eq-action="back">← Zurück zum Build</button>';
+ $('combatWeaponIcon').after(info);combatReset();
+}
+$('sbContent').addEventListener('input',e=>{
+ const st=sbState;if(st?.mode!=='equipment')return;
+ if(e.target.id==='eqName'||e.target.id.startsWith('eq_base')){equipmentSync();st.dirty=true;equipmentRefresh()}
+});
+$('sbContent').addEventListener('change',e=>{
+ const st=sbState;if(st?.mode!=='equipment')return;
+ if(e.target.id==='eqBuild'){if(equipmentCanLeave())equipmentOpen(e.target.value||null);else e.target.value=st.id||'';return}
+ if(e.target.id.startsWith('eq_')&&!e.target.id.startsWith('eq_base')){equipmentSync();st.focus=e.target.id.slice(3);st.dirty=true;equipmentRefresh()}
+});
+$('sbContent').addEventListener('click',e=>{
+ const b=e.target.closest('[data-eq-action],[data-eq-preview]');if(!b)return;
+ const a=b.dataset.eqAction,st=sbState;
+ if(a==='back'&&st?.mode==='combat'&&st.equipmentId){equipmentOpen(st.equipmentId);return}
+ if(st?.mode!=='equipment')return;
+ if(b.dataset.eqPreview){st.focus=b.dataset.eqPreview;equipmentRefresh();return}
+ if(a==='cancel'){if(equipmentCanLeave())sbClose();return}
+ if(a==='new'){if(equipmentCanLeave())equipmentOpen();return}
+ if(a==='items'){if(equipmentCanLeave())sbItems();return}
+ if(a==='copy'){equipmentSync();st.id=null;st.draft.name=(st.draft.name+' (Copy)').slice(0,100);st.dirty=true;equipmentRender();return}
+ if(a==='save'||a==='test'){const n=equipmentSave();if(n){if(a==='test')equipmentCombat(n.id);else sbClose()}}
+});
+
 function combatRead(){const val=id=>$(id)?.value??'';return combatMath({hp:val('combatHP'),defense:val('combatDefense'),damage:val('combatDamage'),strength:val('combatStrength'),chance:val('combatChance'),critDamage:val('combatCritDamage'),base:val('combatBase'),factor:val('combatFactor')})}
 function combatWeaponStats(id){const stats=customItem(id)?.details?.stats||{};return {damage:stats.Damage??0,strength:stats.Strength??0,chance:stats['Crit Chance']??0,critDamage:stats['Crit Damage']??0}}
 function combatLoadWeapon(){const id=$('combatWeapon').value,st=combatWeaponStats(id);sbState.weaponId=id;for(const [key,field] of [['damage','combatDamage'],['strength','combatStrength'],['chance','combatChance'],['critDamage','combatCritDamage']])$(field).value=st[key];$('combatWeaponIcon').innerHTML=id?itemImg(id)+'<span>'+escapeHTML(displayItemName(id))+'<br><small class="tiny-note">Gespeicherte Item-Stats geladen</small></span>':'<span class="tiny-note">Manuelle Testwerte – ändern keine Items.</span>';combatReset()}
@@ -1977,8 +2103,8 @@ function combatReset(){if(sbState?.mode!=='combat')return;const c=combatRead();s
 function combatRenderRun(c){const state=sbState.run;$('combatHPBar').style.width=Math.max(0,Math.min(100,state.remaining/c.hp*100))+'%';$('combatHPText').textContent=combatFmt(state.remaining)+' / '+combatFmt(c.hp)+' HP';$('combatLog').textContent=(state.remaining<=0?'Mob besiegt · ':'')+state.hits+' Treffer · '+state.crits+' kritisch'+(state.hits?' · Letzter Treffer: '+combatFmt(state.last)+(state.lastCrit?' (CRIT)':''):'');for(const b of $('sbContent').querySelectorAll('[data-combat-action="hit"],[data-combat-action="normal"],[data-combat-action="crit"],[data-combat-action="ten"]'))b.disabled=state.remaining<=0}
 function combatRun(count,mode){const c=combatRead();for(let i=0;i<count&&sbState.run.remaining>0;i++)sbState.run=combatHit(sbState.run,c,Math.random(),mode);combatRenderRun(c)}
 $('sbContent').addEventListener('input',e=>{if(sbState?.mode==='combat'&&e.target.matches('input'))combatReset()});
-$('sbContent').addEventListener('change',e=>{if(sbState?.mode!=='combat')return;if(e.target.id==='combatWeapon')combatLoadWeapon();if(e.target.id==='combatMob')combatLoadMob()});
-$('sbContent').addEventListener('click',e=>{const b=e.target.closest('[data-combat-action]');if(!b||!sbState)return;const a=b.dataset.combatAction;if(a==='saveMob'||a==='saveMobDrops'){combatSaveMob(a==='saveMobDrops');return}if(a==='cancelMob'){const prev=sbState;if(prev.returnToSim)openCombatSimulator(prev.id,prev.weaponId);else sbClose();return}if(sbState.mode!=='combat')return;if(a==='newMob'||a==='editMob'){const id=a==='editMob'?$('combatMob').value:null,weapon=sbState.weaponId;if(a==='editMob'&&!id){notify('Bitte einen eigenen Mob auswählen.');return}combatMobEditor(id,true);sbState.weaponId=weapon;return}if(a==='reset')combatReset();else if(a==='hit')combatRun(1,'random');else if(a==='ten')combatRun(10,'random');else if(a==='normal')combatRun(1,'normal');else if(a==='crit')combatRun(1,'crit')});
+$('sbContent').addEventListener('change',e=>{if(sbState?.mode!=='combat')return;if(e.target.id==='combatWeapon'){if(sbState.equipmentId){const id=sbState.equipmentId,mob=$('combatMob').value;equipmentCombat(id,mob);notify('Equipment Build ist aktiv. Ändere die Waffe im Build.')}else combatLoadWeapon();}if(e.target.id==='combatMob')combatLoadMob()});
+$('sbContent').addEventListener('click',e=>{const b=e.target.closest('[data-combat-action]');if(!b||!sbState)return;const a=b.dataset.combatAction;if(a==='saveMob'||a==='saveMobDrops'){combatSaveMob(a==='saveMobDrops');return}if(a==='cancelMob'){const prev=sbState;if(prev.returnToSim){if(prev.equipmentId)equipmentCombat(prev.equipmentId,prev.id);else openCombatSimulator(prev.id,prev.weaponId)}else sbClose();return}if(sbState.mode!=='combat')return;if(a==='newMob'||a==='editMob'){const id=a==='editMob'?$('combatMob').value:null,weapon=sbState.weaponId;if(a==='editMob'&&!id){notify('Bitte einen eigenen Mob auswählen.');return}const equipmentId=sbState.equipmentId;combatMobEditor(id,true);sbState.weaponId=weapon;sbState.equipmentId=equipmentId;return}if(a==='reset')combatReset();else if(a==='hit')combatRun(1,'random');else if(a==='ten')combatRun(10,'random');else if(a==='normal')combatRun(1,'normal');else if(a==='crit')combatRun(1,'crit')});
 
 renderView();renderNodes();renderCatalog();updateHistoryButtons();
 function cloudEndpoint(name){return CLOUD_CONFIG.url.replace(/\/$/,'')+'/rest/v1/rpc/'+name}

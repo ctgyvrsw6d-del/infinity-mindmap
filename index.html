@@ -517,6 +517,15 @@
 .eq-slot-copy strong{font-size:11px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--eq-rarity,#c5cbd5)}
 .eq-avatar{position:relative;z-index:0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
 .eq-avatar svg{width:100%;max-width:205px;height:auto;overflow:visible;filter:drop-shadow(0 10px 10px #0007)}
+.eq-steve-scene{position:relative;width:100%;max-width:205px;aspect-ratio:40/48;isolation:isolate}
+.eq-avatar .eq-steve-art{display:block;width:100%;height:100%;max-width:none;overflow:visible}
+.eq-worn-glint{opacity:.27;animation:eqWornShimmer 2.8s ease-in-out infinite;pointer-events:none}
+@keyframes eqWornShimmer{0%,100%{opacity:.18}50%{opacity:.53}}
+.eq-held-item{position:absolute;left:68%;top:50%;width:41%;aspect-ratio:1;display:grid;place-items:center;transform:translate(-16%,-37%) rotate(-12deg);pointer-events:none;z-index:2}
+.eq-held-item .item-stack-icon{--item-size:100%!important;width:100%;height:100%;filter:drop-shadow(0 3px 3px #0008)}
+.eq-held-item svg{width:100%;height:100%;max-width:none;filter:none}
+@media(prefers-reduced-motion:reduce){.eq-worn-glint{animation:none;opacity:.3}}
+
 .eq-avatar-name{font-weight:700;font-size:13px;text-align:center;overflow-wrap:anywhere;max-width:100%;color:#e5d1a7}
 .eq-avatar small{font-size:10px;color:#a3b1c5;text-align:center}
 .eq-accessories{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:10px}
@@ -2068,25 +2077,37 @@ function equipmentSlotMarkup(k){
  return '<button type="button" class="eq-slot'+(st.focus===k?' active':'')+(i?' filled':'')+'" data-eq-preview="'+k+'" aria-pressed="'+(st.focus===k)+'" aria-label="'+e(label+': '+(i?.name||'Leer'))+'" style="--eq-rarity:'+(i?SB_RARITY[sbDetails(i.details).rarity]:'#c5cbd5')+'"><span class="eq-icon">'+itemImg(i?.id||EQ_PLACEHOLDERS[k])+'</span><span class="eq-slot-copy"><small>'+e(label)+'</small><strong>'+e(i?.name||(id?'Fehlendes Item':'+ Ausrüsten'))+'</strong></span></button>';
 }
 function equipmentAvatar(fields){
- // Original block-style equipment mannequin. Armor is a visual indication, not a rendered skin.
- const shades={netherite:['#63616c','#403e49','#8a8793'],diamond:['#6bc8cc','#307c86','#a1e4e1'],iron:['#b1bbc9','#707e94','#d6dce5'],golden:['#d5b36d','#94703d','#f0d695'],leather:['#916d54','#503b30','#c19a74'],chainmail:['#8d9bad','#596678','#bcc4d0'],turtle:['#69a56b','#376f4b','#a2c18b']};
- const tone=(k,normal)=>{
-  const i=customItem(fields[k]);if(!i)return normal;
-  if(i.baseId.startsWith('leather_')&&i.dyeRecipe?.length){const c=armorDyeColor(i.dyeRecipe);if(typeof c==='string'&&/^#[a-f0-9]{6}$/i.test(c))return [c,'#313746','#c0b3c7']}
-  return shades[i.baseId.split('_')[0]]||['#9189b7','#554e72','#c2b8e2'];
+ // Pixel-proportioned Steve preview; layered armor and the equipped item's actual icon.
+ const gear=k=>customItem(fields[k]);
+ const materials={netherite:'#66616e',diamond:'#52d9d1',iron:'#c5cbd2',golden:'#efc755',leather:'#95633f',chainmail:'#9ba6b0',turtle:'#65a74e'};
+ const shade=(c,f)=>'#'+[1,3,5].map(p=>Math.max(0,Math.min(255,Math.round(parseInt(c.slice(p,p+2),16)*f))).toString(16).padStart(2,'0')).join('');
+ const palette=i=>{
+  let c=materials[(i?.baseId||'').split('_')[0]]||'#9b8ab8';
+  if(i?.baseId?.startsWith('leather_')&&i.dyeRecipe?.length){
+   const d=armorDyeColor(i.dyeRecipe);if(typeof d==='string'&&/^#[a-f0-9]{6}$/i.test(d))c=d;
+  }
+  return c;
  };
- const skin=['#ad876f','#725448','#d4aa8e'],hair=['#4b3732','#322927','#6b5040'],shirt=['#3c6171','#294450','#598195'],pants=['#46516b','#30384d','#64718a'],boot=['#3d4654','#252c36','#64707d'];
- const box=(x,y,w,h,d,c)=>'<path d="M'+x+' '+y+'l'+d+' -'+Math.round(d*.48)+'h'+w+'l-'+d+' '+Math.round(d*.48)+'Z" fill="'+c[2]+'"/><path d="M'+(x+w)+' '+y+'l'+d+' -'+Math.round(d*.48)+'v'+h+'l-'+d+' '+Math.round(d*.48)+'Z" fill="'+c[1]+'"/><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c[0]+'"/>';
- let a='<svg viewBox="0 0 168 270" role="img" aria-label="Schematische Minecraft-Spielerfigur"><ellipse cx="82" cy="251" rx="70" ry="15" fill="#090c14" opacity=".8"/><ellipse cx="82" cy="247" rx="64" ry="11" fill="none" stroke="#bda674" stroke-width="1.2" opacity=".6"/><ellipse cx="82" cy="247" rx="49" ry="7" fill="none" stroke="#8595b2" opacity=".3"/>';
- a+=box(50,170,30,66,9,tone('leggings',pants))+box(83,170,30,66,9,tone('leggings',pants));
- a+=box(48,222,32,17,9,tone('boots',boot))+box(83,222,32,17,9,tone('boots',boot));
- a+=box(109,99,24,67,10,tone('chestplate',shirt))+box(49,93,64,79,12,tone('chestplate',shirt))+box(24,100,25,67,10,tone('chestplate',shirt));
- a+=box(24,151,25,18,10,skin)+box(109,151,24,18,10,skin);
- a+=box(53,28,55,57,13,skin);
- a+='<path d="M53 28 66 22h55l-13 6v14H53Z" fill="'+hair[0]+'"/><path d="M108 28 121 22v24l-13 6Z" fill="'+hair[1]+'"/><rect x="61" y="50" width="13" height="6" fill="#d9d6ca"/><rect x="86" y="50" width="13" height="6" fill="#d9d6ca"/><rect x="68" y="50" width="6" height="6" fill="#4b7198"/><rect x="86" y="50" width="6" height="6" fill="#4b7198"/><rect x="76" y="64" width="10" height="4" fill="#75544b"/>';
- if(customItem(fields.helmet)){const c=tone('helmet',shirt);a+=box(49,23,63,22,13,c)+'<rect x="49" y="44" width="10" height="20" fill="'+c[0]+'"/><rect x="102" y="44" width="10" height="20" fill="'+c[1]+'"/>'}
- if(customItem(fields.chestplate))a+='<path d="M59 102h42v45H59z" fill="none" stroke="#ffffff3b" stroke-width="2"/><path d="M68 109h24v14H68z" fill="#ffffff12"/>';
- return a+'</svg>';
+ const rect=(x,y,w,h,c)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c+'"/>';
+ const armor=(k,boxes)=>{
+  const i=gear(k);if(!i)return '';
+  const c=palette(i);
+  return boxes.map(([x,y,w,h])=>rect(x,y,w,h,c)+rect(x,y,1,h,shade(c,.73))+rect(x+w-1,y,1,h,shade(c,.82))+rect(x+1,y,w-2,1,shade(c,1.22))+(h>3?rect(x+1,y+h-1,w-2,1,shade(c,.64)):'')+(i.enchanted?'<rect class="eq-worn-glint" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="url(#eqWornGlint)"/>':'')).join('');
+ };
+ let a='<svg class="eq-steve-art" viewBox="0 0 40 48" role="img" aria-label="Minecraft Steve mit ausgewählter Ausrüstung"><defs><pattern id="eqWornGlint" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2" height="7" fill="#d7a0ff"/><rect x="2" width="1" height="7" fill="#8cbfff"/></pattern></defs><ellipse cx="20" cy="43" rx="16" ry="3.4" fill="#090c14" opacity=".8"/><ellipse cx="20" cy="43" rx="15" ry="3" fill="none" stroke="#bda674" stroke-width=".25" opacity=".6"/><g shape-rendering="crispEdges">';
+ // True 8:12:12 head/body/leg proportions, with touching 4-unit arms.
+ a+=rect(16,28,4,12,'#374987')+rect(20,28,4,12,'#414f90')+rect(16,28,1,10,'#2c3973')+rect(20,28,1,10,'#303d79')+rect(19,29,1,8,'#4b5b9d')+rect(23,29,1,8,'#5261a0');
+ a+=rect(16,38,4,2,'#4a4a4d')+rect(20,38,4,2,'#555358')+rect(16,39,8,1,'#31343c');
+ a+=armor('leggings',[[16,28,4,9],[20,28,4,9]])+armor('boots',[[16,36,4,4],[20,36,4,4]]);
+ a+=rect(12,16,4,12,'#b77f60')+rect(24,16,4,12,'#bd8868')+rect(12,20,1,8,'#966548')+rect(27,20,1,8,'#98674d')+rect(13,23,2,2,'#cc9774')+rect(25,22,2,2,'#d2a07e');
+ a+=rect(16,16,8,12,'#299b9e')+rect(16,17,1,10,'#207a80')+rect(23,17,1,10,'#20858a')+rect(17,17,2,1,'#45b5b4')+rect(21,21,2,1,'#35aaaa')+rect(18,24,2,3,'#218e93')+rect(12,16,4,4,'#299b9e')+rect(24,16,4,4,'#299b9e')+rect(12,19,4,1,'#207e85')+rect(24,19,4,1,'#207e85');
+ a+=armor('chestplate',[[16,16,8,12],[12,16,4,5],[24,16,4,5]]);
+ if(gear('chestplate'))a+=rect(18,18,4,1,shade(palette(gear('chestplate')),1.3));
+ a+=rect(16,8,8,8,'#bd8766')+rect(16,8,8,2,'#4b3024')+rect(16,10,1,3,'#53392c')+rect(23,10,1,3,'#53392c')+rect(17,9,3,1,'#644334')+rect(21,8,2,1,'#684635')+rect(17,11,2,1,'#f1e6d8')+rect(21,11,2,1,'#f1e6d8')+rect(18,11,1,1,'#4b5591')+rect(21,11,1,1,'#4b5591')+rect(19,12,2,1,'#d19a75')+rect(18,13,4,2,'#664333')+rect(19,13,2,1,'#9b624b')+rect(19,14,2,1,'#c78e70')+rect(16,15,8,1,'#a36d51');
+ a+=armor('helmet',[[15,7,10,3],[15,10,2,3],[23,10,2,3]]);
+ a+='</g></svg>';
+ const weapon=gear('weapon');
+ return '<div class="eq-steve-scene">'+a+(weapon?'<span class="eq-held-item" title="'+escapeHTML(weapon.name||'Weapon')+'">'+itemImg(weapon.id)+'</span>':'')+'</div>';
 }
 function equipmentRender(){
  const st=sbState;if(st?.mode!=='equipment')return;const p=st.draft,builds=board.nodes.filter(n=>n.plan?.type==='equipment');
